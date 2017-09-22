@@ -1,0 +1,19 @@
+{
+  "name": "virus_source",
+  "version": "1.0.0",
+  "description": "virus source for vendor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/excalibur233/virus_source.git"
+  },
+  "author": "xsm",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/excalibur233/virus_source/issues"
+  },
+  "homepage": "https://github.com/excalibur233/virus_source#readme"
+}
