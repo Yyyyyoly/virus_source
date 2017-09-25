@@ -50,6 +50,7 @@ module.exports = function () {
   // register user routes here.
   require('../app/routes/index.route')(app);
   require('../app/routes/auth.route')(app);
+  require('../app/routes/verify.route')(app);
 
   // catch the 404 and render the 404 page.
   app.use((req, res) => {
