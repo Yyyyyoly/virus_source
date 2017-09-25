@@ -1,7 +1,7 @@
 module.exports = {
   // production configuration options
   serverPort: 9000,
-  domain: 'http://localhost:9000',
+  serverHost: 'http://localhost',
   sessionSecret: 'xsm_production_secret',
 
   // db config

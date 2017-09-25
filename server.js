@@ -10,4 +10,4 @@ const app = express();
 app.listen(config.serverPort);
 
 module.exports = app;
-console.log(`Server running at ${config.domain}:${config.serverPort}`);
+console.log(`Server running at ${config.serverHost}:${config.serverPort}`);
