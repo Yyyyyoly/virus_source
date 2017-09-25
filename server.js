@@ -1,11 +1,17 @@
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 const config = require('./config/config');
+const http = require('http');
+const models = require('./app/models');
 const express = require('./config/express');
 
-// database must go first
 const app = express();
-app.listen(config.serverPort);
+const server = http.createServer(app);
 
-module.exports = app;
-console.log(`Server running at ${config.serverHost}:${config.serverPort}`);
+models.sequelize.sync().then(function () {
+  server.listen(config.serverPort, function () {
+    console.log(`Server running at ${config.serverHost}:${config.serverPort}`);
+  });
+});
+
+
