@@ -39,9 +39,10 @@ module.exports = function () {
   // }));
   app.use(csurf({ cookie: true }));
 
-  // csurf
-
+  // csrf
+  require('../app/routes/csrf.route')(app);
   // flash
+  require('../app/routes/flash.route')(app);
 
   // always last, but before user middleware.
   app.use(express.static(path.join(__dirname, '../public/')));
