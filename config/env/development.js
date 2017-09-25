@@ -23,9 +23,4 @@ module.exports = {
     MessageTemplete: 'SMS_94765019',
     MessageSignName: '迈德科技',
   },
-
-  // baidu Map config
-  mapConfig: {
-    ak: 'NH5B0cjmPzbtTuyl1xswwlOIPWvHisdA',
-  },
 };
