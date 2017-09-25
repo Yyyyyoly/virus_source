@@ -15,3 +15,5 @@ const constants = {
   // 修改密码采用的方式, 2表示通过短信验证码修改
   PASSWORD_MOD_BY_MESSAGE: 2,
 };
+
+module.exports = constants;
