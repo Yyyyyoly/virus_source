@@ -49,19 +49,19 @@ module.exports = function () {
 
   // register user routes here.
   require('../app/routes/index.route')(app);
+  require('../app/routes/auth.route')(app);
 
-  // catch the 404 and forward to the error handler.
-  app.use((req, res, next) => {
-    const err = new Error('not found');
-    err.status = 404;
-    next(err);
+  // catch the 404 and render the 404 page.
+  app.use((req, res) => {
+    res.status(404);
+    res.render('404');
   });
 
   // error handler,
   // eslint-disable-next-line no-unused-vars.
   app.use((err, req, res, next) => {
     res.status(err.status || 500);
-    res.render('error', { error: err.toString() });
+    res.render('500', { error: err.toString() });
   });
 
   return app;
