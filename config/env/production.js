@@ -4,9 +4,6 @@ module.exports = {
   serverHost: 'http://localhost',
   sessionSecret: 'xsm_production_secret',
 
-  // mongodb config
-  mongoUrl: 'mongodb://username:password@hostname:port/database',
-
   // mysql config
   mysqlConfig: {
     host: '127.0.0.1',

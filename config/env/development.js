@@ -4,9 +4,6 @@ module.exports = {
   serverHost: 'http://localhost',
   sessionSecret: 'xsm_development_secret',
 
-  // mongodb config
-  mongoUrl: 'mongodb://localhost/virus_source_app',
-
   // mysql config
   mysqlConfig: {
     host: '127.0.0.1',
