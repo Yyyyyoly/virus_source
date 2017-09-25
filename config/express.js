@@ -48,6 +48,7 @@ module.exports = function () {
   app.use(express.static(path.join(__dirname, '../public/')));
 
   // register user routes here.
+  require('../app/routes/index.route')(app);
 
   // catch the 404 and forward to the error handler.
   app.use((req, res, next) => {
