@@ -4,13 +4,13 @@ const Sequelize = require("sequelize");
 const config = require('../../config/config');
 
 const sequelize = new Sequelize(
-  config.database,
-  config.username,
-  config.password,
+  config.mysqlConfig.database,
+  config.mysqlConfig.username,
+  config.mysqlConfig.password,
   {
     'dialect': 'mysql',
-    'host': config.host,
-    'port': config.port,
+    'host': config.mysqlConfig.host,
+    'port': config.mysqlConfig.port,
   }
 );
 
