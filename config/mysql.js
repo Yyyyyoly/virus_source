@@ -4,7 +4,7 @@ const Sequelize = require('sequelize');
 module.exports = function () {
   const mysql = new Sequelize(
     config.database,
-    config.user,
+    config.username,
     config.password,
     {
       'dialect': 'mysql',
