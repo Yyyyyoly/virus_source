@@ -28,6 +28,7 @@
     "morgan": "^1.8.2",
     "pug": "^2.0.0-rc.4",
     "randomstring": "^1.1.5",
-    "redis": "^2.8.0"
+    "redis": "^2.8.0",
+    "sequelize": "^4.10.3"
   }
 }
