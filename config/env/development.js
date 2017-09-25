@@ -4,8 +4,17 @@ module.exports = {
   serverHost: 'http://localhost',
   sessionSecret: 'xsm_development_secret',
 
-  // db config
+  // mongodb config
   mongoUrl: 'mongodb://localhost/virus_source_app',
+
+  // mysql config
+  mysqlConfig: {
+    host: '127.0.0.1',
+    port: 3306,
+    database: 'virus_source_app',
+    user: 'root',
+    password: 'root',
+  },
 
   // redis config
   redisConfig: {
