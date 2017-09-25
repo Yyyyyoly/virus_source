@@ -6,8 +6,8 @@ exports.instruction = function (req, res) {
   res.render('instruction', {title: 'instruction page'});
 };
 
-exports.customerService = function (req, res) {
-  res.render('customerService', {title: 'instruction page'});
+exports.service = function (req, res) {
+  res.render('service', {title: 'service page'});
 };
 
 exports.about = function (req, res) {
