@@ -29,4 +29,11 @@ module.exports = {
     MessageTemplete: 'SMS_94765019',
     MessageSignName: '迈德科技',
   },
+
+  // weChat config
+  weChatConfig: {
+    appId: 'wxb7e964d18e56c250',
+    appSecret: '7a4f11e20bc12b5aa16c06879108680f',
+    token: 'wangyg',
+  },
 };
