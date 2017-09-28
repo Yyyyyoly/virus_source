@@ -5,6 +5,11 @@ const HttpSend = require('../utils/http.util');
 const Model = require('../models/index');
 const crypto = require('crypto');
 
+// 用户中心首页
+exports.index = function (req, res) {
+  res.render('user', { title: 'user management' });
+};
+
 // 密码管理首页
 exports.getUserPassword = function (req, res, next) {
   const userId = req.session.user.userId || '';
