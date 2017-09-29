@@ -14,6 +14,16 @@ const constants = {
   PASSWORD_MOD_BY_OLD: 1,
   // 修改密码采用的方式, 2表示通过短信验证码修改
   PASSWORD_MOD_BY_MESSAGE: 2,
+
+  // 资讯搜索类型 热门
+  HOT_NEWS: 1,
+  // 资讯搜索类型 最新
+  LATEST_NEWS: 2,
+
+  // 资讯内容类型 全部
+  CONTEXT_TOTAL: 1,
+  // 资讯内容类型 痛风专栏
+  CONTEXT_GOUT: 2,
 };
 
 module.exports = constants;

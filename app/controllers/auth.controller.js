@@ -228,21 +228,22 @@ exports.logoutGet = function (req, res) {
 
 // 中间件：判断是否已经登录
 exports.isLogin = function (req, res, next) {
-  const userInfo = req.session.user || {};
-
-  // 记载用户的起始url，方便登录/注册后跳转
-  const originalUrl = url.format({
-    protocol: req.protocol,
-    host: req.get('host'),
-    pathname: req.originalUrl,
-  });
-  req.session.originalUrl = originalUrl;
-
-  if (!userInfo || !userInfo.uid) {
-    res.redirect(`${config.serverHost}:${config.serverPort}/auth/login`);
-  } else {
-    next();
-  }
+  // const userInfo = req.session.user || {};
+  //
+  // // 记载用户的起始url，方便登录/注册后跳转
+  // const originalUrl = url.format({
+  //   protocol: req.protocol,
+  //   host: req.get('host'),
+  //   pathname: req.originalUrl,
+  // });
+  // req.session.originalUrl = originalUrl;
+  //
+  // if (!userInfo || !userInfo.uid) {
+  //   res.redirect(`${config.serverHost}:${config.serverPort}/auth/login`);
+  // } else {
+  //   next();
+  // }
+  next();
 };
 
 // 判断请求是否来自微信客户端
