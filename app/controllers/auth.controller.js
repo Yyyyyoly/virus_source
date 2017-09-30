@@ -165,7 +165,7 @@ exports.loginGetFromWeChat = function (req, res) {
     return;
   }
 
-  Model.User.findOne({ openId }).then((responseUser) => {
+  Model.User.findOne({ where: { openId } }).then((responseUser) => {
     if (!responseUser || !responseUser.dataValues) {
       req.session.user = { openId };
       const registerUrl = `${config.serverHost}:${config.serverPort}/auth/register`;
@@ -195,9 +195,9 @@ exports.loginGetFromWeChat = function (req, res) {
 exports.loginPost = function (req, res) {
   const weChatFlag = exports.isFromWeChat(req);
   if (weChatFlag) {
-    // 跳转 获取用户授权的code
+    // 跳转 获取用户授权的code  微信不接受80端口以外的回调
     const api = new OAuth(config.weChatConfig.appId, config.weChatConfig.appSecret);
-    const weChatUrl = api.getAuthorizeURL(`${config.serverHost}:${config.serverPort}/auth/weChatCode`, '', 'snsapi_base');
+    const weChatUrl = api.getAuthorizeURL(`${config.serverHost}/auth/weChatCode`, '', 'snsapi_base');
     res.redirect(weChatUrl);
   } else {
     exports.loginPostFromOther(req, res);
@@ -210,9 +210,7 @@ exports.weChatCodeGet = function (req, res) {
   const api = new OAuth(config.weChatConfig.appId, config.weChatConfig.appSecret);
   api.getAccessToken(code, (err, result) => {
     if (err || !result || !result.data) {
-      // 如果获取openId失败  就当做其他浏览器登录的用户处理，
-      // 下次登录再更新openId
-      exports.loginPostFromOther(req, res);
+      res.end(result.errCode);
     } else {
       req.query.openId = result.data.openid || '';
       exports.loginGetFromWeChat(req, res);

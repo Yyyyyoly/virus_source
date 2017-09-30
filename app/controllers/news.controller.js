@@ -15,6 +15,7 @@ exports.index = function (req, res, next) {
 
   const mainFunction = async () => {
     try {
+      let newsInfos = [];
       const newLists = [];
       if (orderType === constants.HOT_NEWS) {
         // 热门的规则 目前按照当月浏览量排序
@@ -31,35 +32,35 @@ exports.index = function (req, res, next) {
         if (contextType !== constants.CONTEXT_TOTAL) {
           conditions.where = { type: contextType };
         }
-        const newsInfos = await Model.News.findAll(conditions);
+        newsInfos = await Model.News.findAll(conditions);
+      }
 
-        // 并发查询每个资讯的点赞数和访问数
-        const getNewsPromises = newsInfos.map(async (newsInfo) => {
-          const pvKey = redisUtil.getRedisPrefix(1, newsInfo.dataValues.newsId);
-          const thumbUpKey = redisUtil.getRedisPrefix(3, newsInfo.dataValues.newsId);
-          const [pvNum, thumbUpNum] = await Promise.all([
-            redisClient.multi().hget(pvKey, 'totalNum').execAsync(),
-            redisClient.multi().hget(thumbUpKey, 'totalNum').execAsync(),
-          ]);
+      // 并发查询每个资讯的点赞数和访问数
+      const getNewsPromises = newsInfos.map(async (newsInfo) => {
+        const pvKey = redisUtil.getRedisPrefix(1, newsInfo.dataValues.newsId);
+        const thumbUpKey = redisUtil.getRedisPrefix(3, newsInfo.dataValues.newsId);
+        const [pvNum, thumbUpNum] = await Promise.all([
+          redisClient.multi().hget(pvKey, 'totalNum').execAsync(),
+          redisClient.multi().hget(thumbUpKey, 'totalNum').execAsync(),
+        ]);
 
-          return {
-            newsId: newsInfo.dataValues.newsId,
-            redirectUrl: newsInfo.dataValues.redirectUrl,
-            type: newsInfo.dataValues.type,
-            title: newsInfo.dataValues.title,
-            introduction: newsInfo.dataValues.introduction,
-            imgUrl: newsInfo.dataValues.imgUrl,
-            createdAt: newsInfo.dataValues.createdAt,
-            pv: parseInt(pvNum[0], 0) || 0,
-            thumbUp: parseInt(thumbUpNum[0], 0) || 0,
-          };
-        });
+        return {
+          newsId: newsInfo.dataValues.newsId,
+          redirectUrl: newsInfo.dataValues.redirectUrl,
+          type: newsInfo.dataValues.type,
+          title: newsInfo.dataValues.title,
+          introduction: newsInfo.dataValues.introduction,
+          imgUrl: newsInfo.dataValues.imgUrl,
+          createdAt: newsInfo.dataValues.createdAt,
+          pv: parseInt(pvNum[0], 0) || 0,
+          thumbUp: parseInt(thumbUpNum[0], 0) || 0,
+        };
+      });
 
-        // 将并发的结果按照之前的顺序保存
-        for (const newsPromise of getNewsPromises) {
-          const info = await newsPromise;
-          newLists.push(info);
-        }
+      // 将并发的结果按照之前的顺序保存
+      for (const newsPromise of getNewsPromises) {
+        const info = await newsPromise;
+        newLists.push(info);
       }
 
       res.render('index', { title: 'index page', newLists });

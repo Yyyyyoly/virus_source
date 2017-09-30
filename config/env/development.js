@@ -1,7 +1,7 @@
 module.exports = {
   // development configuration options
   serverPort: 3000,
-  serverHost: 'http://localhost',
+  serverHost: 'http://118.31.16.48',
   sessionSecret: 'xsm_development_secret',
 
   // mysql config
@@ -17,7 +17,7 @@ module.exports = {
   redisConfig: {
     host: '127.0.0.1',
     port: '6379',
-    pass: '',
+    password: '',
     ttl: 1800,
     db: 0,
     logErrors: true,
