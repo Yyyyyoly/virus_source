@@ -1,7 +1,7 @@
 module.exports = {
   // development configuration options
   serverPort: 3000,
-  serverHost: 'http://118.31.16.48',
+  serverHost: 'http://localhost',
   sessionSecret: 'xsm_development_secret',
 
   // mysql config

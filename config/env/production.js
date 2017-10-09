@@ -1,7 +1,7 @@
 module.exports = {
   // production configuration options
   serverPort: 9000,
-  serverHost: 'http://118.31.16.48',
+  serverHost: 'http://localhost',
   sessionSecret: 'xsm_production_secret',
 
   // mysql config
