@@ -74,7 +74,7 @@ exports.registerPost = function (req, res) {
 
       req.session.user = {
         phone: userInfo.dataValues.phone,
-        username: userInfo.dataValues.username,
+        userName: userInfo.dataValues.userName,
         createdAt: userInfo.dataValues.createdAt,
         userId: userInfo.dataValues.userId,
         openId: userInfo.dataValues.openId,
@@ -138,7 +138,7 @@ exports.loginPostFromOther = function (req, res) {
 
     req.session.user = {
       phone: responseUser.dataValues.phone,
-      username: responseUser.dataValues.username,
+      userName: responseUser.dataValues.userName,
       createdAt: responseUser.dataValues.createdAt,
       userId: responseUser.dataValues.userId,
       openId: responseUser.dataValues.openId,
@@ -175,7 +175,7 @@ exports.loginGetFromWeChat = function (req, res) {
 
     req.session.user = {
       phone: responseUser.dataValues.phone,
-      username: responseUser.dataValues.username,
+      userName: responseUser.dataValues.userName,
       createdAt: responseUser.dataValues.createdAt,
       userId: responseUser.dataValues.userId,
       openId: responseUser.dataValues.openId,
@@ -241,6 +241,13 @@ exports.isLogin = function (req, res, next) {
   // } else {
   //   next();
   // }
+  req.session.user = {
+    phone: '18721586265',
+    userName: 'test1',
+    createdAt: '2017-09-27 11:17:06',
+    userId: '1',
+    openId: 'akshuidhoqhewio',
+  };
   next();
 };
 

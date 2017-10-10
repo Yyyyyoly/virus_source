@@ -7,7 +7,7 @@ module.exports = function (sequelize, DataTypes) {
     // 作者
     userId: { type: DataTypes.BIGINT, allowNull: false },
     // 资讯内容地址链接
-    redirectUrl: { type: DataTypes.STRING, allowNull: false, defaultValue: '/news/article' },
+    redirectUrl: { type: DataTypes.STRING, allowNull: false, defaultValue: 1 },
     // 资讯所属类别 (eg. 糖尿病、痛风等)
     type: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
     // 资讯标题

@@ -3,7 +3,7 @@ module.exports = function (sequelize, DataTypes) {
     userId: {
       type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true, unique: true,
     },
-    username: { type: DataTypes.STRING },
+    userName: { type: DataTypes.STRING },
     phone: { type: DataTypes.STRING(11), allowNull: false, validate: { len: 11, is: /^1[3578]\d{9}$/ } },
     password: { type: DataTypes.STRING, allowNull: false },
     openId: { type: DataTypes.STRING },
