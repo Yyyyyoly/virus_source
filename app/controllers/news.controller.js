@@ -14,8 +14,8 @@ exports.getPVAndThumpById = async (newsId) => {
   ]);
 
   return {
-    pvNum: parseInt(pvNum[0], 0) || 0,
-    thumbUpNum: parseInt(thumbUpNum[0], 0) || 0,
+    pvNum: pvNum || 0,
+    thumbUpNum: thumbUpNum || 0,
   };
 };
 
@@ -118,8 +118,14 @@ exports.index = (req, res, next) => {
   mainFunction();
 };
 
+// 获取渠道  通过req.header 或者通过不同链接后的参数区分
+exports.getChannel = (req) => {
+  const channel = req.query.channel ? parseInt(req.query.channel, 0) : 0;
+  return channel;
+};
+
 // 根据资讯id和用户id  增加对应的pv统计日志
-exports.incPVById = async (newsInfo, writerInfo, viewerInfo, shareUserId, chanel) => {
+exports.incPVById = async (newsInfo, writerInfo, viewerInfo, shareUserId, channel) => {
   // 如果有分享者，先查询分享者信息
   const shareInfo = {
     shareId: shareUserId,
@@ -152,7 +158,7 @@ exports.incPVById = async (newsInfo, writerInfo, viewerInfo, shareUserId, chanel
       shareId: shareInfo.shareId,
       shareName: shareInfo.shareName,
       sharePhone: shareInfo.sharePhone,
-      shareChannel: chanel,
+      shareChannel: channel,
     }, { transaction });
     if (updateMysql && updateMysql.dataValues) {
       const pvTotalKey = redisUtil.getRedisPrefix(2);
@@ -176,7 +182,7 @@ exports.incPVById = async (newsInfo, writerInfo, viewerInfo, shareUserId, chanel
           .zincrby(pvContextKey, 1, newsInfo.newsId)
           .execAsync();
       }
-      if (uptdateRedis.length) {
+      if (!uptdateRedis.length) {
         throw new Error('redis update failed');
       }
     }
@@ -190,9 +196,9 @@ exports.incPVById = async (newsInfo, writerInfo, viewerInfo, shareUserId, chanel
 exports.getNewsDetailById = (req, res, next) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
   // 分享者id
-  const shareUserId = req.query.shareUserId ? parseInt(req.query.shareUserId, 0) : 0;
+  const shareUid = req.query.shareUid ? parseInt(req.query.shareUid, 0) : 0;
   // 分享渠道id
-  const chanel = req.query.chanel ? parseInt(req.query.chanel, 0) : 0;
+  const channel = exports.getChannel(req);
 
   if (!newsId) {
     const error = new Error('参数错误');
@@ -230,13 +236,13 @@ exports.getNewsDetailById = (req, res, next) => {
 
       // 增加文章的浏览量
       const viewer = req.session.user || {
-        phone: '11111111111',
+        phone: '',
         userName: '游客',
         createdAt: '2017-10-10 00:00:00',
         userId: 0,
         openId: '',
       };
-      exports.incPVById(newsInfo.dataValues, newsInfo.User.dataValues, viewer, shareUserId, chanel);
+      exports.incPVById(newsInfo.dataValues, newsInfo.User.dataValues, viewer, shareUid, channel);
 
       res.render('index', { pageInfo });
     } catch (err) {
@@ -263,9 +269,9 @@ exports.thumbUpNewsById = (req, res) => {
     try {
       const thumbUpKey = redisUtil.getRedisPrefix(1);
 
-      const uptdateRedis = await redisClient.zincrbyAsync(thumbUpKey, 1, newsId);
+      const newThumbUpNum = await redisClient.zincrbyAsync(thumbUpKey, 1, newsId);
 
-      resUtil.sendJson(constants.HTTP_SUCCESS, '', { newThumbUpNum: uptdateRedis[0] });
+      resUtil.sendJson(constants.HTTP_SUCCESS, '', { newThumbUpNum });
     } catch (err) {
       console.log(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
@@ -284,9 +290,9 @@ exports.commentNewsById = (req, res) => {
 exports.getTestDetailById = (req, res, next) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
   // 分享者id
-  const shareUserId = req.query.shareUserId ? parseInt(req.query.shareUserId, 0) : 0;
+  const shareUid = req.query.shareUid ? parseInt(req.query.shareUid, 0) : 0;
   // 分享渠道id
-  const chanel = req.query.chanel ? parseInt(req.query.chanel, 0) : 0;
+  const channel = exports.getChannel(req);
 
   if (!newsId) {
     const err = new Error('参数错误');
@@ -330,13 +336,13 @@ exports.getTestDetailById = (req, res, next) => {
 
       // 记录浏览日志
       const viewer = req.session.user || {
-        phone: '11111111111',
+        phone: '',
         userName: '游客',
         createdAt: '2017-10-10 00:00:00',
         userId: 0,
         openId: '',
       };
-      exports.incPVById(newsInfo.dataValues, newsInfo.User.dataValues, viewer, shareUserId, chanel);
+      exports.incPVById(newsInfo.dataValues, newsInfo.User.dataValues, viewer, shareUid, channel);
 
       res.render('index', { type, questLists });
     } catch (err) {
@@ -355,7 +361,7 @@ exports.finishTestById = (req, res) => {
   const resUtil = new HttpSend(req, res);
 
   // 检查参数
-  if (!newsId || !choiceList) {
+  if (!newsId || !req.body.choiceList) {
     resUtil.sendJson(constants.HTTP_FAIL, '参数错误');
     return;
   }
