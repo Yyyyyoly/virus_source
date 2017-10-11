@@ -6,12 +6,12 @@ const Model = require('../models/index');
 const crypto = require('crypto');
 
 // 用户中心首页
-exports.index = function (req, res) {
+exports.index = (req, res) =>  {
   res.render('user', { title: 'user management' });
 };
 
 // 密码管理首页
-exports.getUserPassword = function (req, res, next) {
+exports.getUserPassword = (req, res, next) => {
   const userId = req.session.user.userId || '';
   if (!userId) {
     const error = new Error('userId error');
@@ -23,7 +23,7 @@ exports.getUserPassword = function (req, res, next) {
 
 
 // 修改密码
-exports.modUserPassword = function (req, res) {
+exports.modUserPassword = (req, res) =>  {
   // const userId = req.session.user.userId || '';
   const userId = 1;
   // 目前type有2种方式：1.通过旧密码修改  2.通过短信验证码修改

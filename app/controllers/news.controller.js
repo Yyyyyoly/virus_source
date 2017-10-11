@@ -20,7 +20,7 @@ exports.getPVAndThumpById = async (newsId) => {
 };
 
 // 资讯首页
-exports.index = function (req, res, next) {
+exports.index = (req, res, next) => {
   // 资讯查找方式  按热门/按最新
   const orderType = parseInt(req.query.order, 0) || constants.HOT_NEWS;
   // 资讯内容分类  按领域分类/全部
@@ -119,9 +119,22 @@ exports.index = function (req, res, next) {
 };
 
 // 根据资讯id和用户id  增加对应的pv统计日志
-exports.incPVById = async (newsInfo, writerInfo, viewerInfo) => {
-  const pvTotalKey = redisUtil.getRedisPrefix(2);
-  const pvContextKey = redisUtil.getRedisPrefix(2, newsInfo.type);
+exports.incPVById = async (newsInfo, writerInfo, viewerInfo, shareUserId, chanel) => {
+  // 如果有分享者，先查询分享者信息
+  const shareInfo = {
+    shareId: shareUserId,
+    shareName: '',
+    sharePhone: '',
+  };
+  if (shareUserId !== 0) {
+    const data = await Model.User.findOne({ where: { userId: shareUserId } });
+    if (!data || !data.dataValues) {
+      shareInfo.shareId = 0;
+    } else {
+      shareInfo.shareName = data.dataValues.userName;
+      shareInfo.sharePhone = data.dataValues.phone;
+    }
+  }
 
   Model.sequelize.transaction(async (transaction) => {
     const updateMysql = await Model.PV.create({
@@ -130,25 +143,40 @@ exports.incPVById = async (newsInfo, writerInfo, viewerInfo) => {
       type: newsInfo.type,
       title: newsInfo.title,
       introduction: newsInfo.introduction,
-      imgUrl: newsInfo.imgUrl,
-      context: newsInfo.context,
       writerId: writerInfo.userId,
       writerName: writerInfo.userName,
       writerPhone: writerInfo.phone,
-      writerOpenId: writerInfo.openId,
       viewerId: viewerInfo.userId,
       viewerName: viewerInfo.userName,
       viewerPhone: viewerInfo.phone,
-      viewerOpenId: viewerInfo.openId,
+      shareId: shareInfo.shareId,
+      shareName: shareInfo.shareName,
+      sharePhone: shareInfo.sharePhone,
+      shareChannel: chanel,
     }, { transaction });
     if (updateMysql && updateMysql.dataValues) {
-      // 更新pv总排行榜、月排行榜、分类月排行榜
+      const pvTotalKey = redisUtil.getRedisPrefix(2);
+      const pvContextKey = redisUtil.getRedisPrefix(2, newsInfo.type);
+      const pvUserKey = redisUtil.getRedisPrefix(3, shareInfo.shareId);
+      const channelUserKey = redisUtil.getRedisPrefix(4, shareInfo.shareId);
+
+      // 更新pv总排行榜、分类总排行榜、用户热门pv榜、渠道榜
       // 不过鉴于multi并不会产生回滚，所以一旦exec出错  还是有错误数据会+1
-      const uptdateRedis = await redisClient.multi()
-        .zincrby(pvTotalKey, 1, newsInfo.newsId)
-        .zincrby(pvContextKey, 1, newsInfo.newsId)
-        .execAsync();
-      if (uptdateRedis.length !== 2) {
+      let uptdateRedis = [];
+      if (shareUserId !== 0) {
+        uptdateRedis = await redisClient.multi()
+          .zincrby(pvTotalKey, 1, newsInfo.newsId)
+          .zincrby(pvContextKey, 1, newsInfo.newsId)
+          .zincrby(pvUserKey, 1, newsInfo.newsId)
+          .zincrby(channelUserKey, 1, newsInfo.newsId)
+          .execAsync();
+      } else {
+        uptdateRedis = await redisClient.multi()
+          .zincrby(pvTotalKey, 1, newsInfo.newsId)
+          .zincrby(pvContextKey, 1, newsInfo.newsId)
+          .execAsync();
+      }
+      if (uptdateRedis.length) {
         throw new Error('redis update failed');
       }
     }
@@ -159,8 +187,12 @@ exports.incPVById = async (newsInfo, writerInfo, viewerInfo) => {
 };
 
 // 资讯详情页
-exports.getNewsDetailById = function (req, res, next) {
+exports.getNewsDetailById = (req, res, next) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
+  // 分享者id
+  const shareUserId = req.query.shareUserId ? parseInt(req.query.shareUserId, 0) : 0;
+  // 分享渠道id
+  const chanel = req.query.chanel ? parseInt(req.query.chanel, 0) : 0;
 
   if (!newsId) {
     const error = new Error('参数错误');
@@ -196,7 +228,7 @@ exports.getNewsDetailById = function (req, res, next) {
         thumbUp: supportInfo.thumbUpNum,
       };
 
-      //  增加文章的浏览量
+      // 增加文章的浏览量
       const viewer = req.session.user || {
         phone: '11111111111',
         userName: '游客',
@@ -204,7 +236,7 @@ exports.getNewsDetailById = function (req, res, next) {
         userId: 0,
         openId: '',
       };
-      exports.incPVById(newsInfo.dataValues, newsInfo.User.dataValues, viewer);
+      exports.incPVById(newsInfo.dataValues, newsInfo.User.dataValues, viewer, shareUserId, chanel);
 
       res.render('index', { pageInfo });
     } catch (err) {
@@ -217,7 +249,7 @@ exports.getNewsDetailById = function (req, res, next) {
 };
 
 // 文章点赞
-exports.thumbUpNewsById = function (req, res) {
+exports.thumbUpNewsById = (req, res) => {
   const newsId = parseInt(req.body.newsId, 0) || 0;
   const resUtil = new HttpSend(req, res);
 
@@ -244,13 +276,17 @@ exports.thumbUpNewsById = function (req, res) {
 };
 
 // 文章评论 预留
-exports.commentNewsById = function (req, res) {
+exports.commentNewsById = (req, res) => {
   res.render('index', { title: 'index page' });
 };
 
 // 自测题详情页
-exports.getTestDetailById = function (req, res, next) {
+exports.getTestDetailById = (req, res, next) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
+  // 分享者id
+  const shareUserId = req.query.shareUserId ? parseInt(req.query.shareUserId, 0) : 0;
+  // 分享渠道id
+  const chanel = req.query.chanel ? parseInt(req.query.chanel, 0) : 0;
 
   if (!newsId) {
     const err = new Error('参数错误');
@@ -259,14 +295,22 @@ exports.getTestDetailById = function (req, res, next) {
 
   const mainFunction = async () => {
     try {
+      // 检查newsId是否正确
+      const newsInfo = await Model.News.findOne({
+        where: { newsId },
+        include: { model: Model.User },
+      });
+      if (!newsInfo || !newsInfo.dataValues || !newsInfo.User) {
+        throw new Error('自测题不存在');
+      }
+
       // 查询自测题题目
       const questionLists = await Model.SelfTest.findAll({
         where: { newsId },
         order: [['order', 'ASC']],
       });
-
       if (!questionLists.length) {
-        throw new Error('自测题不存在');
+        throw new Error('自测题题目正在完善，目前无法使用');
       }
 
       const questLists = [];
@@ -283,6 +327,17 @@ exports.getTestDetailById = function (req, res, next) {
         });
       }
 
+
+      // 记录浏览日志
+      const viewer = req.session.user || {
+        phone: '11111111111',
+        userName: '游客',
+        createdAt: '2017-10-10 00:00:00',
+        userId: 0,
+        openId: '',
+      };
+      exports.incPVById(newsInfo.dataValues, newsInfo.User.dataValues, viewer, shareUserId, chanel);
+
       res.render('index', { type, questLists });
     } catch (err) {
       console.log(err);
@@ -294,7 +349,7 @@ exports.getTestDetailById = function (req, res, next) {
 };
 
 // 提交自测题
-exports.finishTestById = function (req, res) {
+exports.finishTestById = (req, res) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
   const choiceList = req.body.choiceList ? JSON.parse(req.body.choiceList) : {};
   const resUtil = new HttpSend(req, res);

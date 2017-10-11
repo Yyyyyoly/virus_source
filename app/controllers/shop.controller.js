@@ -1,8 +1,8 @@
-exports.index = function (req, res) {
+exports.index = (req, res) => {
   res.render('index', { title: 'index page' });
 };
 
 
-exports.searchProduct = function (req, res) {
+exports.searchProduct = (req, res) => {
   res.render('index', { title: 'index page' });
 };

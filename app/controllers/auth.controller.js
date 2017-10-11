@@ -8,7 +8,7 @@ const OAuth = require('wechat-oauth');
 const url = require('url');
 
 // render注册页面
-exports.registerGet = function (req, res) {
+exports.registerGet = (req, res) => {
   const userInfo = req.session.user || {};
 
   if (!userInfo || !userInfo.uid) {
@@ -20,7 +20,7 @@ exports.registerGet = function (req, res) {
 };
 
 // 注册请求
-exports.registerPost = function (req, res) {
+exports.registerPost = (req, res) => {
   const user = req.session.user || '';
   const openId = user.openId || '';
   const verifyCode = req.body.verifyCode || '';
@@ -94,7 +94,7 @@ exports.registerPost = function (req, res) {
 };
 
 // render登录页面
-exports.loginGet = function (req, res) {
+exports.loginGet = (req, res) => {
   const userInfo = req.session.user || {};
 
   if (!userInfo || !userInfo.uid) {
@@ -112,7 +112,7 @@ exports.loginGet = function (req, res) {
 };
 
 // 处理来自其他浏览器的登录
-exports.loginPostFromOther = function (req, res) {
+exports.loginPostFromOther = (req, res) => {
   const phone = req.body.phone || '';
   const password = req.body.password || '';
   const resUtil = new HttpSend(req, res);
@@ -155,7 +155,7 @@ exports.loginPostFromOther = function (req, res) {
 };
 
 // 处理来自微信的登录
-exports.loginGetFromWeChat = function (req, res) {
+exports.loginGetFromWeChat = (req, res) => {
   const openId = req.query.openId || '';
   const resUtil = new HttpSend(req, res);
 
@@ -192,7 +192,7 @@ exports.loginGetFromWeChat = function (req, res) {
 };
 
 // 登录请求主入口
-exports.loginPost = function (req, res) {
+exports.loginPost = (req, res) => {
   const weChatFlag = exports.isFromWeChat(req);
   if (weChatFlag) {
     // 跳转 获取用户授权的code  微信不接受80端口以外的回调
@@ -205,7 +205,7 @@ exports.loginPost = function (req, res) {
 };
 
 // 获取用户openId
-exports.weChatCodeGet = function (req, res) {
+exports.weChatCodeGet = (req, res) => {
   const code = req.query.code || '';
   const api = new OAuth(config.weChatConfig.appId, config.weChatConfig.appSecret);
   api.getAccessToken(code, (err, result) => {
@@ -219,13 +219,13 @@ exports.weChatCodeGet = function (req, res) {
 };
 
 // 登出请求
-exports.logoutGet = function (req, res) {
+exports.logoutGet = (req, res) => {
   req.session.destroy();
   res.redirect(`${config.serverHost}:${config.serverPort}`);
 };
 
 // 中间件：判断是否已经登录
-exports.isLogin = function (req, res, next) {
+exports.isLogin = (req, res, next) => {
   const userInfo = req.session.user || {};
 
   // 记载用户的起始url，方便登录/注册后跳转
@@ -244,7 +244,7 @@ exports.isLogin = function (req, res, next) {
 };
 
 // 判断请求是否来自微信客户端
-exports.isFromWeChat = function (req) {
+exports.isFromWeChat = (req) => {
   const ua = req.header('user-agent').toLowerCase();
   const flags = ua.match(/MicroMessenger/i);
   if (flags && flags[0] === 'micromessenger') {
@@ -254,7 +254,7 @@ exports.isFromWeChat = function (req) {
 };
 
 
-exports.checkSignature = function (req, res) {
+exports.checkSignature = (req, res) => {
   const token = config.weChatConfig.token || '';
   const timestamp = req.query.timestamp || '';
   const nonce = req.query.nonce || '';

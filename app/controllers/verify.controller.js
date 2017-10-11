@@ -10,7 +10,7 @@ const smsClient = new SMSClient({
 });
 
 // 获取短信验证码
-exports.MessageSend = function (req, res) {
+exports.MessageSend = (req, res) => {
   const phone = req.body.phone || '';
   // {验证码获取频次,频次控制时间}
   const getTimes = req.session.getTimes || { count: 0, expire_time: 0 };
@@ -68,7 +68,7 @@ exports.MessageSend = function (req, res) {
 };
 
 // 验证码比对
-exports.CodeVerify = function (req, code = 0) {
+exports.CodeVerify = (req, code = 0) => {
   const verifyCode = req.session.verifyCode || {};
 
   // 缺少或已过期

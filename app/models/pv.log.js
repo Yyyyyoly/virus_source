@@ -6,24 +6,27 @@ module.exports = function (sequelize, DataTypes) {
     },
     // 资讯详细细信息
     newsId: { type: DataTypes.BIGINT, allowNull: false },
-    redirectUrl: { type: DataTypes.STRING, allowNull: false, defaultValue: 1 },
     type: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
     title: { type: DataTypes.STRING },
     introduction: { type: DataTypes.STRING },
-    imgUrl: { type: DataTypes.STRING },
-    context: { type: DataTypes.TEXT },
 
     // 资讯作者详细信息
     writerId: { type: DataTypes.BIGINT, allowNull: false },
     writerName: { type: DataTypes.STRING },
     writerPhone: { type: DataTypes.STRING(11), allowNull: false },
-    writerOpenId: { type: DataTypes.STRING },
 
     // 资讯浏览人详细信息
     viewerId: { type: DataTypes.BIGINT, allowNull: false },
     viewerName: { type: DataTypes.STRING },
     viewerPhone: { type: DataTypes.STRING(11), allowNull: false },
-    viewerOpenId: { type: DataTypes.STRING },
+
+    // 分享人详细信息 如果有
+    shareId: { type: DataTypes.BIGINT, defaultValue: 0 },
+    shareName: { type: DataTypes.STRING },
+    sharePhone: { type: DataTypes.STRING(11) },
+
+    // 分享渠道id 微博 微信
+    shareChannel: { type: DataTypes.INTEGER },
   }, {
     timestamps: true,
     freezeTableName: true,
