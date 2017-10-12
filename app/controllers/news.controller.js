@@ -173,7 +173,7 @@ exports.incPVById = async (newsInfo, writerInfo, viewerInfo, shareUserId, channe
   }
 
   Model.sequelize.transaction(async (transaction) => {
-    const updateMysql = await Model.PV.create({
+    const updateMysql = await Model.PVNews.create({
       newsId: newsInfo.newsId,
       redirectUrl: newsInfo.redirectUrl,
       type: newsInfo.type,

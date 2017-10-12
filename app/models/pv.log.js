@@ -1,5 +1,5 @@
 module.exports = function (sequelize, DataTypes) {
-  const PV = sequelize.define('PV', {
+  const PVNews = sequelize.define('PV', {
     // id
     id: {
       type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true, unique: true,
@@ -31,10 +31,10 @@ module.exports = function (sequelize, DataTypes) {
   }, {
     timestamps: true,
     freezeTableName: true,
-    tableName: 'pv',
+    tableName: 'pv_news',
     charset: 'utf8',
     collate: 'utf8_general_ci',
   });
 
-  return PV;
+  return PVNews;
 };
