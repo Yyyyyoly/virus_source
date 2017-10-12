@@ -3,6 +3,10 @@ const redisClient = require('../../config/redis')(1);
 const redisUtil = require('../utils/redis.util');
 const Model = require('../models/index');
 const HttpSend = require('../utils/http.util');
+const LocalStorage = require('node-localstorage').LocalStorage;
+const UUID = require('uuid');
+
+const localStorage = new LocalStorage('./scratch');
 
 // 根据资讯id  查询点赞总数和浏览总数
 exports.getPVAndThumpById = async (newsId) => {
@@ -124,6 +128,32 @@ exports.getChannel = (req) => {
   return channel;
 };
 
+// 获取浏览者的信息
+// 如果是首次登陆的游客  还需要给他唯一的uniqueId身份标志
+exports.getVistorCookie = (req) => {
+  let userInfo = {};
+  if (req.session.user && req.session.user.userId !== 0) {
+    userInfo = req.session.user;
+  } else {
+    let uniqueId = localStorage.getItem('uniqueId');
+    if (!uniqueId) {
+      uniqueId = UUID.v1();
+      localStorage.setItem('uniqueId', uniqueId);
+    }
+
+    userInfo = {
+      phone: '',
+      userName: '游客',
+      createdAt: '2017-10-10 00:00:00',
+      userId: 0,
+      openId: '',
+      cookieId: uniqueId,
+    };
+  }
+
+  return userInfo;
+};
+
 // 根据资讯id和用户id  增加对应的pv统计日志
 exports.incPVById = async (newsInfo, writerInfo, viewerInfo, shareUserId, channel) => {
   // 如果有分享者，先查询分享者信息
@@ -153,6 +183,7 @@ exports.incPVById = async (newsInfo, writerInfo, viewerInfo, shareUserId, channe
       writerName: writerInfo.userName,
       writerPhone: writerInfo.phone,
       viewerId: viewerInfo.userId,
+      viewerUniqueId: !viewerInfo.userId ? viewerInfo.cookieId : viewerInfo.userId,
       viewerName: viewerInfo.userName,
       viewerPhone: viewerInfo.phone,
       shareId: shareInfo.shareId,
@@ -235,13 +266,7 @@ exports.getNewsDetailById = (req, res, next) => {
       };
 
       // 增加文章的浏览量
-      const viewer = req.session.user || {
-        phone: '',
-        userName: '游客',
-        createdAt: '2017-10-10 00:00:00',
-        userId: 0,
-        openId: '',
-      };
+      const viewer = exports.setVistorCookie(req, res);
       exports.incPVById(newsInfo.dataValues, newsInfo.User.dataValues, viewer, shareUid, channel);
 
       res.render('index', { pageInfo });
@@ -335,13 +360,7 @@ exports.getTestDetailById = (req, res, next) => {
 
 
       // 记录浏览日志
-      const viewer = req.session.user || {
-        phone: '',
-        userName: '游客',
-        createdAt: '2017-10-10 00:00:00',
-        userId: 0,
-        openId: '',
-      };
+      const viewer = exports.getVistorCookie(req);
       exports.incPVById(newsInfo.dataValues, newsInfo.User.dataValues, viewer, shareUid, channel);
 
       res.render('index', { type, questLists });

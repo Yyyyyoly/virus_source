@@ -14,6 +14,9 @@ exports.getRedisPrefix = (type, id = '') => {
     case 4:
       redisKey = 'rank|user|chanel_news'; // 用户文章分享渠道排行榜
       break;
+    case 5:
+      redisKey = 'data|commission'; // 用户佣金总额
+      break;
     default:
       break;
   }

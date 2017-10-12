@@ -17,6 +17,7 @@ module.exports = function (sequelize, DataTypes) {
 
     // 资讯浏览人详细信息
     viewerId: { type: DataTypes.BIGINT, allowNull: false },
+    viewerUniqueId: { type: DataTypes.STRING, allowNull: false },
     viewerName: { type: DataTypes.STRING },
     viewerPhone: { type: DataTypes.STRING(11), allowNull: false },
 
