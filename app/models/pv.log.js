@@ -1,5 +1,5 @@
 module.exports = function (sequelize, DataTypes) {
-  const PVNews = sequelize.define('PV', {
+  const PVNews = sequelize.define('PVNews', {
     // id
     id: {
       type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true, unique: true,
