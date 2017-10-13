@@ -3,6 +3,7 @@ const redisUtil = require('../utils/redis.util');
 const HttpSend = require('../utils/http.util');
 const constants = require('../../config/constants');
 const moment = require('moment');
+const Model = require('../models/index');
 
 // 查询每日数据总量统计
 exports.dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
@@ -84,7 +85,6 @@ exports.index = (req, res, next) => {
   mainFunction();
 };
 
-
 // 首页 获取每日数据汇总
 exports.getDailyData = (req, res) => {
   const userId = req.session.user.userId || 0;
@@ -113,3 +113,102 @@ exports.getDailyData = (req, res) => {
 
   mainFunction();
 };
+
+// 首页 进入数据详情
+exports.getDataDetails = (req, res, next) => {
+  const type = parseInt(req.params.type, 0) || 0;
+  switch (type) {
+    // 浏览文章用户数
+    // 浏览文章次数
+    case 1:
+    case 2:
+      exports.detailsByNews(req, res, next);
+      break;
+    // 浏览商品用户数
+    // 浏览商品次数
+    case 3:
+    case 4:
+      exports.detailsByProducts(req, res, next);
+      break;
+    // 下单用户数
+    // 下单数
+    case 5:
+    case 6:
+      exports.detailsByOrder(req, res, next);
+      break;
+    default:
+      next(new Error('参数错误'));
+  }
+};
+
+// 浏览文章 详情页
+exports.detailsByNews = (req, res, next) => {
+  const days = parseInt(req.query.days, 0) || 5;
+  const type = parseInt(req.params.type, 0) || 0;
+  const userId = req.session.user ? req.session.user.userId : 0;
+
+  if (days <= 0 || !type || !userId) {
+    const error = new Error('参数错误');
+    next(error);
+  }
+
+  const mainFunction = async () => {
+    try {
+      const startDate = moment().subtract(days, 'days').format('YYYY-MMM-DD 00:00:00');
+      const endDate = moment().format('YYYY-MM-DD HH:mm:ss');
+
+      let recordList = [];
+      const dataList = [];
+      // 人数
+      if (type === 1) {
+        recordList = await Model.PVNews.findAll({
+          attributes: [
+            [Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%Y-%m-%d'), 'date'],
+            'viewerUniqueId',
+          ],
+          where: {
+            shareId: userId,
+            createdAt: { $gte: startDate, $lte: endDate },
+          },
+          group: [
+            'viewerUniqueId',
+            Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%Y-%m-%d'),
+          ],
+        });
+      } else {
+        // 人次
+        recordList = await Model.PVNews.findAll({
+          attributes: [
+            [Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%Y-%m-%d'), 'date'],
+            [Model.sequelize.fn('COUNT', Model.sequelize.col('id')), 'num'],
+          ],
+          where: {
+            shareId: userId,
+            createdAt: { $gte: startDate, $lte: endDate },
+          },
+          group: Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%Y-%m-%d'),
+        });
+
+        for (const data of recordList) {
+          dataList.push({
+            date: data.date,
+            num: data.num,
+          });
+        }
+      }
+
+      res.render('index', { dataList });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  };
+
+  mainFunction();
+};
+
+// 浏览商品 详情页
+exports.detailsByProducts = (req, res, next) => {};
+
+// 下单相关 详情页
+exports.detailsByOrder = (req, res, next) => {};
