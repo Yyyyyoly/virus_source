@@ -5,6 +5,7 @@ const Model = require('../models/index');
 const HttpSend = require('../utils/http.util');
 const LocalStorage = require('node-localstorage').LocalStorage;
 const UUID = require('uuid');
+const moment = require('moment');
 
 const localStorage = new LocalStorage('./scratch');
 
@@ -155,7 +156,7 @@ exports.getVistorCookie = (req) => {
 };
 
 // 根据资讯id和用户id  增加对应的pv统计日志
-exports.incPVById = async (newsInfo, writerInfo, viewerInfo, shareUserId, channel) => {
+exports.incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
   // 如果有分享者，先查询分享者信息
   const shareInfo = {
     shareId: shareUserId,
@@ -172,6 +173,8 @@ exports.incPVById = async (newsInfo, writerInfo, viewerInfo, shareUserId, channe
     }
   }
 
+  // 获取游客/登录会员的唯一id
+  const viewerUniqueId = !viewerInfo.userId ? viewerInfo.cookieId : viewerInfo.userId;
   Model.sequelize.transaction(async (transaction) => {
     const updateMysql = await Model.PVNews.create({
       newsId: newsInfo.newsId,
@@ -179,11 +182,8 @@ exports.incPVById = async (newsInfo, writerInfo, viewerInfo, shareUserId, channe
       type: newsInfo.type,
       title: newsInfo.title,
       introduction: newsInfo.introduction,
-      writerId: writerInfo.userId,
-      writerName: writerInfo.userName,
-      writerPhone: writerInfo.phone,
       viewerId: viewerInfo.userId,
-      viewerUniqueId: !viewerInfo.userId ? viewerInfo.cookieId : viewerInfo.userId,
+      viewerUniqueId,
       viewerName: viewerInfo.userName,
       viewerPhone: viewerInfo.phone,
       shareId: shareInfo.shareId,
@@ -192,13 +192,19 @@ exports.incPVById = async (newsInfo, writerInfo, viewerInfo, shareUserId, channe
       shareChannel: channel,
     }, { transaction });
     if (updateMysql && updateMysql.dataValues) {
+      // 更新文章浏览总榜
       const pvTotalKey = redisUtil.getRedisPrefix(2);
+      // 更新文章分类浏览总榜
       const pvContextKey = redisUtil.getRedisPrefix(2, newsInfo.type);
+      // 更新个人  分享文章的热门排行榜
       const pvUserKey = redisUtil.getRedisPrefix(3, shareInfo.shareId);
+      // 更新个人  分享文章的渠道排行榜
       const channelUserKey = redisUtil.getRedisPrefix(4, shareInfo.shareId);
+      // 更新个人  当日分享文章的浏览uv pv
+      const today = moment().format('YYYYMMDD');
+      const uvKey = redisUtil.getRedisPrefix(5, `${shareInfo.shareId}:date_${today}`);
 
-      // 更新pv总排行榜、分类总排行榜、用户热门pv榜、渠道榜
-      // 不过鉴于multi并不会产生回滚，所以一旦exec出错  还是有错误数据会+1
+      // 鉴于multi并不会产生回滚，所以一旦exec出错  还是有错误数据会+1
       let uptdateRedis = [];
       if (shareUserId !== 0) {
         uptdateRedis = await redisClient.multi()
@@ -206,6 +212,7 @@ exports.incPVById = async (newsInfo, writerInfo, viewerInfo, shareUserId, channe
           .zincrby(pvContextKey, 1, newsInfo.newsId)
           .zincrby(pvUserKey, 1, newsInfo.newsId)
           .zincrby(channelUserKey, 1, newsInfo.newsId)
+          .hincrby(uvKey, viewerUniqueId, 1)
           .execAsync();
       } else {
         uptdateRedis = await redisClient.multi()
@@ -266,8 +273,8 @@ exports.getNewsDetailById = (req, res, next) => {
       };
 
       // 增加文章的浏览量
-      const viewer = exports.setVistorCookie(req, res);
-      exports.incPVById(newsInfo.dataValues, newsInfo.User.dataValues, viewer, shareUid, channel);
+      const viewer = exports.getVistorCookie(req, res);
+      exports.incPVById(newsInfo.dataValues, viewer, shareUid, channel);
 
       res.render('index', { pageInfo });
     } catch (err) {
@@ -327,11 +334,8 @@ exports.getTestDetailById = (req, res, next) => {
   const mainFunction = async () => {
     try {
       // 检查newsId是否正确
-      const newsInfo = await Model.News.findOne({
-        where: { newsId },
-        include: { model: Model.User },
-      });
-      if (!newsInfo || !newsInfo.dataValues || !newsInfo.User) {
+      const newsInfo = await Model.News.findOne({ where: { newsId } });
+      if (!newsInfo || !newsInfo.dataValues) {
         throw new Error('自测题不存在');
       }
 
@@ -361,7 +365,7 @@ exports.getTestDetailById = (req, res, next) => {
 
       // 记录浏览日志
       const viewer = exports.getVistorCookie(req);
-      exports.incPVById(newsInfo.dataValues, newsInfo.User.dataValues, viewer, shareUid, channel);
+      exports.incPVById(newsInfo.dataValues, viewer, shareUid, channel);
 
       res.render('index', { type, questLists });
     } catch (err) {

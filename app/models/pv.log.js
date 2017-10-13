@@ -10,11 +10,6 @@ module.exports = function (sequelize, DataTypes) {
     title: { type: DataTypes.STRING },
     introduction: { type: DataTypes.STRING },
 
-    // 资讯作者详细信息
-    writerId: { type: DataTypes.BIGINT, allowNull: false },
-    writerName: { type: DataTypes.STRING },
-    writerPhone: { type: DataTypes.STRING(11), allowNull: false },
-
     // 资讯浏览人详细信息
     viewerId: { type: DataTypes.BIGINT, allowNull: false },
     viewerUniqueId: { type: DataTypes.STRING, allowNull: false },
