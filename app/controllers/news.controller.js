@@ -210,7 +210,7 @@ exports.incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
         uptdateRedis = await redisClient.multi()
           .zincrby(pvTotalKey, 1, newsInfo.newsId)
           .zincrby(pvContextKey, 1, newsInfo.newsId)
-          .zincrby(pvUserKey, 1, newsInfo.newsId)
+          .zincrby(pvUserKey, 1, `${newsInfo.newsId}@@${newsInfo.title}`)
           .zincrby(channelUserKey, 1, newsInfo.newsId)
           .hincrby(uvKey, viewerUniqueId, 1)
           .execAsync();
