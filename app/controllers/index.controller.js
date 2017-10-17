@@ -281,8 +281,9 @@ const detailsByProducts = (req, res, next) => {
     for (let i = 0; i < productList.length; i += 2) {
       const products = productList[i].split('@@');
       hotProductList.push({
-        newsId: products[0],
-        newsTitle: products[1],
+        productId: products[0],
+        productName: products[1],
+        price: parseFloat(products[2]),
         viewNum: productList[i + 1],
       });
     }

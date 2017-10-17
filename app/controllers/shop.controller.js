@@ -1,8 +1,13 @@
 const request = require('request-promise');
 const config = require('../../config/config');
 const HttpSend = require('../utils/http.util');
+const redisClient = require('../../config/redis')(1);
 const constants = require('../../config/constants');
 const newsController = require('./news.controller');
+const Model = require('../models/index');
+const redisUtil = require('../utils/redis.util');
+const signatureUtil = require('../utils/signature.util');
+const moment = require('moment');
 
 // 商城首页
 exports.index = (req, res, next) => {
@@ -151,15 +156,15 @@ exports.searchProduct = (req, res) => {
   mainFunction();
 };
 
-// 商城  增加PV UV记录
-const incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
+// 商城  增加商品PV UV记录
+const incPVById = async (productInfo, viewerInfo, shareUserId, channel) => {
   // 如果有分享者，先查询分享者信息
   const shareInfo = {
     shareId: shareUserId,
     shareName: '',
     sharePhone: '',
   };
-  if (shareUserId !== 0) {
+  if (shareUserId !== 0 && shareUserId !== viewerInfo.userId) {
     const data = await Model.User.findOne({ where: { userId: shareUserId } });
     if (!data || !data.dataValues) {
       shareInfo.shareId = 0;
@@ -172,12 +177,13 @@ const incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
   // 获取游客/登录会员的唯一id
   const viewerUniqueId = !viewerInfo.userId ? viewerInfo.cookieId : viewerInfo.userId;
   Model.sequelize.transaction(async (transaction) => {
-    const updateMysql = await Model.PVNews.create({
-      newsId: newsInfo.newsId,
-      redirectUrl: newsInfo.redirectUrl,
-      type: newsInfo.type,
-      title: newsInfo.title,
-      introduction: newsInfo.introduction,
+    const updateMysql = await Model.PVProducts.create({
+      productId: productInfo.productId,
+      categoryId: productInfo.categoryId,
+      name: productInfo.name,
+      description: productInfo.description,
+      price: productInfo.price,
+      soldCount: productInfo.soldCount,
       viewerId: viewerInfo.userId,
       viewerUniqueId,
       viewerName: viewerInfo.userName,
@@ -188,36 +194,24 @@ const incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
       shareChannel: channel,
     }, { transaction });
     if (updateMysql && updateMysql.dataValues) {
-      // 更新文章浏览总榜
-      const pvTotalKey = redisUtil.getRedisPrefix(2);
-      // 更新文章分类浏览总榜
-      const pvContextKey = redisUtil.getRedisPrefix(2, newsInfo.type);
-      // 更新个人  分享文章的热门排行榜
-      const pvUserKey = redisUtil.getRedisPrefix(3, shareInfo.shareId);
-      // 更新个人  分享文章的渠道排行榜
-      const channelUserKey = redisUtil.getRedisPrefix(4, shareInfo.shareId);
-      // 更新个人  当日分享文章的浏览uv pv
-      const today = moment().format('YYYYMMDD');
-      const uvKey = redisUtil.getRedisPrefix(5, `${shareInfo.shareId}:date_${today}`);
+      if (shareInfo.shareId !== 0) {
+        // 更新个人 分享商品总pv排行榜
+        const pvUserKey = redisUtil.getRedisPrefix(7, shareInfo.shareId);
+        // 更新个人  分享商品的渠道排行榜
+        const channelUserKey = redisUtil.getRedisPrefix(8, shareInfo.shareId);
+        // 更新个人  当日分享所有的总浏览uv pv
+        const today = moment().format('YYYYMMDD');
+        const uvKey = redisUtil.getRedisPrefix(9, `${shareInfo.shareId}:date_${today}`);
 
-      // 鉴于multi并不会产生回滚，所以一旦exec出错  还是有错误数据会+1
-      let uptdateRedis = [];
-      if (shareUserId !== 0) {
-        uptdateRedis = await redisClient.multi()
-          .zincrby(pvTotalKey, 1, newsInfo.newsId)
-          .zincrby(pvContextKey, 1, newsInfo.newsId)
-          .zincrby(pvUserKey, 1, `${newsInfo.newsId}@@${newsInfo.title}`)
-          .zincrby(channelUserKey, 1, newsInfo.newsId)
+        const updateRedis = await redisClient.multi()
+          .zincrby(pvUserKey, 1, `${productInfo.id}@@${productInfo.name}@@${productInfo.price}`)
+          .zincrby(channelUserKey, 1, channel)
           .hincrby(uvKey, viewerUniqueId, 1)
           .execAsync();
-      } else {
-        uptdateRedis = await redisClient.multi()
-          .zincrby(pvTotalKey, 1, newsInfo.newsId)
-          .zincrby(pvContextKey, 1, newsInfo.newsId)
-          .execAsync();
-      }
-      if (!uptdateRedis.length) {
-        throw new Error('redis update failed');
+
+        if (!updateRedis.length) {
+          throw new Error('redis update failed');
+        }
       }
     }
   }).catch((err) => {
@@ -247,14 +241,82 @@ exports.redirectToShopServer = (req, res, next) => {
 
       //  记录pv日志
       const viewerInfo = newsController.getVistorCookie(req);
+      const userId = viewerInfo.userId ? viewerInfo.userId : viewerInfo.cookieId;
       await incPVById(repos.data.product, viewerInfo, shareUserId, channel);
 
       // 跳转至商城服务器的购买相关页面
-      const url = `${config.shopServerConfig.host}:${config.shopServerConfig.port}/shop?userId=${viewerInfo.cookieId}&shareId=${}`;
-      res.redirect();
+      const url = `${config.shopServerConfig.host}:${config.shopServerConfig.port}/shop
+      ?userId=${userId}&shareId=${shareUserId}&productId=${productId}&channel=${channel}`;
+      res.redirect(encodeURI(url));
     } catch (err) {
       console.log(err);
       next(err);
+    }
+  };
+
+  mainFunction();
+};
+
+// 记录购买链接
+exports.addPurchaseRecord = (req, res) => {
+  const productId = req.body.productId || 0;
+  const orderId = req.body.orderId || '';
+  const channel = req.body.channel || 0;
+  const shareUserId = req.body.shareId || 0;
+  const userUniqueId = req.body.userId || 0;
+  const totalPrice = parseFloat(req.body.totalPrice) || 0;
+  const timestamp = req.body.timestamp || 0;
+  const signature = req.body.signature || '';
+  const resUtil = new HttpSend(req, res);
+
+  // 计算签名 检验参数是否来自合法源
+  const signatureInfo = signatureUtil.genSignature({
+    productId,
+    orderId,
+    channel,
+    shareUserId,
+    userUniqueId,
+    totalPrice,
+    timestamp,
+  }, config.shopServerConfig.privateKey);
+  if (signature !== signatureInfo.signature) {
+    resUtil.sendJson(104, '签名错误');
+    return;
+  }
+
+  if (totalPrice <= 0) {
+    resUtil.sendJson(constants.HTTP_SUCCESS);
+  }
+
+  const mainFunction = async () => {
+    try {
+      Model.sequelize.transaction(async (transaction) => {
+        // redis记录总佣金数、下单数、下单用户数
+        const date = moment().format('YYYYMMDD');
+        const orderRecordKey = redisUtil.getRedisPrefix(10, `${shareUserId}:date_${date}`);
+        const commissionKey = redisUtil.getRedisPrefix(6);
+        const updateRedis = await redisClient.multi()
+          .hincrby(commissionKey, shareUserId, totalPrice)
+          .hincrby(orderRecordKey, userUniqueId, 1)
+          .execAsync();
+        if (!updateRedis.length) {
+          throw new Error('更新失败');
+        }
+
+        // 增加佣金流水记录
+        await Model.Commission.create({
+          userId: shareUserId,
+          buyUniqueId: userUniqueId,
+          orderId,
+          productId,
+          operator: 1,
+          changeNum: totalPrice,
+          totalCommission: updateRedis[0],
+        }, { transaction });
+      }).then(() => resUtil.sendJson(constants.HTTP_SUCCESS));
+    } catch (err) {
+      console.log(err);
+      resUtil.sendJson(constants.HTTP_FAIL, '系统出错');
     }
   };
 

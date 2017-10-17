@@ -18,7 +18,7 @@ exports.getRedisPrefix = (type, id = '') => {
       redisKey = 'data|user|pv_news'; // 用户文章日 uv、pv记录
       break;
     case 6:
-      redisKey = 'data|commission'; // 用户佣金总额
+      redisKey = 'data|user|commission'; // 用户佣金总额
       break;
     case 7:
       redisKey = 'rank|user|pv_product'; // 用户分享出的商品 浏览总排行

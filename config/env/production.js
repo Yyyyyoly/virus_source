@@ -42,5 +42,6 @@ module.exports = {
   shopServerConfig: {
     host: 'http://localhost',
     port: 8080,
+    privateKey: 'xsm_development_secret',
   },
 };

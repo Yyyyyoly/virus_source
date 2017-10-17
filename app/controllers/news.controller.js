@@ -157,7 +157,7 @@ exports.incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
     shareName: '',
     sharePhone: '',
   };
-  if (shareUserId !== 0 && shareUserId !== viewerInfo.userId ) {
+  if (shareUserId !== 0 && shareUserId !== viewerInfo.userId) {
     const data = await Model.User.findOne({ where: { userId: shareUserId } });
     if (!data || !data.dataValues) {
       shareInfo.shareId = 0;
@@ -199,22 +199,22 @@ exports.incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
       const uvKey = redisUtil.getRedisPrefix(5, `${shareInfo.shareId}:date_${today}`);
 
       // 鉴于multi并不会产生回滚，所以一旦exec出错  还是有错误数据会+1
-      let uptdateRedis = [];
-      if (shareUserId !== 0) {
-        uptdateRedis = await redisClient.multi()
+      let updateRedis = [];
+      if (shareInfo.shareId !== 0) {
+        updateRedis = await redisClient.multi()
           .zincrby(pvTotalKey, 1, newsInfo.newsId)
           .zincrby(pvContextKey, 1, newsInfo.newsId)
           .zincrby(pvUserKey, 1, `${newsInfo.newsId}@@${newsInfo.title}`)
-          .zincrby(channelUserKey, 1, newsInfo.newsId)
+          .zincrby(channelUserKey, 1, channel)
           .hincrby(uvKey, viewerUniqueId, 1)
           .execAsync();
       } else {
-        uptdateRedis = await redisClient.multi()
+        updateRedis = await redisClient.multi()
           .zincrby(pvTotalKey, 1, newsInfo.newsId)
           .zincrby(pvContextKey, 1, newsInfo.newsId)
           .execAsync();
       }
-      if (!uptdateRedis.length) {
+      if (!updateRedis.length) {
         throw new Error('redis update failed');
       }
     }
