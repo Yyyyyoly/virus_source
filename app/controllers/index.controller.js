@@ -122,9 +122,23 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
 
     let recordList = [];
     const dataList = [];
-    // 人数
-    if (type === 1) {
-      recordList = await Model.PVNews.findAll({
+    let mysqlModel = {};
+    switch (type) {
+      case 1:
+      case 2:
+        mysqlModel = Model.PVNews;
+        break;
+      case 3:
+      case 4:
+        mysqlModel = Model.PVProducts;
+        break;
+      default:
+        mysqlModel = Model.Commission;
+    }
+
+    // 文章UV  商品UV  下单用户数
+    if (type === 1 || type === 3 || type === 5) {
+      recordList = await mysqlModel.findAll({
         attributes: [
           [Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%m%d'), 'date'],
           'viewerUniqueId',
@@ -148,9 +162,9 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
           num: numInfos.length || 0,
         });
       }
-    } else {
-      // 人次
-      recordList = await Model.PVNews.findAll({
+    } else if (type === 2 || type === 4 || type === 6) {
+      // 文章PV  商品PV  下单数
+      recordList = await mysqlModel.findAll({
         attributes: [
           [Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%m%d'), 'date'],
           [Model.sequelize.fn('COUNT', Model.sequelize.col('id')), 'num'],
@@ -327,6 +341,27 @@ const detailsByProducts = (req, res, next) => {
 
 // 下单相关 详情页
 const detailsByOrder = (req, res, next) => {
+  const days = parseInt(req.query.days, 0) || 5;
+  const type = parseInt(req.params.type, 0) || 0;
+  const userId = req.session.user ? req.session.user.userId : 0;
+
+  if (days <= 0 || !type || !userId) {
+    const error = new Error('参数错误');
+    next(error);
+  }
+
+  const mainFunction = async () => {
+    try {
+      const dataList = getLineChartInfoByType(userId, type, days);
+
+      res.render('index', { dataList });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  };
+
+  mainFunction();
 };
 
 // 首页 进入数据详情

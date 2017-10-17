@@ -308,8 +308,8 @@ exports.addPurchaseRecord = (req, res) => {
 
         // 增加佣金流水记录
         await Model.Commission.create({
-          userId: shareUserId,
-          buyUniqueId: userUniqueId,
+          shareId: shareUserId,
+          viewerUniqueId: userUniqueId,
           orderId,
           productId,
           operator: 1,

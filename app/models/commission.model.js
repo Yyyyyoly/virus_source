@@ -4,10 +4,10 @@ module.exports = function (sequelize, DataTypes) {
     recordId: {
       type: DataTypes.BIGINT, allowNull: false, primaryKey: true, autoIncrement: true,
     },
-    // 获利用户id
-    userId: { type: DataTypes.BIGINT, allowNull: false },
+    // 分享（获利）用户id
+    shareId: { type: DataTypes.BIGINT, allowNull: false },
     // 购买用户的uniqueId
-    buyUniqueId: { type: DataTypes.BIGINT, allowNull: false },
+    viewerUniqueId: { type: DataTypes.BIGINT, allowNull: false },
     // 成交订单编号
     orderId: { type: DataTypes.INTEGER, allowNull: false, unique: true },
     // 分享商品id
@@ -29,7 +29,7 @@ module.exports = function (sequelize, DataTypes) {
     collate: 'utf8_general_ci',
   });
 
-  Commission.associate = (models) => { Commission.belongsTo(models.User, { foreignKey: 'userId', targetKey: 'userId' }); };
+  Commission.associate = (models) => { Commission.belongsTo(models.User, { foreignKey: 'shareId', targetKey: 'userId' }); };
 
   return Commission;
 };
