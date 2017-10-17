@@ -37,4 +37,10 @@ module.exports = {
     appSecret: '7a4f11e20bc12b5aa16c06879108680f',
     token: 'wangyg',
   },
+
+  // shop server config
+  shopServerConfig: {
+    host: 'http://localhost',
+    port: 8080,
+  },
 };

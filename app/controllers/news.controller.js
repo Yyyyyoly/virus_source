@@ -123,12 +123,6 @@ exports.index = (req, res, next) => {
   mainFunction();
 };
 
-// 获取渠道  通过req.header 或者通过不同链接后的参数区分
-exports.getChannel = (req) => {
-  const channel = req.query.channel ? parseInt(req.query.channel, 0) : 0;
-  return channel;
-};
-
 // 获取浏览者的信息
 // 如果是首次登陆的游客  还需要给他唯一的uniqueId身份标志
 exports.getVistorCookie = (req) => {
@@ -163,7 +157,7 @@ exports.incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
     shareName: '',
     sharePhone: '',
   };
-  if (shareUserId !== 0) {
+  if (shareUserId !== 0 && shareUserId !== viewerInfo.userId ) {
     const data = await Model.User.findOne({ where: { userId: shareUserId } });
     if (!data || !data.dataValues) {
       shareInfo.shareId = 0;
@@ -236,7 +230,7 @@ exports.getNewsDetailById = (req, res, next) => {
   // 分享者id
   const shareUid = req.query.shareUid ? parseInt(req.query.shareUid, 0) : 0;
   // 分享渠道id
-  const channel = exports.getChannel(req);
+  const channel = new HttpSend(req, res).getChannel(req);
 
   if (!newsId) {
     const error = new Error('参数错误');
@@ -324,7 +318,7 @@ exports.getTestDetailById = (req, res, next) => {
   // 分享者id
   const shareUid = req.query.shareUid ? parseInt(req.query.shareUid, 0) : 0;
   // 分享渠道id
-  const channel = exports.getChannel(req);
+  const channel = new HttpSend(req, res).getChannel(req);
 
   if (!newsId) {
     const err = new Error('参数错误');

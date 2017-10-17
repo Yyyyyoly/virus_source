@@ -62,6 +62,12 @@ class HttpSend {
     request.write(postData);
     request.end();
   }
+
+  // 获取访问来自哪个渠道  判断host位置
+  getChannel() {
+    const channel = this.req.query.channel ? parseInt(this.req.query.channel, 0) : 0;
+    return channel;
+  }
 }
 
 module.exports = HttpSend;
