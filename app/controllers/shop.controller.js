@@ -197,6 +197,8 @@ const incPVById = async (productInfo, viewerInfo, shareUserId, channel) => {
       if (shareInfo.shareId !== 0) {
         // 更新个人 分享商品总pv排行榜
         const pvUserKey = redisUtil.getRedisPrefix(7, shareInfo.shareId);
+        const productInfoKey = redisUtil.getRedisPrefix(12);
+        const productBrief = { productName: productInfo.name, price: productInfo.price };
         // 更新个人  分享商品的渠道排行榜
         const channelUserKey = redisUtil.getRedisPrefix(8, shareInfo.shareId);
         // 更新个人  当日分享所有的总浏览uv pv
@@ -204,7 +206,8 @@ const incPVById = async (productInfo, viewerInfo, shareUserId, channel) => {
         const uvKey = redisUtil.getRedisPrefix(9, `${shareInfo.shareId}:date_${today}`);
 
         const updateRedis = await redisClient.multi()
-          .zincrby(pvUserKey, 1, `${productInfo.id}@@${productInfo.name}@@${productInfo.price}`)
+          .zincrby(pvUserKey, 1, productInfo.id)
+          .hset(productInfoKey, 1, JSON.stringify(productBrief))
           .zincrby(channelUserKey, 1, channel)
           .hincrby(uvKey, viewerUniqueId, 1)
           .execAsync();

@@ -192,6 +192,7 @@ exports.incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
       const pvContextKey = redisUtil.getRedisPrefix(2, newsInfo.type);
       // 更新个人  分享文章的热门排行榜
       const pvUserKey = redisUtil.getRedisPrefix(3, shareInfo.shareId);
+      const newsTitleKey = redisUtil.getRedisPrefix(11);
       // 更新个人  分享文章的渠道排行榜
       const channelUserKey = redisUtil.getRedisPrefix(4, shareInfo.shareId);
       // 更新个人  当日分享文章的浏览uv pv
@@ -204,7 +205,8 @@ exports.incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
         updateRedis = await redisClient.multi()
           .zincrby(pvTotalKey, 1, newsInfo.newsId)
           .zincrby(pvContextKey, 1, newsInfo.newsId)
-          .zincrby(pvUserKey, 1, `${newsInfo.newsId}@@${newsInfo.title}`)
+          .zincrby(pvUserKey, 1, newsInfo.newsId)
+          .hset(newsTitleKey, newsInfo.newsId, newsInfo.title)
           .zincrby(channelUserKey, 1, channel)
           .hincrby(uvKey, viewerUniqueId, 1)
           .execAsync();

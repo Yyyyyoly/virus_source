@@ -220,11 +220,11 @@ const detailsByNews = (req, res, next) => {
   const getHotNewsList = async () => {
     const newsList = await redisClient.zrevrangeAsync([redisUtil.getRedisPrefix(3, userId), 0, 4, 'WITHSCORES']);
     const hotNewsList = [];
+    const newsTitles = await redisClient.hgetallAsync(redisUtil.getRedisPrefix(11));
     for (let i = 0; i < newsList.length; i += 2) {
-      const news = newsList[i].split('@@');
       hotNewsList.push({
-        newsId: news[0],
-        newsTitle: news[1],
+        newsId: newsList[i],
+        newsTitle: newsTitles[newsList[i]],
         viewNum: newsList[i + 1],
       });
     }
@@ -278,12 +278,13 @@ const detailsByProducts = (req, res, next) => {
   const getHotProductList = async () => {
     const productList = await redisClient.zrevrangeAsync([redisUtil.getRedisPrefix(7, userId), 0, 4, 'WITHSCORES']);
     const hotProductList = [];
+    const productBriefs = await redisClient.hgetallAsync(redisUtil.getRedisPrefix(12));
     for (let i = 0; i < productList.length; i += 2) {
-      const products = productList[i].split('@@');
+      const productInfo = JSON.parse(productBriefs[productList[i]]);
       hotProductList.push({
-        productId: products[0],
-        productName: products[1],
-        price: parseFloat(products[2]),
+        productId: productList[i],
+        productName: productInfo.productName,
+        price: parseFloat(productInfo.price),
         viewNum: productList[i + 1],
       });
     }

@@ -32,6 +32,12 @@ exports.getRedisPrefix = (type, id = '') => {
     case 10:
       redisKey = 'data|user|purchase_record'; // 用户分享商品后，日购买记录
       break;
+    case 11:
+      redisKey = 'brief_rank_info|news'; // 一些排行中需要显示的精简news信息，减小mysql压力
+      break;
+    case 12:
+      redisKey = 'brief_rank_info|products'; // 一些排行中需要显示的精简product信息
+      break;
     default:
       break;
   }
