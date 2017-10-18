@@ -313,6 +313,7 @@ exports.addPurchaseRecord = (req, res) => {
           orderId,
           productId,
           operator: 1,
+          operatorResult: 1,
           changeNum: totalPrice,
           totalCommission: updateRedis[0],
         }, { transaction });

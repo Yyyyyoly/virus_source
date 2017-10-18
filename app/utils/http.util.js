@@ -64,6 +64,9 @@ class HttpSend {
   }
 
   // 获取访问来自哪个渠道  判断host位置
+  // 有2种方法可取：
+  // 1.分享链接里带参  标注分享渠道是哪里
+  // 2.通过req.heaer.referer判断 但是这个有些获取不到
   getChannel() {
     const channel = this.req.query.channel ? parseInt(this.req.query.channel, 0) : 0;
     return channel;
