@@ -12,14 +12,13 @@ module.exports = function (sequelize, DataTypes) {
 
     // 资讯浏览人详细信息
     viewerId: { type: DataTypes.BIGINT, allowNull: false },
-    viewerUniqueId: { type: DataTypes.STRING, allowNull: false },
     viewerName: { type: DataTypes.STRING },
-    viewerPhone: { type: DataTypes.STRING(11), allowNull: false },
+    viewerOpenId: { type: DataTypes.STRING, allowNull: false },
 
     // 分享人详细信息 如果有
     shareId: { type: DataTypes.BIGINT, defaultValue: 0 },
     shareName: { type: DataTypes.STRING },
-    sharePhone: { type: DataTypes.STRING(11) },
+    shareOpenId: { type: DataTypes },
 
     // 分享渠道id 微博 微信
     shareChannel: { type: DataTypes.INTEGER },

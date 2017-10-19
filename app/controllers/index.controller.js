@@ -141,14 +141,14 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
       recordList = await mysqlModel.findAll({
         attributes: [
           [Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%m%d'), 'date'],
-          'viewerUniqueId',
+          'viewerId',
         ],
         where: {
           shareId: userId,
           createdAt: { $gte: startDate, $lte: endDate },
         },
         group: [
-          'viewerUniqueId',
+          'viewerId',
           Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%Y-%m-%d'),
         ],
       });

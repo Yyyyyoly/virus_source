@@ -170,12 +170,10 @@ const incPVById = async (productInfo, viewerInfo, shareUserId, channel) => {
       shareInfo.shareId = 0;
     } else {
       shareInfo.shareName = data.dataValues.userName;
-      shareInfo.sharePhone = data.dataValues.phone;
+      shareInfo.shareOpenId = data.dataValues.openId;
     }
   }
 
-  // 获取游客/登录会员的唯一id
-  const viewerUniqueId = !viewerInfo.userId ? viewerInfo.cookieId : viewerInfo.userId;
   Model.sequelize.transaction(async (transaction) => {
     const updateMysql = await Model.PVProducts.create({
       productId: productInfo.productId,
@@ -185,12 +183,11 @@ const incPVById = async (productInfo, viewerInfo, shareUserId, channel) => {
       price: productInfo.price,
       soldCount: productInfo.soldCount,
       viewerId: viewerInfo.userId,
-      viewerUniqueId,
       viewerName: viewerInfo.userName,
-      viewerPhone: viewerInfo.phone,
+      viewerOpenId: viewerInfo.openId,
       shareId: shareInfo.shareId,
       shareName: shareInfo.shareName,
-      sharePhone: shareInfo.sharePhone,
+      shareOpenId: shareInfo.shareOpenId,
       shareChannel: channel,
     }, { transaction });
     if (updateMysql && updateMysql.dataValues) {
@@ -209,7 +206,7 @@ const incPVById = async (productInfo, viewerInfo, shareUserId, channel) => {
           .zincrby(pvUserKey, 1, productInfo.id)
           .hset(productInfoKey, 1, JSON.stringify(productBrief))
           .zincrby(channelUserKey, 1, channel)
-          .hincrby(uvKey, viewerUniqueId, 1)
+          .hincrby(uvKey, viewerInfo.userId, 1)
           .execAsync();
 
         if (!updateRedis.length) {
@@ -243,9 +240,9 @@ exports.redirectToShopServer = (req, res, next) => {
       }
 
       //  记录pv日志
-      const viewerInfo = newsController.getVistorCookie(req);
-      const userId = viewerInfo.userId ? viewerInfo.userId : viewerInfo.cookieId;
-      await incPVById(repos.data.product, viewerInfo, shareUserId, channel);
+      const viewerInfo = req.session.user;
+      const userId = viewerInfo.userId || 0;
+      await incPVById(repos.data.product, userId, shareUserId, channel);
 
       // 跳转至商城服务器的购买相关页面
       const url = `${config.shopServerConfig.host}:${config.shopServerConfig.port}/shop
@@ -266,7 +263,7 @@ exports.addPurchaseRecord = (req, res) => {
   const orderId = req.body.orderId || '';
   const channel = req.body.channel || 0;
   const shareUserId = req.body.shareId || 0;
-  const userUniqueId = req.body.userId || 0;
+  const userId = req.body.userId || 0;
   const totalPrice = parseFloat(req.body.totalPrice) || 0;
   const timestamp = req.body.timestamp || 0;
   const signature = req.body.signature || '';
@@ -278,7 +275,7 @@ exports.addPurchaseRecord = (req, res) => {
     orderId,
     channel,
     shareUserId,
-    userUniqueId,
+    userId,
     totalPrice,
     timestamp,
   }, config.shopServerConfig.privateKey);
@@ -300,7 +297,7 @@ exports.addPurchaseRecord = (req, res) => {
         const commissionKey = redisUtil.getRedisPrefix(6);
         const updateRedis = await redisClient.multi()
           .hincrby(commissionKey, shareUserId, totalPrice)
-          .hincrby(orderRecordKey, userUniqueId, 1)
+          .hincrby(orderRecordKey, userId, 1)
           .execAsync();
         if (!updateRedis.length) {
           throw new Error('更新失败');
@@ -309,7 +306,7 @@ exports.addPurchaseRecord = (req, res) => {
         // 增加佣金流水记录
         await Model.Commission.create({
           shareId: shareUserId,
-          viewerUniqueId: userUniqueId,
+          viewerId: userId,
           orderId,
           productId,
           operator: 1,

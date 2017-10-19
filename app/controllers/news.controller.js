@@ -3,11 +3,11 @@ const redisClient = require('../../config/redis')(1);
 const redisUtil = require('../utils/redis.util');
 const Model = require('../models/index');
 const HttpSend = require('../utils/http.util');
-const LocalStorage = require('node-localstorage').LocalStorage;
-const UUID = require('uuid');
+// const LocalStorage = require('node-localstorage').LocalStorage;
+// const UUID = require('uuid');
 const moment = require('moment');
 
-const localStorage = new LocalStorage('./scratch');
+// const localStorage = new LocalStorage('./scratch');
 
 // 根据资讯id  查询点赞总数和浏览总数
 exports.getPVAndThumpById = async (newsId) => {
@@ -123,31 +123,31 @@ exports.index = (req, res, next) => {
   mainFunction();
 };
 
-// 获取浏览者的信息
+// 获取浏览者的信息 现在已经改成全部用微信客户端了
 // 如果是首次登陆的游客  还需要给他唯一的uniqueId身份标志
-exports.getVistorCookie = (req) => {
-  let userInfo = {};
-  if (req.session.user && req.session.user.userId !== 0) {
-    userInfo = req.session.user;
-  } else {
-    let uniqueId = localStorage.getItem('uniqueId');
-    if (!uniqueId) {
-      uniqueId = UUID.v1();
-      localStorage.setItem('uniqueId', uniqueId);
-    }
-
-    userInfo = {
-      phone: '',
-      userName: '游客',
-      createdAt: '2017-10-10 00:00:00',
-      userId: 0,
-      openId: '',
-      cookieId: uniqueId,
-    };
-  }
-
-  return userInfo;
-};
+// exports.getVistorCookie = (req) => {
+//   let userInfo = {};
+//   if (req.session.user && req.session.user.userId !== 0) {
+//     userInfo = req.session.user;
+//   } else {
+//     let uniqueId = localStorage.getItem('uniqueId');
+//     if (!uniqueId) {
+//       uniqueId = UUID.v1();
+//       localStorage.setItem('uniqueId', uniqueId);
+//     }
+//
+//     userInfo = {
+//       phone: '',
+//       userName: '游客',
+//       createdAt: '2017-10-10 00:00:00',
+//       userId: 0,
+//       openId: '',
+//       cookieId: uniqueId,
+//     };
+//   }
+//
+//   return userInfo;
+// };
 
 // 根据资讯id和用户id  增加对应的pv统计日志
 exports.incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
@@ -163,12 +163,10 @@ exports.incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
       shareInfo.shareId = 0;
     } else {
       shareInfo.shareName = data.dataValues.userName;
-      shareInfo.sharePhone = data.dataValues.phone;
+      shareInfo.shareOpenId = data.dataValues.openId;
     }
   }
 
-  // 获取游客/登录会员的唯一id
-  const viewerUniqueId = !viewerInfo.userId ? viewerInfo.cookieId : viewerInfo.userId;
   Model.sequelize.transaction(async (transaction) => {
     const updateMysql = await Model.PVNews.create({
       newsId: newsInfo.newsId,
@@ -177,12 +175,11 @@ exports.incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
       title: newsInfo.title,
       introduction: newsInfo.introduction,
       viewerId: viewerInfo.userId,
-      viewerUniqueId,
       viewerName: viewerInfo.userName,
-      viewerPhone: viewerInfo.phone,
+      viewerOpenId: viewerInfo.openId,
       shareId: shareInfo.shareId,
       shareName: shareInfo.shareName,
-      sharePhone: shareInfo.sharePhone,
+      shareOpendId: shareInfo.shareOpenId,
       shareChannel: channel,
     }, { transaction });
     if (updateMysql && updateMysql.dataValues) {
@@ -208,7 +205,7 @@ exports.incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
           .zincrby(pvUserKey, 1, newsInfo.newsId)
           .hset(newsTitleKey, newsInfo.newsId, newsInfo.title)
           .zincrby(channelUserKey, 1, channel)
-          .hincrby(uvKey, viewerUniqueId, 1)
+          .hincrby(uvKey, viewerInfo.userId, 1)
           .execAsync();
       } else {
         updateRedis = await redisClient.multi()
@@ -268,9 +265,8 @@ exports.getNewsDetailById = (req, res, next) => {
         thumbUp: supportInfo.thumbUpNum,
       };
 
-      // 增加文章的浏览量
-      const viewer = exports.getVistorCookie(req, res);
-      exports.incPVById(newsInfo.dataValues, viewer, shareUid, channel);
+
+      exports.incPVById(newsInfo.dataValues, req.session.user, shareUid, channel);
 
       res.render('index', { pageInfo });
     } catch (err) {
@@ -360,8 +356,7 @@ exports.getTestDetailById = (req, res, next) => {
 
 
       // 记录浏览日志
-      const viewer = exports.getVistorCookie(req);
-      exports.incPVById(newsInfo.dataValues, viewer, shareUid, channel);
+      exports.incPVById(newsInfo.dataValues, req.session.user, shareUid, channel);
 
       res.render('index', { type, questLists });
     } catch (err) {
@@ -434,7 +429,6 @@ exports.finishTestById = (req, res) => {
     await Model.SelfTestRecord.create({
       userId: req.session.user.userId,
       userName: req.session.user.userName,
-      userPhone: req.session.user.phone,
       userOpenId: req.session.user.openId,
       totalScore,
       estimateId: estimateInfo.estimateId,

@@ -7,7 +7,6 @@ module.exports = function (sequelize, DataTypes) {
     // 用户信息
     userId: { type: DataTypes.BIGINT, allowNull: false },
     userName: { type: DataTypes.STRING },
-    userPhone: { type: DataTypes.STRING(11), allowNull: false },
     userOpenId: { type: DataTypes.STRING },
 
     // 分数
