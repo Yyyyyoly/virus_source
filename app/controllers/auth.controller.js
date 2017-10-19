@@ -2,161 +2,18 @@ const Model = require('../models/index');
 const HttpSend = require('../utils/http.util');
 const config = require('../../config/config');
 const constants = require('../../config/constants');
-const verifyCon = require('./verify.controller');
-const crypto = require('crypto');
 const OAuth = require('wechat-oauth');
 const url = require('url');
 
-// render注册页面
-exports.registerGet = (req, res) => {
-  const userInfo = req.session.user || {};
-
-  if (!userInfo || !userInfo.uid) {
-    res.render('auth/register');
-  } else {
-    const redirectUrl = `${config.serverHost}:${config.serverPort}/`;
-    res.redirect(redirectUrl);
-  }
-};
-
-// 注册请求
-exports.registerPost = (req, res) => {
-  const user = req.session.user || '';
-  const openId = user.openId || '';
-  const verifyCode = req.body.verifyCode || '';
-  const phone = req.body.phone || '';
-  const password = req.body.password ? crypto.createHash('md5').update(req.body.password).digest('hex') : '';
-  const resUtil = new HttpSend(req, res);
-
-  // 检查参数
-  if (!verifyCode || !phone || !password) {
-    resUtil.sendJson(constants.HTTP_FAIL, '参数错误');
-    return;
-  }
-
-  // 验证短信验证码
-  if (verifyCon.CodeVerify(req, verifyCode) === false) {
-    resUtil.sendJson(constants.HTTP_FAIL, '验证码不正确');
-    return;
-  }
-
-  const mainFunction = async () => {
-    try {
-      // 查询是否已经注册
-      const condition = openId ? { $or: [{ phone }, { openId }] } : { phone };
-      let userInfo = await Model.User.findOne({ where: condition });
-
-      // 如果已经注册
-      if (userInfo) {
-        // 注册请求来自普通网页端
-        if (!openId) {
-          resUtil.sendJson(constants.HTTP_FAIL, '该手机号已经被注册');
-          return;
-        }
-        // 注册请求来自微信端
-        if (userInfo.dataValues.phone === phone) {
-          if (userInfo.dataValues.openId) {
-            resUtil.sendJson(constants.HTTP_FAIL, '该手机号已经被注册');
-            return;
-          }
-          // 绑定微信
-          const updateOptions = { openId };
-          const updateConditions = { where: { userId: userInfo.userId } };
-          await Model.User.update(updateOptions, updateConditions);
-          userInfo.dataValues.openId = openId;
-        } else {
-          resUtil.sendJson(constants.HTTP_FAIL, '该微信号已被绑定');
-          return;
-        }
-      } else {
-        userInfo = await Model.User.create({ openId, phone, password });
-      }
-
-      req.session.user = {
-        phone: userInfo.dataValues.phone,
-        userName: userInfo.dataValues.userName,
-        createdAt: userInfo.dataValues.createdAt,
-        userId: userInfo.dataValues.userId,
-        openId: userInfo.dataValues.openId,
-      };
-
-      // 如果有跳转前页面，先进入
-      const originalUrl = req.session.originalUrl || `${config.serverHost}:${config.serverPort}/`;
-      req.session.originalUrl = null;
-      res.redirect(originalUrl);
-    } catch (error) {
-      console.log(error);
-      resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
-    }
-  };
-
-  mainFunction();
-};
-
-// render登录页面
-exports.loginGet = (req, res) => {
-  const userInfo = req.session.user || {};
-
-  if (!userInfo || !userInfo.uid) {
-    // 是否来自微信客户端, 是则自动登陆
-    const weChatFlag = exports.isFromWeChat(req);
-    if (weChatFlag) {
-      exports.loginPost(req, res);
-    } else {
-      res.render('auth/login');
-    }
-  } else {
-    const redirectUrl = `${config.serverHost}:${config.serverPort}/`;
-    res.redirect(redirectUrl);
-  }
-};
-
-// 处理来自其他浏览器的登录
-exports.loginPostFromOther = (req, res) => {
-  const phone = req.body.phone || '';
-  const password = req.body.password || '';
-  const resUtil = new HttpSend(req, res);
-
-  // 参数验证
-  if (!phone || !password) {
-    resUtil.sendJson(constants.HTTP_FAIL, '参数错误');
-    return;
-  }
-
-  Model.User.findOne({ where: { phone } }).then((responseUser) => {
-    if (!responseUser || !responseUser.dataValues) {
-      const registerUrl = `${config.serverHost}:${config.serverPort}/auth/register`;
-      res.redirect(registerUrl);
-      return;
-    }
-
-    const md5Password = crypto.createHash('md5').update(password).digest('hex');
-    if (responseUser.password !== md5Password) {
-      resUtil.sendJson(constants.HTTP_FAIL, '密码错误');
-      return;
-    }
-
-    req.session.user = {
-      phone: responseUser.dataValues.phone,
-      userName: responseUser.dataValues.userName,
-      createdAt: responseUser.dataValues.createdAt,
-      userId: responseUser.dataValues.userId,
-      openId: responseUser.dataValues.openId,
-    };
-
-    // 如果有跳转前页面，先进入
-    const originalUrl = req.session.originalUrl || `${config.serverHost}:${config.serverPort}/`;
-    req.session.originalUrl = null;
-    res.redirect(originalUrl);
-  }).catch((err) => {
-    console.log(err);
-    resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
-  });
-};
-
-// 处理来自微信的登录
-exports.loginGetFromWeChat = (req, res) => {
+// 自动登陆、自动注册
+const autoLoginAndRegister = (req, res) => {
   const openId = req.query.openId || '';
+  const userName = req.query.userName || '';
+  const sex = req.query.sex || 1;
+  const province = req.query.province || '湖北省';
+  const city = req.query.city || '武汉市';
+  const country = req.query.country || '中国';
+  const headImgUrl = req.query.headImgUrl || '';
   const resUtil = new HttpSend(req, res);
 
   // 参数验证
@@ -165,46 +22,76 @@ exports.loginGetFromWeChat = (req, res) => {
     return;
   }
 
-  Model.User.findOne({ where: { openId } }).then((responseUser) => {
-    if (!responseUser || !responseUser.dataValues) {
-      req.session.user = { openId };
-      const registerUrl = `${config.serverHost}:${config.serverPort}/auth/register`;
-      res.redirect(registerUrl);
-      return;
+  const mainFunction = async () => {
+    try {
+      let userInfo = await Model.User.findOne({ where: { openId } });
+
+      // 不存在则自动注册
+      if (!userInfo || !userInfo.dataValues) {
+        userInfo = await Model.User.create({
+          openId,
+          userName,
+          sex,
+          province,
+          city,
+          country,
+          headImgUrl,
+        });
+      } else if (userName !== userInfo.dataValues.userName || sex !== userInfo.dataValues.sex ||
+          province !== userInfo.dataValues.province || city !== userInfo.dataValues.city ||
+          country !== userInfo.dataValues.country || headImgUrl !== userInfo.dataValues.headImgUrl
+      ) {
+        // 如果存在但是发生了信息变更，更新信息
+        await Model.User.update({
+          userName,
+          sex,
+          province,
+          city,
+          country,
+          headImgUrl,
+        }, { where: { openId } });
+      }
+
+      req.session.user = {
+        userName: userInfo.dataValues.userName,
+        createdAt: userInfo.dataValues.createdAt,
+        userId: userInfo.dataValues.userId,
+        openId: userInfo.dataValues.openId,
+        sex: userInfo.dataValues.sex,
+        province: userInfo.dataValues.province,
+        city: userInfo.dataValues.city,
+        country: userInfo.dataValues.country,
+        headImgUrl: userInfo.dataValues.headImgUrl,
+      };
+
+      // 如果有跳转前页面，先进入
+      const originalUrl = req.session.originalUrl || `${config.serverHost}:${config.serverPort}/`;
+      req.session.originalUrl = null;
+      res.redirect(originalUrl);
+    } catch (err) {
+      console.log(err);
+      resUtil.sendJson(constants.HTTP_FAIL, '自动登陆出错');
     }
+  };
 
-    req.session.user = {
-      phone: responseUser.dataValues.phone,
-      userName: responseUser.dataValues.userName,
-      createdAt: responseUser.dataValues.createdAt,
-      userId: responseUser.dataValues.userId,
-      openId: responseUser.dataValues.openId,
-    };
-
-    // 如果有跳转前页面，先进入
-    const originalUrl = req.session.originalUrl || `${config.serverHost}:${config.serverPort}/`;
-    req.session.originalUrl = null;
-    res.redirect(originalUrl);
-  }).catch((err) => {
-    console.log(err);
-    resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
-  });
+  mainFunction();
 };
 
 // 登录请求主入口
-exports.loginPost = (req, res) => {
+exports.login = (req, res, next) => {
   const weChatFlag = exports.isFromWeChat(req);
   if (weChatFlag) {
     // 跳转 获取用户授权的code  微信不接受80端口以外的回调
     const api = new OAuth(config.weChatConfig.appId, config.weChatConfig.appSecret);
-    const weChatUrl = api.getAuthorizeURL(`${config.serverHost}/auth/weChatCode`, '', 'snsapi_base');
+    const weChatUrl = api.getAuthorizeURL(`${config.serverHost}/auth/weChatCode`, '', 'snsapi_userinfo');
     res.redirect(weChatUrl);
   } else {
-    exports.loginPostFromOther(req, res);
+    const error = new Error('请从微信浏览器登入');
+    next(error);
   }
 };
 
-// 获取用户openId
+// 获取用户微信userInfo
 exports.weChatCodeGet = (req, res) => {
   const code = req.query.code || '';
   const api = new OAuth(config.weChatConfig.appId, config.weChatConfig.appSecret);
@@ -213,15 +100,15 @@ exports.weChatCodeGet = (req, res) => {
       res.end(result.errCode);
     } else {
       req.query.openId = result.data.openid || '';
-      exports.loginGetFromWeChat(req, res);
+      req.query.userName = result.data.nickname || '';
+      req.query.sex = result.data.sex || 1;
+      req.query.province = result.data.province || '';
+      req.query.city = result.data.city || '';
+      req.query.country = result.data.country || '';
+      req.query.headImgUrl = result.data.headimgurl || '';
+      autoLoginAndRegister(req, res);
     }
   });
-};
-
-// 登出请求
-exports.logoutGet = (req, res) => {
-  req.session.destroy();
-  res.redirect(`${config.serverHost}:${config.serverPort}`);
 };
 
 // 中间件：判断是否已经登录
@@ -236,7 +123,7 @@ exports.isLogin = (req, res, next) => {
   });
   req.session.originalUrl = originalUrl;
 
-  if (!userInfo || !userInfo.uid) {
+  if (!userInfo || !userInfo.userId) {
     res.redirect(`${config.serverHost}:${config.serverPort}/auth/login`);
   } else {
     next();
@@ -253,7 +140,7 @@ exports.isFromWeChat = (req) => {
   return false;
 };
 
-
+// 微信绑定域名时会回调的接口
 exports.checkSignature = (req, res) => {
   const token = config.weChatConfig.token || '';
   const timestamp = req.query.timestamp || '';

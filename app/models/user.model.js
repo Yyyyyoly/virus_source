@@ -5,6 +5,11 @@ module.exports = function (sequelize, DataTypes) {
     },
     openId: { type: DataTypes.STRING },
     userName: { type: DataTypes.STRING },
+    sex: { type: DataTypes.INTEGER },
+    province: { type: DataTypes.STRING },
+    city: { type: DataTypes.STRING },
+    country: { type: DataTypes.STRING },
+    headImgUrl: { type: DataTypes.STRING },
   }, {
     timestamps: true,
     paranoid: true,

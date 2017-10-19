@@ -6,12 +6,6 @@ module.exports = function (sequelize, DataTypes) {
     },
     // 分享（获利）用户id
     shareId: { type: DataTypes.BIGINT, allowNull: false },
-    // 传播引流（购买）用户的id
-    viewerId: { type: DataTypes.BIGINT },
-    // 成交订单编号
-    orderId: { type: DataTypes.INTEGER, unique: true },
-    // 分享商品id
-    productId: { type: DataTypes.INTEGER },
     // 操作编号   1：成交订单获利 2：提现 3：积分兑换
     operator: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
     // 操作状态   0: 待处理  1: 已完成
@@ -20,10 +14,22 @@ module.exports = function (sequelize, DataTypes) {
     changeNum: { type: DataTypes.FLOAT, allowNull: false },
     // 当前佣金总额
     totalCommission: { type: DataTypes.FLOAT, allowNull: false },
+
+    // 传播引流（购买）用户的id
+    viewerId: { type: DataTypes.BIGINT },
+    // 成交订单编号
+    orderId: { type: DataTypes.INTEGER, unique: true },
+    // 分享商品id
+    productId: { type: DataTypes.INTEGER },
     // 成交订单获利时的分享渠道id
     channel: { type: DataTypes.INTEGER, defaultValue: 0 },
+
     // 手机号(仅提现时有用)
     phone: { type: DataTypes.STRING(11), validate: { len: 11, is: /^1[3578]\d{9}$/ } },
+    // 提现时的支付宝账号
+    alipayAccount: { type: DataTypes.STRING },
+    // 支付宝账号名称
+    alipayAccountName: { type: DataTypes.STRING },
   }, {
     timestamps: true,
     paranoid: true,
