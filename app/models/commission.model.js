@@ -27,9 +27,9 @@ module.exports = function (sequelize, DataTypes) {
     // 手机号(仅提现时有用)
     phone: { type: DataTypes.STRING(11), validate: { len: 11, is: /^1[3578]\d{9}$/ } },
     // 提现时的支付宝账号
-    alipayAccount: { type: DataTypes.STRING },
+    aliPayAccount: { type: DataTypes.STRING },
     // 支付宝账号名称
-    alipayAccountName: { type: DataTypes.STRING },
+    aliPayAccountName: { type: DataTypes.STRING },
   }, {
     timestamps: true,
     paranoid: true,

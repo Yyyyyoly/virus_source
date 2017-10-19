@@ -3,24 +3,24 @@ const redisClient = require('../../config/redis')(1);
 const redisUtil = require('../utils/redis.util');
 const Model = require('../models/index');
 const HttpSend = require('../utils/http.util');
-// const LocalStorage = require('node-localstorage').LocalStorage;
-// const UUID = require('uuid');
 const moment = require('moment');
+const config = require('../../config/config');
 
-// const localStorage = new LocalStorage('./scratch');
-
-// 根据资讯id  查询点赞总数和浏览总数
+// 根据资讯id  查询点赞总数、浏览总数、评论总数
 exports.getPVAndThumpById = async (newsId) => {
   const thumbUpKey = redisUtil.getRedisPrefix(1);
   const pvKey = redisUtil.getRedisPrefix(2);
-  const [pvNum, thumbUpNum] = await Promise.all([
+  const commentKey = redisUtil.getRedisPrefix(13);
+  const [pvNum, thumbUpNum, commentNum] = await Promise.all([
     redisClient.zscoreAsync(pvKey, newsId),
     redisClient.zscoreAsync(thumbUpKey, newsId),
+    redisClient.zscoreAsync(commentKey, newsId),
   ]);
 
   return {
     pvNum: pvNum || 0,
     thumbUpNum: thumbUpNum || 0,
+    commentNum: commentNum || 0,
   };
 };
 
@@ -104,6 +104,7 @@ exports.index = (req, res, next) => {
           createdAt: newsInfo.dataValues.createdAt,
           pv: supportInfo.pvNum,
           thumbUp: supportInfo.thumbUpNum,
+          commentNum: supportInfo.commentNum,
         };
       });
 
@@ -123,34 +124,8 @@ exports.index = (req, res, next) => {
   mainFunction();
 };
 
-// 获取浏览者的信息 现在已经改成全部用微信客户端了
-// 如果是首次登陆的游客  还需要给他唯一的uniqueId身份标志
-// exports.getVistorCookie = (req) => {
-//   let userInfo = {};
-//   if (req.session.user && req.session.user.userId !== 0) {
-//     userInfo = req.session.user;
-//   } else {
-//     let uniqueId = localStorage.getItem('uniqueId');
-//     if (!uniqueId) {
-//       uniqueId = UUID.v1();
-//       localStorage.setItem('uniqueId', uniqueId);
-//     }
-//
-//     userInfo = {
-//       phone: '',
-//       userName: '游客',
-//       createdAt: '2017-10-10 00:00:00',
-//       userId: 0,
-//       openId: '',
-//       cookieId: uniqueId,
-//     };
-//   }
-//
-//   return userInfo;
-// };
-
-// 根据资讯id和用户id  增加对应的pv统计日志
-exports.incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
+// 根据资讯id  增加对应的统计日志
+exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId, channel) => {
   // 如果有分享者，先查询分享者信息
   const shareInfo = {
     shareId: shareUserId,
@@ -167,8 +142,13 @@ exports.incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
     }
   }
 
+  // 查询操作对应的积分数量
+  const pointInfo = await Model.BonusPoint.findOne({ where: { id: 1 } });
+  const pointNum = parseInt(pointInfo.dataValues.pointNum, 0);
+
   Model.sequelize.transaction(async (transaction) => {
-    const updateMysql = await Model.PVNews.create({
+    /** *****************************记录资讯浏览日志**************************************** */
+    await Model.PVNews.create({
       newsId: newsInfo.newsId,
       redirectUrl: newsInfo.redirectUrl,
       type: newsInfo.type,
@@ -182,40 +162,80 @@ exports.incPVById = async (newsInfo, viewerInfo, shareUserId, channel) => {
       shareOpendId: shareInfo.shareOpenId,
       shareChannel: channel,
     }, { transaction });
-    if (updateMysql && updateMysql.dataValues) {
-      // 更新文章浏览总榜
-      const pvTotalKey = redisUtil.getRedisPrefix(2);
-      // 更新文章分类浏览总榜
-      const pvContextKey = redisUtil.getRedisPrefix(2, newsInfo.type);
-      // 更新个人  分享文章的热门排行榜
-      const pvUserKey = redisUtil.getRedisPrefix(3, shareInfo.shareId);
-      const newsTitleKey = redisUtil.getRedisPrefix(11);
-      // 更新个人  分享文章的渠道排行榜
-      const channelUserKey = redisUtil.getRedisPrefix(4, shareInfo.shareId);
-      // 更新个人  当日分享文章的浏览uv pv
-      const today = moment().format('YYYYMMDD');
-      const uvKey = redisUtil.getRedisPrefix(5, `${shareInfo.shareId}:date_${today}`);
 
-      // 鉴于multi并不会产生回滚，所以一旦exec出错  还是有错误数据会+1
-      let updateRedis = [];
-      if (shareInfo.shareId !== 0) {
-        updateRedis = await redisClient.multi()
-          .zincrby(pvTotalKey, 1, newsInfo.newsId)
-          .zincrby(pvContextKey, 1, newsInfo.newsId)
-          .zincrby(pvUserKey, 1, newsInfo.newsId)
-          .hset(newsTitleKey, newsInfo.newsId, newsInfo.title)
-          .zincrby(channelUserKey, 1, channel)
-          .hincrby(uvKey, viewerInfo.userId, 1)
-          .execAsync();
-      } else {
-        updateRedis = await redisClient.multi()
-          .zincrby(pvTotalKey, 1, newsInfo.newsId)
-          .zincrby(pvContextKey, 1, newsInfo.newsId)
-          .execAsync();
-      }
-      if (!updateRedis.length) {
-        throw new Error('redis update failed');
-      }
+    /** *****************************更新浏览记录相关redis数据**************************************** */
+    // 更新文章浏览总榜
+    const pvTotalKey = redisUtil.getRedisPrefix(2);
+    // 更新文章分类浏览总榜
+    const pvContextKey = redisUtil.getRedisPrefix(2, newsInfo.type);
+    // 更新个人  分享文章的热门排行榜
+    const pvUserKey = redisUtil.getRedisPrefix(3, shareInfo.shareId);
+    const newsTitleKey = redisUtil.getRedisPrefix(11);
+    // 更新个人  分享文章的渠道排行榜
+    const channelUserKey = redisUtil.getRedisPrefix(4, shareInfo.shareId);
+    // 更新个人  当日分享文章的浏览uv pv
+    const today = moment().format('YYYYMMDD');
+    const uvKey = redisUtil.getRedisPrefix(5, `${shareInfo.shareId}:date_${today}`);
+    // 文章浏览用户
+    const pvNewsLogKey = redisUtil.getRedisPrefix(15, newsInfo.newsId);
+    // 转发浏览用户
+    const pvUserNewsLogKey = redisUtil.getRedisPrefix(16, `${newsInfo.newsId}:uid_${shareInfo.shareId}`);
+
+    // 鉴于multi并不会产生回滚，所以一旦exec出错  还是有错误数据会+1
+    let updateRedis = [];
+    let userPvNum = 0;
+    let userNewPVNum = 0;
+    if (shareInfo.shareId !== 0) {
+      updateRedis = await redisClient.multi()
+        .zincrby(pvTotalKey, 1, newsInfo.newsId)
+        .zincrby(pvContextKey, 1, newsInfo.newsId)
+        .zincrby(pvUserKey, 1, newsInfo.newsId)
+        .hset(newsTitleKey, newsInfo.newsId, newsInfo.title)
+        .zincrby(channelUserKey, 1, channel)
+        .hincrby(uvKey, viewerInfo.userId, 1)
+        .hincrby(pvNewsLogKey, viewerInfo.userId, 1)
+        .hincrby(pvUserNewsLogKey, viewerInfo.userId, 1)
+        .execAsync();
+      userPvNum = parseInt(updateRedis[6], 0);
+      userNewPVNum = parseInt(updateRedis[7], 0);
+    } else {
+      updateRedis = await redisClient.multi()
+        .zincrby(pvTotalKey, 1, newsInfo.newsId)
+        .zincrby(pvContextKey, 1, newsInfo.newsId)
+        .hincrby(pvNewsLogKey, viewerInfo.userId, 1)
+        .execAsync();
+      userPvNum = parseInt(updateRedis[2], 0);
+    }
+    if (!updateRedis.length) {
+      throw new Error('redis update failed');
+    }
+
+
+    /** *****************************检查是否为第一次浏览，如果是，增加浏览者积分日志******************************* */
+    if (userPvNum === 1) {
+      const bonusPointKey = redisUtil.getRedisPrefix(17);
+      const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, viewerInfo.userId, pointNum);
+      await Model.PointRecord.create({
+        viewerId: viewerInfo.userId,
+        shareId: shareInfo.shareId,
+        operator: 1,
+        changeNum: pointNum,
+        totalPoint,
+        newsId: newsInfo.newsId,
+      }, { transaction });
+    }
+
+    /** ************************如果有分享者，且被分享人第一次点入，增加分享者积分日志************************** */
+    if (shareInfo.shareId !== 0 && userNewPVNum === 1) {
+      const bonusPointKey = redisUtil.getRedisPrefix(17);
+      const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, shareInfo.shareId, pointNum);
+      await Model.PointRecord.create({
+        viewerId: shareInfo.shareId,
+        operator: 5,
+        changeNum: pointNum,
+        totalPoint,
+        newsId: newsInfo.newsId,
+      }, { transaction });
     }
   }).catch((err) => {
     // Rolled back
@@ -230,8 +250,9 @@ exports.getNewsDetailById = (req, res, next) => {
   const shareUid = req.query.shareUid ? parseInt(req.query.shareUid, 0) : 0;
   // 分享渠道id
   const channel = new HttpSend(req, res).getChannel(req);
+  const userId = req.session.user.userId || 0;
 
-  if (!newsId) {
+  if (!newsId || !userId) {
     const error = new Error('参数错误');
     next(error);
   }
@@ -249,8 +270,12 @@ exports.getNewsDetailById = (req, res, next) => {
         next(error);
       }
 
-      // 查询点赞总数和浏览总数
+      // 查询点赞总数、浏览总数、评论总数
       const supportInfo = await exports.getPVAndThumpById(newsId);
+
+      // 查询评论列表
+      const commentListKey = redisUtil.getRedisPrefix(14);
+      const commentList = await redisClient.lrangeAsync(commentListKey, 0, -1);
 
       const pageInfo = {
         newsId: newsInfo.dataValues.newsId,
@@ -263,12 +288,15 @@ exports.getNewsDetailById = (req, res, next) => {
         createdAt: newsInfo.dataValues.createdAt,
         pv: supportInfo.pvNum,
         thumbUp: supportInfo.thumbUpNum,
+        commentNum: supportInfo.commentNum,
+        commentList,
       };
 
 
-      exports.incPVById(newsInfo.dataValues, req.session.user, shareUid, channel);
+      exports.addLogByNewsId(newsInfo.dataValues, req.session.user, shareUid, channel);
 
-      res.render('index', { pageInfo });
+      const shareLink = encodeURI(`${config.shopServerConfig.host}:${config.shopServerConfig.port}/news/details/${pageInfo.newsId}?shareUid=${userId}`);
+      res.render('index', { pageInfo, shareLink, shareUserId: shareUid });
     } catch (err) {
       console.log(err);
       next(err);
@@ -356,7 +384,7 @@ exports.getTestDetailById = (req, res, next) => {
 
 
       // 记录浏览日志
-      exports.incPVById(newsInfo.dataValues, req.session.user, shareUid, channel);
+      exports.addLogByNewsId(newsInfo.dataValues, req.session.user, shareUid, channel);
 
       res.render('index', { type, questLists });
     } catch (err) {

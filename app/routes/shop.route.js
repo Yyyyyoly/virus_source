@@ -1,11 +1,12 @@
 const router = require('express').Router();
 const shopController = require('../controllers/shop.controller');
+const authController = require('../controllers/auth.controller');
 
 const prefix = '/mall';
-router.get('/search', shopController.searchProduct);
-router.get('/category/:categoryId', shopController.searchProductByCategory);
-router.get('/product/:productId', shopController.searchProductByCategory);
-router.get('/purchase/:productId', shopController.redirectToShopServer);
+router.get('/search', authController.isLogin, shopController.searchProduct);
+router.get('/category/:categoryId', authController.isLogin, shopController.searchProductByCategory);
+router.get('/product/:productId', authController.isLogin, shopController.searchProductByCategory);
+router.get('/purchase/:productId', authController.isLogin, shopController.redirectToShopServer);
 
 // 购买完成后，商城服务器请求用
 router.post('/purchaseRecord', shopController.addPurchaseRecord);

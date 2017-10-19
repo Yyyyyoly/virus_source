@@ -3,7 +3,6 @@ const config = require('../../config/config');
 const HttpSend = require('../utils/http.util');
 const redisClient = require('../../config/redis')(1);
 const constants = require('../../config/constants');
-const newsController = require('./news.controller');
 const Model = require('../models/index');
 const redisUtil = require('../utils/redis.util');
 const signatureUtil = require('../utils/signature.util');

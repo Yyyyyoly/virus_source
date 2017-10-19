@@ -67,11 +67,13 @@ exports.withdrawPage = (req, res, next) => {
 exports.withdraw = (req, res) => {
   const userId = req.session.user.userId || '';
   const changeNum = req.body.money || 0;
+  const aliPayAccount = req.body.aliPayAccount || '';
+  const aliPayAccountName = req.body.aliPayAccountName || '';
   const phone = req.body.phone || '';
   const captcha = req.body.captcha || '';
   const resUtil = new HttpSend(req, res);
 
-  if (!userId || !phone || !captcha) {
+  if (!userId || !phone || !captcha || !aliPayName || !aliPayAccount) {
     resUtil.sendJson(constants.HTTP_FAIL, '参数有误');
     return;
   }
@@ -107,6 +109,8 @@ exports.withdraw = (req, res) => {
           changeNum: 0 - changeNum,
           totalCommission: parseFloat(updateRedis),
           phone,
+          aliPayAccount,
+          aliPayAccountName,
         }, { transaction });
       }).catch((err) => {
         if (err.message !== 'redis update failed') {
