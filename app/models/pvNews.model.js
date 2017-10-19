@@ -18,7 +18,7 @@ module.exports = function (sequelize, DataTypes) {
     // 分享人详细信息 如果有
     shareId: { type: DataTypes.BIGINT, defaultValue: 0 },
     shareName: { type: DataTypes.STRING },
-    shareOpenId: { type: DataTypes },
+    shareOpenId: { type: DataTypes.STRING },
 
     // 分享渠道id 微博 微信
     shareChannel: { type: DataTypes.INTEGER },

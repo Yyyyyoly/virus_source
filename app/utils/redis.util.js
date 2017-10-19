@@ -38,6 +38,9 @@ exports.getRedisPrefix = (type, id = '') => {
     case 12:
       redisKey = 'brief_rank_info|products'; // 一些排行中需要显示的精简product信息
       break;
+    case 999:
+      redisKey = 'weChat|token'; // 一些排行中需要显示的精简product信息
+      break;
     default:
       break;
   }

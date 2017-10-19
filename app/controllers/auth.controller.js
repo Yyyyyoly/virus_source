@@ -4,15 +4,38 @@ const config = require('../../config/config');
 const constants = require('../../config/constants');
 const OAuth = require('wechat-oauth');
 const url = require('url');
+const tokenRedis = require('../../config/redis')(2);
+const redisUtil = require('../utils/redis.util');
+
+// 微信维护全局AccessToken的方法
+const api = new OAuth(
+  config.weChatConfig.appId,
+  config.weChatConfig.appSecret,
+  (openid, callback) => {
+    // 传入一个根据openid获取对应的全局token的方法
+    const keys = redisUtil.getRedisPrefix(999, openid);
+    tokenRedis.getAsync(keys).then((token) => {
+      callback(null, JSON.parse(token));
+    });
+  },
+  ((openid, token, callback) => {
+    // 请将token存储到全局，跨进程、跨机器级别的全局，比如写到数据库、redis等
+    // 这样才能在cluster模式及多机情况下使用
+    const keys = redisUtil.getRedisPrefix(999, openid);
+    tokenRedis.setAsync(keys, JSON.stringify(token)).then(() => {
+      callback(null);
+    });
+  }),
+);
 
 // 自动登陆、自动注册
 const autoLoginAndRegister = (req, res) => {
   const openId = req.query.openId || '';
   const userName = req.query.userName || '';
   const sex = req.query.sex || 1;
-  const province = req.query.province || '湖北省';
-  const city = req.query.city || '武汉市';
-  const country = req.query.country || '中国';
+  const province = req.query.province || 'Hubei';
+  const city = req.query.city || 'Wuhan';
+  const country = req.query.country || 'China';
   const headImgUrl = req.query.headImgUrl || '';
   const resUtil = new HttpSend(req, res);
 
@@ -82,7 +105,6 @@ exports.login = (req, res, next) => {
   const weChatFlag = exports.isFromWeChat(req);
   if (weChatFlag) {
     // 跳转 获取用户授权的code  微信不接受80端口以外的回调
-    const api = new OAuth(config.weChatConfig.appId, config.weChatConfig.appSecret);
     const weChatUrl = api.getAuthorizeURL(`${config.serverHost}/auth/weChatCode`, '', 'snsapi_userinfo');
     res.redirect(weChatUrl);
   } else {
@@ -94,19 +116,23 @@ exports.login = (req, res, next) => {
 // 获取用户微信userInfo
 exports.weChatCodeGet = (req, res) => {
   const code = req.query.code || '';
-  const api = new OAuth(config.weChatConfig.appId, config.weChatConfig.appSecret);
   api.getAccessToken(code, (err, result) => {
     if (err || !result || !result.data) {
       res.end(result.errCode);
     } else {
-      req.query.openId = result.data.openid || '';
-      req.query.userName = result.data.nickname || '';
-      req.query.sex = result.data.sex || 1;
-      req.query.province = result.data.province || '';
-      req.query.city = result.data.city || '';
-      req.query.country = result.data.country || '';
-      req.query.headImgUrl = result.data.headimgurl || '';
-      autoLoginAndRegister(req, res);
+      api.getUser(result.data.openid, (error, userInfo) => {
+        if (error || !userInfo) {
+          res.end(error);
+        }
+        req.query.openId = userInfo.openid || '';
+        req.query.userName = userInfo.nickname || '';
+        req.query.sex = userInfo.sex || 1;
+        req.query.province = userInfo.province || '';
+        req.query.city = userInfo.city || '';
+        req.query.country = userInfo.country || '';
+        req.query.headImgUrl = userInfo.headimgurl || '';
+        autoLoginAndRegister(req, res);
+      });
     }
   });
 };
