@@ -21,9 +21,6 @@ module.exports = function (sequelize, DataTypes) {
     shareId: { type: DataTypes.BIGINT, defaultValue: 0 },
     shareName: { type: DataTypes.STRING },
     shareOpenId: { type: DataTypes.STRING, allowNull: false },
-
-    // 分享渠道id 微博 微信
-    shareChannel: { type: DataTypes.INTEGER },
   }, {
     timestamps: true,
     freezeTableName: true,

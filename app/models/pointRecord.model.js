@@ -1,5 +1,5 @@
 module.exports = function (sequelize, DataTypes) {
-  const PointRecord = sequelize.define('pointRecord', {
+  const PointRecord = sequelize.define('PointRecord', {
     // 主键
     recordId: {
       type: DataTypes.BIGINT, allowNull: false, primaryKey: true, autoIncrement: true,
@@ -28,7 +28,8 @@ module.exports = function (sequelize, DataTypes) {
   });
 
   PointRecord.associate = (models) => { PointRecord.belongsTo(models.User, { foreignKey: 'viewerId', targetKey: 'userId' }); };
-  PointRecord.associate = (models) => { PointRecord.belongsTo(models.OperationPoint, { foreignKey: 'operator', targetKey: 'id' }); };
+  PointRecord.associate = (models) => { PointRecord.belongsTo(models.BonusPoint, { foreignKey: 'operator', targetKey: 'id' }); };
+  PointRecord.associate = (models) => { PointRecord.belongsTo(models.News, { foreignKey: 'newsId', targetKey: 'newsId' }); };
 
   return PointRecord;
 };

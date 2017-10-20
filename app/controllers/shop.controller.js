@@ -156,7 +156,7 @@ exports.searchProduct = (req, res) => {
 };
 
 // 商城  增加商品PV UV记录
-const incPVById = async (productInfo, viewerInfo, shareUserId, channel) => {
+const incPVById = async (productInfo, viewerInfo, shareUserId) => {
   // 如果有分享者，先查询分享者信息
   const shareInfo = {
     shareId: shareUserId,
@@ -187,7 +187,6 @@ const incPVById = async (productInfo, viewerInfo, shareUserId, channel) => {
       shareId: shareInfo.shareId,
       shareName: shareInfo.shareName,
       shareOpenId: shareInfo.shareOpenId,
-      shareChannel: channel,
     }, { transaction });
     if (updateMysql && updateMysql.dataValues) {
       if (shareInfo.shareId !== 0) {
@@ -195,8 +194,6 @@ const incPVById = async (productInfo, viewerInfo, shareUserId, channel) => {
         const pvUserKey = redisUtil.getRedisPrefix(7, shareInfo.shareId);
         const productInfoKey = redisUtil.getRedisPrefix(12);
         const productBrief = { productName: productInfo.name, price: productInfo.price };
-        // 更新个人  分享商品的渠道排行榜
-        const channelUserKey = redisUtil.getRedisPrefix(8, shareInfo.shareId);
         // 更新个人  当日分享所有的总浏览uv pv
         const today = moment().format('YYYYMMDD');
         const uvKey = redisUtil.getRedisPrefix(9, `${shareInfo.shareId}:date_${today}`);
@@ -204,7 +201,6 @@ const incPVById = async (productInfo, viewerInfo, shareUserId, channel) => {
         const updateRedis = await redisClient.multi()
           .zincrby(pvUserKey, 1, productInfo.id)
           .hset(productInfoKey, 1, JSON.stringify(productBrief))
-          .zincrby(channelUserKey, 1, channel)
           .hincrby(uvKey, viewerInfo.userId, 1)
           .execAsync();
 
@@ -222,7 +218,6 @@ const incPVById = async (productInfo, viewerInfo, shareUserId, channel) => {
 // 跳转至购买链接
 exports.redirectToShopServer = (req, res, next) => {
   const productId = req.query.productId || 0;
-  const channel = new HttpSend(req, res).getChannel(req);
   const shareUserId = req.query.shareUserId || 0;
 
   const mainFunction = async () => {
@@ -241,11 +236,11 @@ exports.redirectToShopServer = (req, res, next) => {
       //  记录pv日志
       const viewerInfo = req.session.user;
       const userId = viewerInfo.userId || 0;
-      await incPVById(repos.data.product, userId, shareUserId, channel);
+      await incPVById(repos.data.product, userId, shareUserId);
 
       // 跳转至商城服务器的购买相关页面
       const url = `${config.shopServerConfig.host}:${config.shopServerConfig.port}/shop
-      ?userId=${userId}&shareId=${shareUserId}&productId=${productId}&channel=${channel}`;
+      ?userId=${userId}&shareId=${shareUserId}&productId=${productId}`;
       res.redirect(encodeURI(url));
     } catch (err) {
       console.log(err);
@@ -260,7 +255,6 @@ exports.redirectToShopServer = (req, res, next) => {
 exports.addPurchaseRecord = (req, res) => {
   const productId = req.body.productId || 0;
   const orderId = req.body.orderId || '';
-  const channel = req.body.channel || 0;
   const shareUserId = req.body.shareId || 0;
   const userId = req.body.userId || 0;
   const totalPrice = parseFloat(req.body.totalPrice) || 0;
@@ -272,7 +266,6 @@ exports.addPurchaseRecord = (req, res) => {
   const signatureInfo = signatureUtil.genSignature({
     productId,
     orderId,
-    channel,
     shareUserId,
     userId,
     totalPrice,

@@ -10,6 +10,7 @@ module.exports = function (sequelize, DataTypes) {
     city: { type: DataTypes.STRING },
     country: { type: DataTypes.STRING },
     headImgUrl: { type: DataTypes.STRING },
+    phone: { type: DataTypes.STRING(11), validate: { len: 11, is: /^1[3578]\d{9}$/ } },
   }, {
     timestamps: true,
     paranoid: true,

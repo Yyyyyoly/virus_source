@@ -49,7 +49,7 @@ exports.index = (req, res, next) => {
     return newsInfos;
   };
 
-  // 按照热门程度查找资讯  热门目前按照当月总浏览量排序
+  // 按照热门程度查找资讯  热门目前按照总浏览量排序
   const findByHot = async () => {
     const rankKey = contextType === constants.CONTEXT_TOTAL ?
       redisUtil.getRedisPrefix(2) :
@@ -125,7 +125,7 @@ exports.index = (req, res, next) => {
 };
 
 // 根据资讯id  增加对应的统计日志
-exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId, channel) => {
+exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   // 如果有分享者，先查询分享者信息
   const shareInfo = {
     shareId: shareUserId,
@@ -150,6 +150,7 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId, channel) => {
     /** *****************************记录资讯浏览日志**************************************** */
     await Model.PVNews.create({
       newsId: newsInfo.newsId,
+      writerName: newsInfo.writerName,
       redirectUrl: newsInfo.redirectUrl,
       type: newsInfo.type,
       title: newsInfo.title,
@@ -160,21 +161,19 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId, channel) => {
       shareId: shareInfo.shareId,
       shareName: shareInfo.shareName,
       shareOpendId: shareInfo.shareOpenId,
-      shareChannel: channel,
     }, { transaction });
 
     /** *****************************更新浏览记录相关redis数据**************************************** */
+    const today = moment().format('YYYYMMDD');
     // 更新文章浏览总榜
     const pvTotalKey = redisUtil.getRedisPrefix(2);
     // 更新文章分类浏览总榜
     const pvContextKey = redisUtil.getRedisPrefix(2, newsInfo.type);
-    // 更新个人  分享文章的热门排行榜
+    // 更新个人  分享文章的当日和累计热门排行榜
     const pvUserKey = redisUtil.getRedisPrefix(3, shareInfo.shareId);
+    const pvUserKeyToday = redisUtil.getRedisPrefix(3, `${shareInfo.shareId}:date_${today}`);
     const newsTitleKey = redisUtil.getRedisPrefix(11);
-    // 更新个人  分享文章的渠道排行榜
-    const channelUserKey = redisUtil.getRedisPrefix(4, shareInfo.shareId);
     // 更新个人  当日分享文章的浏览uv pv
-    const today = moment().format('YYYYMMDD');
     const uvKey = redisUtil.getRedisPrefix(5, `${shareInfo.shareId}:date_${today}`);
     // 文章浏览用户
     const pvNewsLogKey = redisUtil.getRedisPrefix(15, newsInfo.newsId);
@@ -190,8 +189,8 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId, channel) => {
         .zincrby(pvTotalKey, 1, newsInfo.newsId)
         .zincrby(pvContextKey, 1, newsInfo.newsId)
         .zincrby(pvUserKey, 1, newsInfo.newsId)
+        .zincrby(pvUserKeyToday, 1, newsInfo.newsId)
         .hset(newsTitleKey, newsInfo.newsId, newsInfo.title)
-        .zincrby(channelUserKey, 1, channel)
         .hincrby(uvKey, viewerInfo.userId, 1)
         .hincrby(pvNewsLogKey, viewerInfo.userId, 1)
         .hincrby(pvUserNewsLogKey, viewerInfo.userId, 1)
@@ -212,8 +211,8 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId, channel) => {
 
 
     /** *****************************检查是否为第一次浏览，如果是，增加浏览者积分日志******************************* */
-    if (userPvNum === 1) {
-      const bonusPointKey = redisUtil.getRedisPrefix(17);
+    if (userPvNum === 1 && pointNum > 0) {
+      const bonusPointKey = redisUtil.getRedisPrefix(4);
       const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, viewerInfo.userId, pointNum);
       await Model.PointRecord.create({
         viewerId: viewerInfo.userId,
@@ -226,8 +225,8 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId, channel) => {
     }
 
     /** ************************如果有分享者，且被分享人第一次点入，增加分享者积分日志************************** */
-    if (shareInfo.shareId !== 0 && userNewPVNum === 1) {
-      const bonusPointKey = redisUtil.getRedisPrefix(17);
+    if (shareInfo.shareId !== 0 && userNewPVNum === 1 && pointNum > 0) {
+      const bonusPointKey = redisUtil.getRedisPrefix(4);
       const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, shareInfo.shareId, pointNum);
       await Model.PointRecord.create({
         viewerId: shareInfo.shareId,
@@ -248,8 +247,6 @@ exports.getNewsDetailById = (req, res, next) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
   // 分享者id
   const shareUid = req.query.shareUid ? parseInt(req.query.shareUid, 0) : 0;
-  // 分享渠道id
-  const channel = new HttpSend(req, res).getChannel(req);
   const userId = req.session.user.userId || 0;
 
   if (!newsId || !userId) {
@@ -259,16 +256,17 @@ exports.getNewsDetailById = (req, res, next) => {
 
   const mainFunction = async () => {
     try {
-      // 查询文章及作者详情
-      const newsInfo = await Model.News.findOne({
-        where: { newsId },
-        include: { model: Model.User },
-      });
+      // 查询文章
+      const newsInfo = await Model.News.findOne({ where: { newsId } });
 
-      if (!newsInfo || !newsInfo.dataValues || !newsInfo.User) {
+      if (!newsInfo || !newsInfo.dataValues) {
         const error = new Error('该资讯不存在');
         next(error);
       }
+
+      // 查询是否已经点过赞
+      const thumbUpKey = redisUtil.getRedisPrefix(17, newsId);
+      const ifThumb = await redisClient.hgetAsync(thumbUpKey, userId, 1);
 
       // 查询点赞总数、浏览总数、评论总数
       const supportInfo = await exports.getPVAndThumpById(newsId);
@@ -279,7 +277,7 @@ exports.getNewsDetailById = (req, res, next) => {
 
       const pageInfo = {
         newsId: newsInfo.dataValues.newsId,
-        userName: newsInfo.User.dataValues.userName,
+        userName: newsInfo.dataValues.writerName,
         type: newsInfo.dataValues.type,
         title: newsInfo.dataValues.title,
         introduction: newsInfo.dataValues.introduction,
@@ -290,13 +288,14 @@ exports.getNewsDetailById = (req, res, next) => {
         thumbUp: supportInfo.thumbUpNum,
         commentNum: supportInfo.commentNum,
         commentList,
+        ifThumb: ifThumb > 0,
       };
 
 
-      exports.addLogByNewsId(newsInfo.dataValues, req.session.user, shareUid, channel);
+      exports.addLogByNewsId(newsInfo.dataValues, req.session.user, shareUid);
 
       const shareLink = encodeURI(`${config.shopServerConfig.host}:${config.shopServerConfig.port}/news/details/${pageInfo.newsId}?shareUid=${userId}`);
-      res.render('index', { pageInfo, shareLink, shareUserId: shareUid });
+      res.render('index', { pageInfo, shareLink });
     } catch (err) {
       console.log(err);
       next(err);
@@ -310,18 +309,26 @@ exports.getNewsDetailById = (req, res, next) => {
 exports.thumbUpNewsById = (req, res) => {
   const newsId = parseInt(req.body.newsId, 0) || 0;
   const resUtil = new HttpSend(req, res);
+  const userId = req.session.user.userId || 0;
 
   // 检查参数
-  if (!newsId) {
+  if (!newsId || !userId) {
     resUtil.sendJson(constants.HTTP_FAIL, '参数错误');
     return;
   }
 
   const mainFunction = async () => {
     try {
-      const thumbUpKey = redisUtil.getRedisPrefix(1);
+      // 查询是否已经点赞
+      const thumbUpKey = redisUtil.getRedisPrefix(17, newsId);
+      const ifThumb = await redisClient.hincrbyAsync(thumbUpKey, userId, 1);
+      if (ifThumb > 1) {
+        resUtil.sendJson(constants.HTTP_FAIL, '不能重复点赞');
+        return;
+      }
 
-      const newThumbUpNum = await redisClient.zincrbyAsync(thumbUpKey, 1, newsId);
+      const thumbUpRank = redisUtil.getRedisPrefix(1);
+      const newThumbUpNum = await redisClient.zincrbyAsync(thumbUpRank, 1, newsId);
 
       resUtil.sendJson(constants.HTTP_SUCCESS, '', { newThumbUpNum });
     } catch (err) {
@@ -333,9 +340,40 @@ exports.thumbUpNewsById = (req, res) => {
   mainFunction();
 };
 
-// 文章评论 预留
+// 文章评论
 exports.commentNewsById = (req, res) => {
-  res.render('index', { title: 'index page' });
+  const newsId = parseInt(req.body.newsId, 0) || 0;
+  const resUtil = new HttpSend(req, res);
+  const userId = req.session.user.userId || 0;
+  const comment = req.body.comment || '';
+
+
+  // 检查参数
+  if (!newsId || !userId || !comment) {
+    resUtil.sendJson(constants.HTTP_FAIL, '参数错误');
+    return;
+  }
+
+  const mainFunction = async () => {
+    try {
+      const commentInfo = {
+        comment,
+        userName: req.session.user.userName,
+        userId: req.session.user.userId,
+        headImgUrl: req.session.user.headImgUrl,
+        commentTime: Date().now(),
+      };
+
+      const rangeKey = redisUtil.getRedisPrefix(14, newsId);
+      await redisClient.rpushAsync(rangeKey, JSON.stringify(commentInfo));
+      resUtil.sendJson(constants.HTTP_SUCCESS, '', { commentInfo: JSON.stringify(commentInfo) });
+    } catch (err) {
+      console.log(err);
+      resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
+    }
+  };
+
+  mainFunction();
 };
 
 // 自测题详情页
@@ -343,8 +381,6 @@ exports.getTestDetailById = (req, res, next) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
   // 分享者id
   const shareUid = req.query.shareUid ? parseInt(req.query.shareUid, 0) : 0;
-  // 分享渠道id
-  const channel = new HttpSend(req, res).getChannel(req);
 
   if (!newsId) {
     const err = new Error('参数错误');
@@ -384,7 +420,7 @@ exports.getTestDetailById = (req, res, next) => {
 
 
       // 记录浏览日志
-      exports.addLogByNewsId(newsInfo.dataValues, req.session.user, shareUid, channel);
+      exports.addLogByNewsId(newsInfo.dataValues, req.session.user, shareUid);
 
       res.render('index', { type, questLists });
     } catch (err) {

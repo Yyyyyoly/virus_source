@@ -9,6 +9,7 @@ module.exports = function (sequelize, DataTypes) {
     type: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
     title: { type: DataTypes.STRING },
     introduction: { type: DataTypes.STRING },
+    writerName: { type: DataTypes.STRING, defaultValue: '管理员' },
 
     // 资讯浏览人详细信息
     viewerId: { type: DataTypes.BIGINT, allowNull: false },
@@ -19,9 +20,6 @@ module.exports = function (sequelize, DataTypes) {
     shareId: { type: DataTypes.BIGINT, defaultValue: 0 },
     shareName: { type: DataTypes.STRING },
     shareOpenId: { type: DataTypes.STRING },
-
-    // 分享渠道id 微博 微信
-    shareChannel: { type: DataTypes.INTEGER },
   }, {
     timestamps: true,
     freezeTableName: true,
