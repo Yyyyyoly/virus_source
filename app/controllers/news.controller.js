@@ -132,7 +132,10 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     shareName: '',
     sharePhone: '',
   };
-  if (shareUserId !== 0 && shareUserId !== viewerInfo.userId) {
+  if (shareUserId !== viewerInfo.userId) {
+    shareInfo.shareId = 0;
+  }
+  if (shareUserId !== 0) {
     const data = await Model.User.findOne({ where: { userId: shareUserId } });
     if (!data || !data.dataValues) {
       shareInfo.shareId = 0;
@@ -163,40 +166,47 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       shareOpendId: shareInfo.shareOpenId,
     }, { transaction });
 
-    /** *****************************更新浏览记录相关redis数据**************************************** */
+    /** ************************************更新浏览记录相关redis数据************************************* */
     const today = moment().format('YYYYMMDD');
-    // 更新文章浏览总榜
+    // 更新 所有文章 浏览总榜
     const pvTotalKey = redisUtil.getRedisPrefix(2);
-    // 更新文章分类浏览总榜
+    // 更新 所有文章 分类浏览总榜
     const pvContextKey = redisUtil.getRedisPrefix(2, newsInfo.type);
-    // 更新个人  分享文章的当日和累计热门排行榜
+
+    // 用户 传播浏览所有记录
+    const newsUvKey = redisUtil.getRedisPrefix(5, `${shareInfo.shareId}:date_${today}`);
+
+    // 更新个人  分享文章的当日和累计 pv排行榜
     const pvUserKey = redisUtil.getRedisPrefix(3, shareInfo.shareId);
     const pvUserKeyToday = redisUtil.getRedisPrefix(3, `${shareInfo.shareId}:date_${today}`);
     const newsTitleKey = redisUtil.getRedisPrefix(11);
-    // 更新个人  当日分享文章的浏览uv pv
-    const uvKey = redisUtil.getRedisPrefix(5, `${shareInfo.shareId}:date_${today}`);
-    // 文章浏览用户
+
+    // 指定文章所有浏览人记录
     const pvNewsLogKey = redisUtil.getRedisPrefix(15, newsInfo.newsId);
-    // 转发浏览用户
+    // 用户转发指定文章后的浏览人记录
     const pvUserNewsLogKey = redisUtil.getRedisPrefix(16, `${newsInfo.newsId}:uid_${shareInfo.shareId}`);
+    const pvUserNewsLogKeyToday = redisUtil.getRedisPrefix(16, `${newsInfo.newsId}:uid_${shareInfo.shareId}:date_${today}`);
 
     // 鉴于multi并不会产生回滚，所以一旦exec出错  还是有错误数据会+1
     let updateRedis = [];
     let userPvNum = 0;
     let userNewPVNum = 0;
+    let userNewPVTodayNum = 0;
     if (shareInfo.shareId !== 0) {
       updateRedis = await redisClient.multi()
-        .zincrby(pvTotalKey, 1, newsInfo.newsId)
+        .zincrbyAsync(pvTotalKey, 1, newsInfo.newsId)
         .zincrby(pvContextKey, 1, newsInfo.newsId)
         .zincrby(pvUserKey, 1, newsInfo.newsId)
         .zincrby(pvUserKeyToday, 1, newsInfo.newsId)
         .hset(newsTitleKey, newsInfo.newsId, newsInfo.title)
-        .hincrby(uvKey, viewerInfo.userId, 1)
         .hincrby(pvNewsLogKey, viewerInfo.userId, 1)
         .hincrby(pvUserNewsLogKey, viewerInfo.userId, 1)
+        .hincrby(pvUserNewsLogKeyToday, viewerInfo.userId, 1)
+        .hincrby(newsUvKey, viewerInfo.userId, 1)
         .execAsync();
-      userPvNum = parseInt(updateRedis[6], 0);
-      userNewPVNum = parseInt(updateRedis[7], 0);
+      userPvNum = parseInt(updateRedis[5], 0);
+      userNewPVNum = parseInt(updateRedis[6], 0);
+      userNewPVTodayNum = parseInt(updateRedis[7], 0);
     } else {
       updateRedis = await redisClient.multi()
         .zincrby(pvTotalKey, 1, newsInfo.newsId)
@@ -205,14 +215,20 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         .execAsync();
       userPvNum = parseInt(updateRedis[2], 0);
     }
-    if (!updateRedis.length) {
-      throw new Error('redis update failed');
+
+    /** *********************如果有分享者，且被分享人第一次点入，计入分享者热门文章UV日榜、总榜******************* */
+    if (shareInfo.shareId !== 0 && userNewPVNum === 1) {
+      const uvUserKey = redisUtil.getRedisPrefix(4, shareInfo.shareId);
+      await redisClient.zincrbyAsync(uvUserKey, 1, newsInfo.newsId);
+    }
+    if (shareInfo.shareId !== 0 && userNewPVTodayNum === 1) {
+      const uvUserKeyToday = redisUtil.getRedisPrefix(4, `${shareInfo.shareId}:date_${today}`);
+      await redisClient.zincrbyAsync(uvUserKeyToday, 1, newsInfo.newsId);
     }
 
-
-    /** *****************************检查是否为第一次浏览，如果是，增加浏览者积分日志******************************* */
+    /** *****************************如果第一次浏览该新闻，增加浏览者积分日志************************************* */
     if (userPvNum === 1 && pointNum > 0) {
-      const bonusPointKey = redisUtil.getRedisPrefix(4);
+      const bonusPointKey = redisUtil.getRedisPrefix(18);
       const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, viewerInfo.userId, pointNum);
       await Model.PointRecord.create({
         viewerId: viewerInfo.userId,
@@ -224,9 +240,9 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       }, { transaction });
     }
 
-    /** ************************如果有分享者，且被分享人第一次点入，增加分享者积分日志************************** */
+    /** *********************如果有分享者，且被分享人第一次点入该链接，增加分享者积分日志*********************** */
     if (shareInfo.shareId !== 0 && userNewPVNum === 1 && pointNum > 0) {
-      const bonusPointKey = redisUtil.getRedisPrefix(4);
+      const bonusPointKey = redisUtil.getRedisPrefix(18);
       const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, shareInfo.shareId, pointNum);
       await Model.PointRecord.create({
         viewerId: shareInfo.shareId,

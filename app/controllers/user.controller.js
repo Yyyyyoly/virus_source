@@ -73,7 +73,7 @@ exports.withdraw = (req, res) => {
   const captcha = req.body.captcha || '';
   const resUtil = new HttpSend(req, res);
 
-  if (!userId || !phone || !captcha || !aliPayName || !aliPayAccount) {
+  if (!userId || !phone || !captcha || !aliPayAccountName || !aliPayAccount) {
     resUtil.sendJson(constants.HTTP_FAIL, '参数有误');
     return;
   }

@@ -149,7 +149,7 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
         },
         group: [
           'viewerId',
-          Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%Y-%m-%d'),
+          Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%Y%m%d'),
         ],
       });
 
@@ -173,7 +173,7 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
           shareId: userId,
           createdAt: { $gte: startDate, $lte: endDate },
         },
-        group: Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%m%d'),
+        group: Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%Y%m%d'),
       });
       for (let i = 1; i <= days; i += 1) {
         const date = moment().subtract(days - i, 'days').format('MMDD');
@@ -219,175 +219,103 @@ exports.getLineChart = (req, res) => {
   mainFunction();
 };
 
-
-// 浏览文章 详情页
-const detailsByNews = (req, res, next) => {
-  const days = parseInt(req.query.days, 0) || 5;
-  const type = parseInt(req.params.type, 0) || 0;
-  const userId = req.session.user ? req.session.user.userId : 0;
-
-  if (days <= 0 || !type || !userId) {
-    const error = new Error('参数错误');
-    next(error);
+// 处理一下zrange的返回值，改成对象
+const formatZrangeReturn = (list) => {
+  if (list.constructor !== Array || list.length === 0) {
+    return {};
   }
 
-  const getHotNewsList = async () => {
-    const newsList = await redisClient.zrevrangeAsync([redisUtil.getRedisPrefix(3, userId), 0, 4, 'WITHSCORES']);
-    const hotNewsList = [];
-    const newsTitles = await redisClient.hgetallAsync(redisUtil.getRedisPrefix(11));
-    for (let i = 0; i < newsList.length; i += 2) {
-      hotNewsList.push({
-        newsId: newsList[i],
-        newsTitle: newsTitles[newsList[i]],
-        viewNum: newsList[i + 1],
-      });
-    }
-    return hotNewsList;
-  };
+  const max = list.length;
+  const formatObject = {};
+  for (let i = 0; i < max; i += 2) {
+    formatObject[list[i]] = list[i + 1];
+  }
+  return formatObject;
+};
 
-  const getHotChannelList = async () => {
-    const channelList = await redisClient.zrevrangeAsync([redisUtil.getRedisPrefix(4, userId), 0, 4, 'WITHSCORES']);
-    const hotChannelList = [];
-    for (let j = 0; j < channelList.length; j += 2) {
-      hotChannelList.push({
-        channelId: channelList[j],
-        viewNum: channelList[j + 1],
-      });
-    }
-    return hotChannelList;
-  };
+// 获取排行列表数据
+exports.getRankList = (req, res) => {
+  const type = parseInt(req.query.type, 0) || 0;
+  const limit = 10;
+  const page = parseInt(req.query.page, 0) || 1;
+  const userId = req.session.user.userId || 0;
+  const resUtil = new HttpSend(req, res);
+  const hotList = [];
+  let totalPage = 1;
+
+  if (page < 1) {
+    resUtil.sendJson(500, '参数有误');
+    return;
+  }
+
+  const startIndex = (page - 1) * limit;
+  const endIndex = (page * limit) - 1;
 
   const mainFunction = async () => {
     try {
-      const [dataList, hotNewsList, hotChannelList] = await Promise.all([
-        // 获取折线图
-        getLineChartInfoByType(userId, type, days),
-        // 获取热门文章排行榜
-        getHotNewsList(),
-        // 获取热门渠道排行榜
-        getHotChannelList(),
-      ]);
+      // 浏览文章用户 当日热门
+      if (type === 1) {
+        const today = moment().format('YYYYMMDD');
+        const uvUserKeyToday = redisUtil.getRedisPrefix(4, `${userId}:date_${today}`);
+        const uvUserKeyTotal = redisUtil.getRedisPrefix(4, userId);
 
-      res.render('index', { dataList, hotNewsList, hotChannelList });
+        const [pvUserTodayList, pvUserTotalList, newsTitles, totalPageNum] = await Promise.all([
+          redisClient.zrevrangeAsync(uvUserKeyToday, startIndex, endIndex, 'WITHSCORES'),
+          redisClient.zrevrangeAsync(uvUserKeyTotal, 0, -1, 'WITHSCORES'),
+          redisClient.hgetallAsync(redisUtil.getRedisPrefix(11)),
+          redisClient.zcardAsync(uvUserKeyToday),
+        ]);
+
+        totalPage = Math.ceil(totalPageNum / limit);
+        const formatPvUserTotal = formatZrangeReturn(pvUserTotalList);
+        for (let i = 0; i < pvUserTodayList.length; i += 2) {
+          hotList.push({
+            newsId: pvUserTodayList[i],
+            newsTitle: newsTitles[pvUserTodayList[i]],
+            currentViewNum: pvUserTodayList[i + 1],
+            totalViewNum: formatPvUserTotal[pvUserTodayList[i]],
+          });
+        }
+      } else if (type === 2) {
+        // 浏览文章用户 累计热门
+        const today = moment().format('YYYYMMDD');
+        const uvUserKeyToday = redisUtil.getRedisPrefix(4, `${userId}:date_${today}`);
+        const uvUserKeyTotal = redisUtil.getRedisPrefix(4, userId);
+
+        const [pvUserTodayList, pvUserTotalList, newsTitles, totalPageNum] = await Promise.all([
+          redisClient.zrevrangeAsync(uvUserKeyToday, 0, -1, 'WITHSCORES'),
+          redisClient.zrevrangeAsync(uvUserKeyTotal, startIndex, endIndex, 'WITHSCORES'),
+          redisClient.hgetallAsync(redisUtil.getRedisPrefix(11)),
+          redisClient.zcardAsync(uvUserKeyTotal),
+        ]);
+
+        totalPage = Math.ceil(totalPageNum / limit);
+        const formatPvUserToday = formatZrangeReturn(pvUserTodayList);
+        for (let i = 0; i < pvUserTotalList.length; i += 2) {
+          hotList.push({
+            newsId: pvUserTotalList[i],
+            newsTitle: newsTitles[pvUserTotalList[i]],
+            currentViewNum: formatPvUserToday[pvUserTodayList[i]],
+            totalViewNum: pvUserTotalList[i + 1],
+          });
+        }
+      } else if (type === 3) {
+        // 浏览商品用户数
+      } else if (type === 4) {
+        // 浏览商品次数
+      } else if (type === 5) {
+        // 下单用户数
+      } else if (type === 6) {
+        // 下单数
+      }
+
+      resUtil.sendJson(constants.HTTP_SUCCESS, '', { totalPage, hotList });
     } catch (err) {
       console.log(err);
-      next(err);
+      resUtil.sendJson(constants.HTTP_FAIL, '系统出错');
     }
   };
 
   mainFunction();
-};
-
-// 浏览商品 详情页
-const detailsByProducts = (req, res, next) => {
-  const days = parseInt(req.query.days, 0) || 5;
-  const type = parseInt(req.params.type, 0) || 0;
-  const userId = req.session.user ? req.session.user.userId : 0;
-
-  if (days <= 0 || !type || !userId) {
-    const error = new Error('参数错误');
-    next(error);
-  }
-
-  const getHotProductList = async () => {
-    const productList = await redisClient.zrevrangeAsync([redisUtil.getRedisPrefix(7, userId), 0, 4, 'WITHSCORES']);
-    const hotProductList = [];
-    const productBriefs = await redisClient.hgetallAsync(redisUtil.getRedisPrefix(12));
-    for (let i = 0; i < productList.length; i += 2) {
-      const productInfo = JSON.parse(productBriefs[productList[i]]);
-      hotProductList.push({
-        productId: productList[i],
-        productName: productInfo.productName,
-        price: parseFloat(productInfo.price),
-        viewNum: productList[i + 1],
-      });
-    }
-    return hotProductList;
-  };
-
-  const getHotChannelList = async () => {
-    const channelList = await redisClient.zrevrangeAsync([redisUtil.getRedisPrefix(8, userId), 0, 4, 'WITHSCORES']);
-    const hotChannelList = [];
-    for (let j = 0; j < channelList.length; j += 2) {
-      hotChannelList.push({
-        channelId: channelList[j],
-        viewNum: channelList[j + 1],
-      });
-    }
-    return hotChannelList;
-  };
-
-  const mainFunction = async () => {
-    try {
-      const [dataList, hotProductList, hotChannelList] = await Promise.all([
-        // 获取折线图
-        getLineChartInfoByType(userId, type, days),
-        // 获取热门商品排行榜
-        getHotProductList(),
-        // 获取热门渠道排行榜
-        getHotChannelList(),
-      ]);
-
-
-      res.render('index', { dataList, hotProductList, hotChannelList });
-    } catch (err) {
-      console.log(err);
-      next(err);
-    }
-  };
-
-  mainFunction();
-};
-
-// 下单相关 详情页
-const detailsByOrder = (req, res, next) => {
-  const days = parseInt(req.query.days, 0) || 5;
-  const type = parseInt(req.params.type, 0) || 0;
-  const userId = req.session.user ? req.session.user.userId : 0;
-
-  if (days <= 0 || !type || !userId) {
-    const error = new Error('参数错误');
-    next(error);
-  }
-
-  const mainFunction = async () => {
-    try {
-      const dataList = getLineChartInfoByType(userId, type, days);
-
-      res.render('index', { dataList });
-    } catch (err) {
-      console.log(err);
-      next(err);
-    }
-  };
-
-  mainFunction();
-};
-
-// 首页 进入数据详情
-exports.getDataDetails = (req, res, next) => {
-  const type = parseInt(req.params.type, 0) || 0;
-  switch (type) {
-    // 浏览文章用户数
-    // 浏览文章次数
-    case 1:
-    case 2:
-      detailsByNews(req, res, next);
-      break;
-    // 浏览商品用户数
-    // 浏览商品次数
-    case 3:
-    case 4:
-      detailsByProducts(req, res, next);
-      break;
-    // 下单用户数
-    // 下单数
-    case 5:
-    case 6:
-      detailsByOrder(req, res, next);
-      break;
-    default:
-      next(new Error('参数错误'));
-  }
 };
 
