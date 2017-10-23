@@ -135,7 +135,7 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   if (shareUserId !== viewerInfo.userId) {
     shareInfo.shareId = 0;
   }
-  if (shareUserId !== 0) {
+  if (shareInfo.shareId !== 0) {
     const data = await Model.User.findOne({ where: { userId: shareUserId } });
     if (!data || !data.dataValues) {
       shareInfo.shareId = 0;
@@ -163,7 +163,7 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       viewerOpenId: viewerInfo.openId,
       shareId: shareInfo.shareId,
       shareName: shareInfo.shareName,
-      shareOpendId: shareInfo.shareOpenId,
+      shareOpenId: shareInfo.shareOpenId,
     }, { transaction });
 
     /** ************************************更新浏览记录相关redis数据************************************* */
@@ -232,7 +232,7 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, viewerInfo.userId, pointNum);
       await Model.PointRecord.create({
         viewerId: viewerInfo.userId,
-        shareId: shareInfo.shareId,
+        shareId: shareInfo.shareId === 0 ? null : shareInfo.shareId,
         operator: 1,
         changeNum: pointNum,
         totalPoint,
@@ -246,6 +246,7 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, shareInfo.shareId, pointNum);
       await Model.PointRecord.create({
         viewerId: shareInfo.shareId,
+        shareId: viewerInfo.userId,
         operator: 2,
         changeNum: pointNum,
         totalPoint,
@@ -310,7 +311,8 @@ exports.getNewsDetailById = (req, res, next) => {
 
       exports.addLogByNewsId(newsInfo.dataValues, req.session.user, shareUid);
 
-      const shareLink = encodeURI(`${config.shopServerConfig.host}:${config.shopServerConfig.port}/news/details/${pageInfo.newsId}?shareUid=${userId}`);
+      const shareId = shareUid || userId;
+      const shareLink = encodeURI(`${config.shopServerConfig.host}:${config.shopServerConfig.port}/news/details/${pageInfo.newsId}?shareUid=${shareId}`);
       res.render('index', { pageInfo, shareLink });
     } catch (err) {
       console.log(err);

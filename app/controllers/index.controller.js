@@ -330,7 +330,7 @@ exports.getRankList = (req, res) => {
         });
       }
 
-      resUtil.sendJson(constants.HTTP_SUCCESS, '', { totalPage, hotList });
+      resUtil.sendJson(constants.HTTP_SUCCESS, '', { totalPage, page, hotList });
     } catch (err) {
       console.log(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统出错');

@@ -166,7 +166,7 @@ const addLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
   if (shareUserId !== viewerInfo.userId) {
     shareInfo.shareId = 0;
   }
-  if (shareUserId !== 0) {
+  if (shareInfo.shareId !== 0) {
     const data = await Model.User.findOne({ where: { userId: shareUserId } });
     if (!data || !data.dataValues) {
       shareInfo.shareId = 0;
@@ -175,10 +175,6 @@ const addLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
       shareInfo.shareOpenId = data.dataValues.openId;
     }
   }
-
-  // 查询操作对应的积分数量
-  const pointInfo = await Model.BonusPoint.findOne({ where: { id: 1 } });
-  const pointNum = parseInt(pointInfo.dataValues.pointNum, 0);
 
   Model.sequelize.transaction(async (transaction) => {
     await Model.PVProducts.create({
@@ -215,7 +211,6 @@ const addLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
 
     // 鉴于multi并不会产生回滚，所以一旦exec出错  还是有错误数据会+1
     let updateRedis = [];
-    let userPvNum = 0;
     let userProductPVNum = 0;
     let userProductPVTodayNum = 0;
     if (shareInfo.shareId !== 0) {
@@ -228,14 +223,10 @@ const addLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
         .hincrby(pvUserProductLogKeyToday, viewerInfo.userId, 1)
         .hincrby(productUvKey, viewerInfo.userId, 1)
         .execAsync();
-      userPvNum = parseInt(updateRedis[3], 0);
       userProductPVNum = parseInt(updateRedis[4], 0);
       userProductPVTodayNum = parseInt(updateRedis[5], 0);
     } else {
-      updateRedis = await redisClient.multi()
-        .hincrby(pvProductsLogKey, viewerInfo.userId, 1)
-        .execAsync();
-      userPvNum = parseInt(updateRedis[0], 0);
+      await redisClient.multi().hincrby(pvProductsLogKey, viewerInfo.userId, 1).execAsync();
     }
 
 
@@ -248,33 +239,6 @@ const addLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
       const uvUserKeyToday = redisUtil.getRedisPrefix(8, `${shareInfo.shareId}:date_${today}`);
       await redisClient.zincrbyAsync(uvUserKeyToday, 1, productInfo.id);
     }
-
-    /** *****************************如果第一次浏览该商品，增加浏览者积分日志************************************* */
-    if (userPvNum === 1 && pointNum > 0) {
-      const bonusPointKey = redisUtil.getRedisPrefix(18);
-      const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, viewerInfo.userId, pointNum);
-      await Model.PointRecord.create({
-        viewerId: viewerInfo.userId,
-        shareId: shareInfo.shareId,
-        operator: 1,
-        changeNum: pointNum,
-        totalPoint,
-        productId: productInfo.id,
-      }, { transaction });
-    }
-
-    /** *********************如果有分享者，且被分享人第一次点入该链接，增加分享者积分日志*********************** */
-    if (shareInfo.shareId !== 0 && userProductPVNum === 1 && pointNum > 0) {
-      const bonusPointKey = redisUtil.getRedisPrefix(18);
-      const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, shareInfo.shareId, pointNum);
-      await Model.PointRecord.create({
-        viewerId: shareInfo.shareId,
-        operator: 2,
-        changeNum: pointNum,
-        totalPoint,
-        productId: productInfo.id,
-      }, { transaction });
-    }
   }).catch((err) => {
     // Rolled back
     console.log(err);
@@ -285,6 +249,7 @@ const addLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
 exports.redirectToShopServer = (req, res, next) => {
   const productId = req.query.productId || 0;
   const shareUserId = req.query.shareUserId || 0;
+  const userId = req.session.user.userId || 0;
 
   const mainFunction = async () => {
     try {
@@ -318,6 +283,7 @@ exports.redirectToShopServer = (req, res, next) => {
 // 记录购买链接
 exports.addPurchaseRecord = (req, res) => {
   const productId = req.body.productId || 0;
+  const productName = req.body.productName || 0;
   const orderId = req.body.orderId || '';
   const shareUserId = req.body.shareId || 0;
   const userId = req.body.userId || 0;
@@ -329,6 +295,7 @@ exports.addPurchaseRecord = (req, res) => {
   // 计算签名 检验参数是否来自合法源
   const signatureInfo = signatureUtil.genSignature({
     productId,
+    productName,
     orderId,
     shareUserId,
     userId,
@@ -365,6 +332,7 @@ exports.addPurchaseRecord = (req, res) => {
           viewerId: userId,
           orderId,
           productId,
+          productName,
           operator: 1,
           operatorResult: 1,
           changeNum: totalPrice,

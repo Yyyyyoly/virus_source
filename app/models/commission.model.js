@@ -21,8 +21,8 @@ module.exports = function (sequelize, DataTypes) {
     orderId: { type: DataTypes.INTEGER, unique: true },
     // 分享商品id
     productId: { type: DataTypes.INTEGER },
-    // 成交订单获利时的分享渠道id
-    channel: { type: DataTypes.INTEGER, defaultValue: 0 },
+    // 分享商品名称
+    productName: { type: DataTypes.STRING },
 
     // 手机号(仅提现时有用)
     phone: { type: DataTypes.STRING(11), validate: { len: 11, is: /^1[3578]\d{9}$/ } },
@@ -39,7 +39,8 @@ module.exports = function (sequelize, DataTypes) {
     collate: 'utf8_general_ci',
   });
 
-  Commission.associate = (models) => { Commission.belongsTo(models.User, { foreignKey: 'shareId', targetKey: 'userId' }); };
+  Commission.associate = (models) => { Commission.belongsTo(models.User, { as: 'Share', foreignKey: 'shareId', targetKey: 'userId' }); };
+  Commission.associate = (models) => { Commission.belongsTo(models.User, { as: 'View', foreignKey: 'viewerId', targetKey: 'userId' }); };
 
   return Commission;
 };

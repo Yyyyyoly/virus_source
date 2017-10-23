@@ -144,7 +144,7 @@ exports.isLogin = (req, res, next) => {
   // 记载用户的起始url，方便登录/注册后跳转
   const originalUrl = url.format({
     protocol: req.protocol,
-    host: req.get('host'),
+    host: req.host,
     pathname: req.originalUrl,
   });
   req.session.originalUrl = originalUrl;
