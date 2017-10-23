@@ -243,7 +243,7 @@ exports.getRankList = (req, res) => {
   const hotList = [];
   let totalPage = 1;
 
-  if (page < 1) {
+  if (page < 1 || (type <= 1 && type >= 8)) {
     resUtil.sendJson(500, '参数有误');
     return;
   }
@@ -251,62 +251,83 @@ exports.getRankList = (req, res) => {
   const startIndex = (page - 1) * limit;
   const endIndex = (page * limit) - 1;
 
+  // 根据type查找对应的redisKey
+  const getRedisKeyByType = () => {
+    const today = moment().format('YYYYMMDD');
+    let viewKeyToday = '';
+    let viewKeyTotal = '';
+    let logKey = '';
+    switch (type) {
+      case 1:
+      case 2:
+        // 文章uv
+        viewKeyToday = redisUtil.getRedisPrefix(4, `${userId}:date_${today}`);
+        viewKeyTotal = redisUtil.getRedisPrefix(4, userId);
+        logKey = redisUtil.getRedisPrefix(11);
+        break;
+      case 3:
+      case 4:
+        // 文章pv
+        viewKeyToday = redisUtil.getRedisPrefix(3, `${userId}:date_${today}`);
+        viewKeyTotal = redisUtil.getRedisPrefix(3, userId);
+        logKey = redisUtil.getRedisPrefix(11);
+        break;
+      case 5:
+      case 6:
+        // 商品uv
+        viewKeyToday = redisUtil.getRedisPrefix(8, `${userId}:date_${today}`);
+        viewKeyTotal = redisUtil.getRedisPrefix(8, userId);
+        logKey = redisUtil.getRedisPrefix(12);
+        break;
+      case 7:
+      case 8:
+        // 商品pv
+        viewKeyToday = redisUtil.getRedisPrefix(7, `${userId}:date_${today}`);
+        viewKeyTotal = redisUtil.getRedisPrefix(7, userId);
+        logKey = redisUtil.getRedisPrefix(12);
+        break;
+      default:
+        break;
+    }
+    return { viewKeyToday, viewKeyTotal, logKey };
+  };
+
   const mainFunction = async () => {
     try {
-      // 浏览文章用户 当日热门
-      if (type === 1) {
-        const today = moment().format('YYYYMMDD');
-        const uvUserKeyToday = redisUtil.getRedisPrefix(4, `${userId}:date_${today}`);
-        const uvUserKeyTotal = redisUtil.getRedisPrefix(4, userId);
-
-        const [pvUserTodayList, pvUserTotalList, newsTitles, totalPageNum] = await Promise.all([
-          redisClient.zrevrangeAsync(uvUserKeyToday, startIndex, endIndex, 'WITHSCORES'),
-          redisClient.zrevrangeAsync(uvUserKeyTotal, 0, -1, 'WITHSCORES'),
-          redisClient.hgetallAsync(redisUtil.getRedisPrefix(11)),
-          redisClient.zcardAsync(uvUserKeyToday),
+      const keys = getRedisKeyByType();
+      let formatViewTotal = [];
+      let viewTodayList = [];
+      let viewTotalList = [];
+      let info = [];
+      let totalPageNum = 0;
+      // 当日热门榜
+      if (type === 1 || type === 3 || type === 5 || type === 7) {
+        [viewTodayList, viewTotalList, info, totalPageNum] = await Promise.all([
+          redisClient.zrevrangeAsync(keys.viewKeyToday, startIndex, endIndex, 'WITHSCORES'),
+          redisClient.zrevrangeAsync(keys.viewKeyTotal, 0, -1, 'WITHSCORES'),
+          redisClient.hgetallAsync(keys.logKey),
+          redisClient.zcardAsync(keys.viewKeyToday),
         ]);
-
-        totalPage = Math.ceil(totalPageNum / limit);
-        const formatPvUserTotal = formatZrangeReturn(pvUserTotalList);
-        for (let i = 0; i < pvUserTodayList.length; i += 2) {
-          hotList.push({
-            newsId: pvUserTodayList[i],
-            newsTitle: newsTitles[pvUserTodayList[i]],
-            currentViewNum: pvUserTodayList[i + 1],
-            totalViewNum: formatPvUserTotal[pvUserTodayList[i]],
-          });
-        }
-      } else if (type === 2) {
-        // 浏览文章用户 累计热门
-        const today = moment().format('YYYYMMDD');
-        const uvUserKeyToday = redisUtil.getRedisPrefix(4, `${userId}:date_${today}`);
-        const uvUserKeyTotal = redisUtil.getRedisPrefix(4, userId);
-
-        const [pvUserTodayList, pvUserTotalList, newsTitles, totalPageNum] = await Promise.all([
-          redisClient.zrevrangeAsync(uvUserKeyToday, 0, -1, 'WITHSCORES'),
-          redisClient.zrevrangeAsync(uvUserKeyTotal, startIndex, endIndex, 'WITHSCORES'),
-          redisClient.hgetallAsync(redisUtil.getRedisPrefix(11)),
-          redisClient.zcardAsync(uvUserKeyTotal),
+        formatViewTotal = formatZrangeReturn(viewTotalList);
+      } else if (type === 2 || type === 4 || type === 6 || type === 8) {
+        // 累计热门榜
+        [viewTodayList, viewTotalList, info, totalPageNum] = await Promise.all([
+          redisClient.zrevrangeAsync(keys.viewKeyToday, 0, -1, 'WITHSCORES'),
+          redisClient.zrevrangeAsync(keys.viewKeyTotal, startIndex, endIndex, 'WITHSCORES'),
+          redisClient.hgetallAsync(keys.logKey),
+          redisClient.zcardAsync(keys.viewKeyToday),
         ]);
+        formatViewTotal = formatZrangeReturn(viewTodayList);
+      }
 
-        totalPage = Math.ceil(totalPageNum / limit);
-        const formatPvUserToday = formatZrangeReturn(pvUserTodayList);
-        for (let i = 0; i < pvUserTotalList.length; i += 2) {
-          hotList.push({
-            newsId: pvUserTotalList[i],
-            newsTitle: newsTitles[pvUserTotalList[i]],
-            currentViewNum: formatPvUserToday[pvUserTodayList[i]],
-            totalViewNum: pvUserTotalList[i + 1],
-          });
-        }
-      } else if (type === 3) {
-        // 浏览商品用户数
-      } else if (type === 4) {
-        // 浏览商品次数
-      } else if (type === 5) {
-        // 下单用户数
-      } else if (type === 6) {
-        // 下单数
+      totalPage = Math.ceil(totalPageNum / limit);
+      for (let i = 0; i < viewTodayList.length; i += 2) {
+        hotList.push({
+          id: viewTodayList[i],
+          info: info[viewTodayList[i]],
+          currentViewNum: viewTodayList[i + 1],
+          totalViewNum: formatViewTotal[viewTodayList[i]],
+        });
       }
 
       resUtil.sendJson(constants.HTTP_SUCCESS, '', { totalPage, hotList });

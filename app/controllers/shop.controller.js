@@ -156,14 +156,17 @@ exports.searchProduct = (req, res) => {
 };
 
 // 商城  增加商品PV UV记录
-const incPVById = async (productInfo, viewerInfo, shareUserId) => {
+const addLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
   // 如果有分享者，先查询分享者信息
   const shareInfo = {
     shareId: shareUserId,
     shareName: '',
     sharePhone: '',
   };
-  if (shareUserId !== 0 && shareUserId !== viewerInfo.userId) {
+  if (shareUserId !== viewerInfo.userId) {
+    shareInfo.shareId = 0;
+  }
+  if (shareUserId !== 0) {
     const data = await Model.User.findOne({ where: { userId: shareUserId } });
     if (!data || !data.dataValues) {
       shareInfo.shareId = 0;
@@ -173,8 +176,12 @@ const incPVById = async (productInfo, viewerInfo, shareUserId) => {
     }
   }
 
+  // 查询操作对应的积分数量
+  const pointInfo = await Model.BonusPoint.findOne({ where: { id: 1 } });
+  const pointNum = parseInt(pointInfo.dataValues.pointNum, 0);
+
   Model.sequelize.transaction(async (transaction) => {
-    const updateMysql = await Model.PVProducts.create({
+    await Model.PVProducts.create({
       productId: productInfo.productId,
       categoryId: productInfo.categoryId,
       name: productInfo.name,
@@ -188,26 +195,85 @@ const incPVById = async (productInfo, viewerInfo, shareUserId) => {
       shareName: shareInfo.shareName,
       shareOpenId: shareInfo.shareOpenId,
     }, { transaction });
-    if (updateMysql && updateMysql.dataValues) {
-      if (shareInfo.shareId !== 0) {
-        // 更新个人 分享商品总pv排行榜
-        const pvUserKey = redisUtil.getRedisPrefix(7, shareInfo.shareId);
-        const productInfoKey = redisUtil.getRedisPrefix(12);
-        const productBrief = { productName: productInfo.name, price: productInfo.price };
-        // 更新个人  当日分享所有的总浏览uv pv
-        const today = moment().format('YYYYMMDD');
-        const uvKey = redisUtil.getRedisPrefix(9, `${shareInfo.shareId}:date_${today}`);
 
-        const updateRedis = await redisClient.multi()
-          .zincrby(pvUserKey, 1, productInfo.id)
-          .hset(productInfoKey, 1, JSON.stringify(productBrief))
-          .hincrby(uvKey, viewerInfo.userId, 1)
-          .execAsync();
+    /** ************************************更新浏览记录相关redis数据************************************* */
+    const today = moment().format('YYYYMMDD');
+    // 用户 传播浏览所有记录
+    const productUvKey = redisUtil.getRedisPrefix(9, `${shareInfo.shareId}:date_${today}`);
 
-        if (!updateRedis.length) {
-          throw new Error('redis update failed');
-        }
-      }
+    // 更新 分享者热门商品PV日榜、总榜
+    const pvProductKey = redisUtil.getRedisPrefix(7, shareInfo.shareId);
+    const pvProductKeyToday = redisUtil.getRedisPrefix(7, `${shareInfo.shareId}:date_${today}`);
+    const productInfoKey = redisUtil.getRedisPrefix(12);
+    const productBrief = { productName: productInfo.name, price: productInfo.price };
+
+    // 指定商品所有浏览人记录
+    const pvProductsLogKey = redisUtil.getRedisPrefix(19, productInfo.id);
+    // 用户转发指定商品后的浏览人记录
+    const pvUserProductLogKey = redisUtil.getRedisPrefix(20, `${productInfo.id}:uid_${shareInfo.shareId}`);
+    const pvUserProductLogKeyToday = redisUtil.getRedisPrefix(20, `${productInfo.id}:uid_${shareInfo.shareId}:date_${today}`);
+
+    // 鉴于multi并不会产生回滚，所以一旦exec出错  还是有错误数据会+1
+    let updateRedis = [];
+    let userPvNum = 0;
+    let userProductPVNum = 0;
+    let userProductPVTodayNum = 0;
+    if (shareInfo.shareId !== 0) {
+      updateRedis = await redisClient.multi()
+        .zincrby(pvProductKey, 1, productInfo.id)
+        .zincrby(pvProductKeyToday, 1, productInfo.id)
+        .hset(productInfoKey, 1, JSON.stringify(productBrief))
+        .hincrby(pvProductsLogKey, viewerInfo.userId, 1)
+        .hincrby(pvUserProductLogKey, viewerInfo.userId, 1)
+        .hincrby(pvUserProductLogKeyToday, viewerInfo.userId, 1)
+        .hincrby(productUvKey, viewerInfo.userId, 1)
+        .execAsync();
+      userPvNum = parseInt(updateRedis[3], 0);
+      userProductPVNum = parseInt(updateRedis[4], 0);
+      userProductPVTodayNum = parseInt(updateRedis[5], 0);
+    } else {
+      updateRedis = await redisClient.multi()
+        .hincrby(pvProductsLogKey, viewerInfo.userId, 1)
+        .execAsync();
+      userPvNum = parseInt(updateRedis[0], 0);
+    }
+
+
+    /** *********************如果有分享者，且被分享人第一次点入，计入分享者热门商品UV日榜、总榜******************* */
+    if (shareInfo.shareId !== 0 && userProductPVNum === 1) {
+      const uvUserKey = redisUtil.getRedisPrefix(8, shareInfo.shareId);
+      await redisClient.zincrbyAsync(uvUserKey, 1, productInfo.id);
+    }
+    if (shareInfo.shareId !== 0 && userProductPVTodayNum === 1) {
+      const uvUserKeyToday = redisUtil.getRedisPrefix(8, `${shareInfo.shareId}:date_${today}`);
+      await redisClient.zincrbyAsync(uvUserKeyToday, 1, productInfo.id);
+    }
+
+    /** *****************************如果第一次浏览该商品，增加浏览者积分日志************************************* */
+    if (userPvNum === 1 && pointNum > 0) {
+      const bonusPointKey = redisUtil.getRedisPrefix(18);
+      const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, viewerInfo.userId, pointNum);
+      await Model.PointRecord.create({
+        viewerId: viewerInfo.userId,
+        shareId: shareInfo.shareId,
+        operator: 1,
+        changeNum: pointNum,
+        totalPoint,
+        productId: productInfo.id,
+      }, { transaction });
+    }
+
+    /** *********************如果有分享者，且被分享人第一次点入该链接，增加分享者积分日志*********************** */
+    if (shareInfo.shareId !== 0 && userProductPVNum === 1 && pointNum > 0) {
+      const bonusPointKey = redisUtil.getRedisPrefix(18);
+      const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, shareInfo.shareId, pointNum);
+      await Model.PointRecord.create({
+        viewerId: shareInfo.shareId,
+        operator: 2,
+        changeNum: pointNum,
+        totalPoint,
+        productId: productInfo.id,
+      }, { transaction });
     }
   }).catch((err) => {
     // Rolled back
@@ -234,9 +300,7 @@ exports.redirectToShopServer = (req, res, next) => {
       }
 
       //  记录pv日志
-      const viewerInfo = req.session.user;
-      const userId = viewerInfo.userId || 0;
-      await incPVById(repos.data.product, userId, shareUserId);
+      await addLogByProductId(repos.data.product, req.session.user, shareUserId);
 
       // 跳转至商城服务器的购买相关页面
       const url = `${config.shopServerConfig.host}:${config.shopServerConfig.port}/shop
@@ -306,6 +370,7 @@ exports.addPurchaseRecord = (req, res) => {
           changeNum: totalPrice,
           totalCommission: updateRedis[0],
         }, { transaction });
+
       }).then(() => resUtil.sendJson(constants.HTTP_SUCCESS));
     } catch (err) {
       console.log(err);

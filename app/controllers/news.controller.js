@@ -176,7 +176,7 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     // 用户 传播浏览所有记录
     const newsUvKey = redisUtil.getRedisPrefix(5, `${shareInfo.shareId}:date_${today}`);
 
-    // 更新个人  分享文章的当日和累计 pv排行榜
+    // 更新 分享者热门文章PV日榜、总榜
     const pvUserKey = redisUtil.getRedisPrefix(3, shareInfo.shareId);
     const pvUserKeyToday = redisUtil.getRedisPrefix(3, `${shareInfo.shareId}:date_${today}`);
     const newsTitleKey = redisUtil.getRedisPrefix(11);
@@ -246,7 +246,7 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, shareInfo.shareId, pointNum);
       await Model.PointRecord.create({
         viewerId: shareInfo.shareId,
-        operator: 5,
+        operator: 2,
         changeNum: pointNum,
         totalPoint,
         newsId: newsInfo.newsId,
