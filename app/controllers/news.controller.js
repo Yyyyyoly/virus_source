@@ -124,8 +124,8 @@ exports.index = (req, res, next) => {
   mainFunction();
 };
 
-// 根据资讯id  增加对应的统计日志
-exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
+// 根据资讯id  增加对应的浏览日志
+exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   // 如果有分享者，先查询分享者信息
   const shareInfo = {
     shareId: shareUserId,
@@ -146,7 +146,8 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   }
 
   // 查询操作对应的积分数量
-  const pointInfo = await Model.BonusPoint.findOne({ where: { id: 1 } });
+  const operateType = shareInfo.shareId ? 2 : 1;
+  const pointInfo = await Model.BonusPoint.findOne({ where: { id: operateType } });
   const pointNum = parseInt(pointInfo.dataValues.pointNum, 0);
 
   Model.sequelize.transaction(async (transaction) => {
@@ -263,7 +264,7 @@ exports.addLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
 exports.getNewsDetailById = (req, res, next) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
   // 分享者id
-  const shareUid = req.query.shareUid ? parseInt(req.query.shareUid, 0) : 0;
+  const shareId = req.query.shareId ? parseInt(req.query.shareId, 0) : 0;
   const userId = req.session.user.userId || 0;
 
   if (!newsId || !userId) {
@@ -309,14 +310,145 @@ exports.getNewsDetailById = (req, res, next) => {
       };
 
 
-      exports.addLogByNewsId(newsInfo.dataValues, req.session.user, shareUid);
+      exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareId);
 
-      const shareId = shareUid || userId;
-      const shareLink = encodeURI(`${config.shopServerConfig.host}:${config.shopServerConfig.port}/news/details/${pageInfo.newsId}?shareUid=${shareId}`);
+      const shareUid = shareId || userId;
+      const shareLink = encodeURI(`${config.shopServerConfig.host}:${config.shopServerConfig.port}/news/details/${pageInfo.newsId}?shareId=${shareUid}`);
       res.render('index', { pageInfo, shareLink });
     } catch (err) {
       console.log(err);
       next(err);
+    }
+  };
+
+  mainFunction();
+};
+
+// 根据资讯id  增加对应的转发日志
+exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
+  // 如果有分享者，先查询分享者信息
+  const shareInfo = {
+    shareId: shareUserId,
+    shareName: '',
+    sharePhone: '',
+  };
+  if (shareUserId !== viewerInfo.userId) {
+    shareInfo.shareId = 0;
+  }
+  if (shareInfo.shareId !== 0) {
+    const data = await Model.User.findOne({ where: { userId: shareUserId } });
+    if (!data || !data.dataValues) {
+      shareInfo.shareId = 0;
+    } else {
+      shareInfo.shareName = data.dataValues.userName;
+      shareInfo.shareOpenId = data.dataValues.openId;
+    }
+  }
+
+  // 查询操作对应的积分数量
+  const operateType = shareInfo.shareId ? 4 : 3;
+  const pointInfo = await Model.BonusPoint.findOne({ where: { id: operateType } });
+  const pointNum = parseInt(pointInfo.dataValues.pointNum, 0);
+
+  Model.sequelize.transaction(async (transaction) => {
+    /** *****************************记录资讯转发日志**************************************** */
+    await Model.TransmitNews.create({
+      newsId: newsInfo.newsId,
+      writerName: newsInfo.writerName,
+      redirectUrl: newsInfo.redirectUrl,
+      type: newsInfo.type,
+      title: newsInfo.title,
+      introduction: newsInfo.introduction,
+      viewerId: viewerInfo.userId,
+      viewerName: viewerInfo.userName,
+      viewerOpenId: viewerInfo.openId,
+      shareId: shareInfo.shareId,
+      shareName: shareInfo.shareName,
+      shareOpenId: shareInfo.shareOpenId,
+    }, { transaction });
+
+    /** ************************************更新转发记录相关redis数据************************************* */
+    // 指定文章所有转发人记录
+    const transmitNewsLogKey = redisUtil.getRedisPrefix(21, newsInfo.newsId);
+    // 下级的二次转发记录
+    const transmitUserNewsLogKey = redisUtil.getRedisPrefix(22, `${newsInfo.newsId}:uid_${shareInfo.shareId}`);
+
+    let updateRedis = [];
+    let userTransmitNum = 0;
+    let userNewTransmitNum = 0;
+    if (shareInfo.shareId !== 0) {
+      updateRedis = await redisClient.multi()
+        .hincrby(transmitNewsLogKey, viewerInfo.userId, 1)
+        .hincrby(transmitUserNewsLogKey, viewerInfo.userId, 1)
+        .execAsync();
+      userTransmitNum = parseInt(updateRedis[0], 0);
+      userNewTransmitNum = parseInt(updateRedis[1], 0);
+    } else {
+      updateRedis = await redisClient.multi()
+        .hincrby(transmitNewsLogKey, viewerInfo.userId, 1)
+        .execAsync();
+      userTransmitNum = parseInt(updateRedis[0], 0);
+    }
+
+    /** *****************************如果第一次转发该文章，增加该转发者积分日志************************************* */
+    if (userTransmitNum === 1 && pointNum > 0) {
+      const bonusPointKey = redisUtil.getRedisPrefix(18);
+      const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, viewerInfo.userId, pointNum);
+      await Model.PointRecord.create({
+        viewerId: viewerInfo.userId,
+        shareId: shareInfo.shareId === 0 ? null : shareInfo.shareId,
+        operator: 3,
+        changeNum: pointNum,
+        totalPoint,
+        newsId: newsInfo.newsId,
+      }, { transaction });
+    }
+
+    /** *********************如果有分享者，且被分享人第一次转发该链接，增加分享者积分日志*********************** */
+    if (shareInfo.shareId !== 0 && userNewTransmitNum === 1 && pointNum > 0) {
+      const bonusPointKey = redisUtil.getRedisPrefix(18);
+      const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, shareInfo.shareId, pointNum);
+      await Model.PointRecord.create({
+        viewerId: shareInfo.shareId,
+        shareId: viewerInfo.userId,
+        operator: 4,
+        changeNum: pointNum,
+        totalPoint,
+        newsId: newsInfo.newsId,
+      }, { transaction });
+    }
+  }).catch((err) => {
+    // Rolled back
+    console.log(err);
+  });
+};
+
+// 文章分享至朋友圈
+exports.shareNewsById = (req, res) => {
+  const newsId = parseInt(req.params.newsId, 0) || 0;
+  const userId = req.session.user.userId || 0;
+  const shareId = req.query.shareId || 0;
+  const resUtil = new HttpSend(req, res);
+
+  // 检查参数
+  if (!newsId || !userId || !shareId) {
+    resUtil.sendJson(constants.HTTP_FAIL, '参数错误,积分增加失败');
+    return;
+  }
+
+  const mainFunction = async () => {
+    try {
+      const newsInfo = await Model.News.findOne({ where: { newsId } });
+      if (!newsInfo || !newsInfo.dataValues) {
+        resUtil.sendJson(constants.HTTP_FAIL, '资讯不存在,积分增加失败');
+        return;
+      }
+
+      await exports.addTransmitLogByNewsId(newsInfo.dataValues, req.session.user, shareId);
+      resUtil.sendJson(constants.HTTP_SUCCESS);
+    } catch (err) {
+      console.log(err);
+      resUtil.sendJson(constants.HTTP_FAIL, '系统错误,积分增加失败');
     }
   };
 
@@ -438,7 +570,7 @@ exports.getTestDetailById = (req, res, next) => {
 
 
       // 记录浏览日志
-      exports.addLogByNewsId(newsInfo.dataValues, req.session.user, shareUid);
+      exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareUid);
 
       res.render('index', { type, questLists });
     } catch (err) {

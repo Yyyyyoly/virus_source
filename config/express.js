@@ -30,7 +30,7 @@ module.exports = function () {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(cookieParser());
-  app.use(session({ saveUninitialized: true, resave: true, secret: config.sessionSecret }));
+  // app.use(session({ saveUninitialized: true, resave: true, secret: config.sessionSecret }));
   app.use(session({
     saveUninitialized: true,
     resave: true,

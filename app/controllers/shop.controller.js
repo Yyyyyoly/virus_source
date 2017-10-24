@@ -156,7 +156,7 @@ exports.searchProduct = (req, res) => {
 };
 
 // 商城  增加商品PV UV记录
-const addLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
+const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
   // 如果有分享者，先查询分享者信息
   const shareInfo = {
     shareId: shareUserId,
@@ -265,7 +265,7 @@ exports.redirectToShopServer = (req, res, next) => {
       }
 
       //  记录pv日志
-      await addLogByProductId(repos.data.product, req.session.user, shareUserId);
+      await addViewLogByProductId(repos.data.product, req.session.user, shareUserId);
 
       // 跳转至商城服务器的购买相关页面
       const url = `${config.shopServerConfig.host}:${config.shopServerConfig.port}/shop

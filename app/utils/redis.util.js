@@ -72,6 +72,12 @@ exports.getRedisPrefix = (type, id = '') => {
     case 20:
       redisKey = 'log|pv|user|products'; // 某用户分享出的某商品浏览人次、人数记录 log|pv|user|products:pid:uid_1:20171020 {viewerId:pv_num}
       break;
+    case 21:
+      redisKey = 'log|transmit|news'; // 某文章转发人次、人数记录 log|transmit|news:newsId {userId:num}
+      break;
+    case 22:
+      redisKey = 'log|transmit|user|news'; // 某用户分享出的某文章转发人次、人数 log|transmit|user|news:newsId:uid_1:20171020 {uid:_num}
+      break;
 
 
     case 999:
