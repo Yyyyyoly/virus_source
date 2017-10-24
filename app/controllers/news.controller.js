@@ -152,7 +152,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
 
   Model.sequelize.transaction(async (transaction) => {
     /** *****************************记录资讯浏览日志**************************************** */
-    await Model.PVNews.create({
+    const pvNewsInfo = await Model.PVNews.create({
       newsId: newsInfo.newsId,
       writerName: newsInfo.writerName,
       redirectUrl: newsInfo.redirectUrl,
@@ -238,6 +238,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         changeNum: pointNum,
         totalPoint,
         newsId: newsInfo.newsId,
+        proofId: pvNewsInfo.dataValues.id,
       }, { transaction });
     }
 
@@ -256,6 +257,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         changeNum: pointNum,
         totalPoint,
         newsId: newsInfo.newsId,
+        proofId: pvNewsInfo.dataValues.id,
       }, { transaction });
     }
   }).catch((err) => {
@@ -357,7 +359,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
 
   Model.sequelize.transaction(async (transaction) => {
     /** *****************************记录资讯转发日志**************************************** */
-    await Model.TransmitNews.create({
+    const transmitInfo = await Model.TransmitNews.create({
       newsId: newsInfo.newsId,
       writerName: newsInfo.writerName,
       redirectUrl: newsInfo.redirectUrl,
@@ -406,12 +408,13 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         changeNum: pointNum,
         totalPoint,
         newsId: newsInfo.newsId,
+        proofId: transmitInfo.dataValues.id,
       }, { transaction });
     }
 
     /** ****************如果有分享者(且不为本人)，且被分享人第一次转发该链接，增加分享者积分日志****************** */
     if (shareInfo.shareId !== 0 &&
-      parseInt(shareUserId, 0) === parseInt(viewerInfo.userId, 0) &&
+      parseInt(shareUserId, 0) !== parseInt(viewerInfo.userId, 0) &&
       userNewTransmitNum === 1 &&
       pointNum > 0
     ) {
@@ -424,6 +427,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         changeNum: pointNum,
         totalPoint,
         newsId: newsInfo.newsId,
+        proofId: transmitInfo.dataValues.id,
       }, { transaction });
     }
   }).catch((err) => {

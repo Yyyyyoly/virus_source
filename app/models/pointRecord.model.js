@@ -19,6 +19,10 @@ module.exports = function (sequelize, DataTypes) {
     totalPoint: { type: DataTypes.FLOAT, allowNull: false },
     // 对应的资讯id
     newsId: { type: DataTypes.BIGINT },
+    // 凭据id 用于追溯这笔积分变动的依据
+    // 当操作编号为1、2时，存储pvNews表的记录id
+    // 当操作编号为3、4时，存储transmitNews表的记录id
+    proofId: { type: DataTypes.BIGINT, allowNull: false },
   }, {
     timestamps: true,
     paranoid: true,
