@@ -14,7 +14,7 @@ module.exports.genSignature = function (params, privateKey) {
   }
 
   // 没有额外的密钥  就取配置中的默认密钥
-  if(!privateKey){
+  if (!privateKey) {
     privateKey = config.shopServerConfig.privateKey;
   }
 
@@ -27,3 +27,4 @@ module.exports.genSignature = function (params, privateKey) {
 
   // 返回带签名的参数列表
   return signatureParams;
+}
