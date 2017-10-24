@@ -59,9 +59,9 @@ exports.index = (req, res, next) => {
 
     let newsInfos = [];
     if (rankList.length) {
-      const datas = await Model.News.findAll({ where: { newsId: { $in: rankList[0] } } });
+      const datas = await Model.News.findAll({ where: { newsId: { $in: rankList } } });
       // 按照排行榜的顺序重新排序
-      for (const newsId of rankList[0]) {
+      for (const newsId of rankList) {
         for (const data of datas) {
           if (data.dataValues && parseInt(data.dataValues.newsId, 0) === parseInt(newsId, 0)) {
             newsInfos.push({ dataValues: data.dataValues });
@@ -132,9 +132,11 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     shareName: '',
     sharePhone: '',
   };
-  if (shareUserId !== viewerInfo.userId) {
+
+  if (shareUserId === viewerInfo.userId) {
     shareInfo.shareId = 0;
   }
+
   if (shareInfo.shareId !== 0) {
     const data = await Model.User.findOne({ where: { userId: shareUserId } });
     if (!data || !data.dataValues) {
@@ -148,7 +150,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   // 查询操作对应的积分数量
   const operateType = shareInfo.shareId ? 2 : 1;
   const pointInfo = await Model.BonusPoint.findOne({ where: { id: operateType } });
-  const pointNum = parseInt(pointInfo.dataValues.pointNum, 0);
+  const pointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.pointNum : 0;
 
   Model.sequelize.transaction(async (transaction) => {
     /** *****************************记录资讯浏览日志**************************************** */
@@ -195,7 +197,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     let userNewPVTodayNum = 0;
     if (shareInfo.shareId !== 0) {
       updateRedis = await redisClient.multi()
-        .zincrbyAsync(pvTotalKey, 1, newsInfo.newsId)
+        .zincrby(pvTotalKey, 1, newsInfo.newsId)
         .zincrby(pvContextKey, 1, newsInfo.newsId)
         .zincrby(pvUserKey, 1, newsInfo.newsId)
         .zincrby(pvUserKeyToday, 1, newsInfo.newsId)
@@ -284,7 +286,7 @@ exports.getNewsDetailById = (req, res, next) => {
 
       // 查询是否已经点过赞
       const thumbUpKey = redisUtil.getRedisPrefix(17, newsId);
-      const ifThumb = await redisClient.hgetAsync(thumbUpKey, userId, 1);
+      const ifThumb = await redisClient.hgetAsync(thumbUpKey, userId);
 
       // 查询点赞总数、浏览总数、评论总数
       const supportInfo = await exports.getPVAndThumpById(newsId);
@@ -332,7 +334,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     shareName: '',
     sharePhone: '',
   };
-  if (shareUserId !== viewerInfo.userId) {
+  if (shareUserId === viewerInfo.userId) {
     shareInfo.shareId = 0;
   }
   if (shareInfo.shareId !== 0) {
@@ -348,7 +350,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   // 查询操作对应的积分数量
   const operateType = shareInfo.shareId ? 4 : 3;
   const pointInfo = await Model.BonusPoint.findOne({ where: { id: operateType } });
-  const pointNum = parseInt(pointInfo.dataValues.pointNum, 0);
+  const pointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.pointNum : 0;
 
   Model.sequelize.transaction(async (transaction) => {
     /** *****************************记录资讯转发日志**************************************** */
@@ -427,7 +429,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
 exports.shareNewsById = (req, res) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
   const userId = req.session.user.userId || 0;
-  const shareId = req.query.shareId || 0;
+  const shareId = req.body.shareId || 0;
   const resUtil = new HttpSend(req, res);
 
   // 检查参数
@@ -511,7 +513,7 @@ exports.commentNewsById = (req, res) => {
         userName: req.session.user.userName,
         userId: req.session.user.userId,
         headImgUrl: req.session.user.headImgUrl,
-        commentTime: Date().now(),
+        commentTime: Date.now(),
       };
 
       const rangeKey = redisUtil.getRedisPrefix(14, newsId);

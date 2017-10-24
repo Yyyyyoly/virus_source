@@ -163,7 +163,7 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
     shareName: '',
     sharePhone: '',
   };
-  if (shareUserId !== viewerInfo.userId) {
+  if (shareUserId === viewerInfo.userId) {
     shareInfo.shareId = 0;
   }
   if (shareInfo.shareId !== 0) {

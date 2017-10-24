@@ -13,7 +13,7 @@ router.get('/tests/:newsId', authController.isLogin, newsController.getTestDetai
 router.post('/tests/:newsId', authController.isLogin, newsController.finishTestById);
 
 // 微信分享成功后回调
-router.get('/share/:newsId', authController.isLogin, newsController.shareNewsById);
+router.post('/share/:newsId', authController.isLogin, newsController.shareNewsById);
 
 module.exports = function (app) {
   app.use(prefix, router);
