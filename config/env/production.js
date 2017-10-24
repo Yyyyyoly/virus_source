@@ -19,7 +19,6 @@ module.exports = {
     port: '6379',
     password: '',
     ttl: 1800,
-    db: 0,
     logErrors: true,
   },
 

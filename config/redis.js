@@ -8,8 +8,10 @@ const config = require('./config');
 // 获取微信信息的token存在2库
 module.exports = function (type) {
   const redisConfig = config.redisConfig || { host: '127.0.0.1', port: '6379' };
-  if (type) {
+  if (parseInt(type, 0) === 1) {
     redisConfig.db = 1;
+  } else if (parseInt(type, 0) === 2) {
+    redisConfig.db = 2;
   } else {
     redisConfig.db = 0;
   }

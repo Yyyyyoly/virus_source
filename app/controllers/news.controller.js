@@ -132,11 +132,6 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     shareName: '',
     sharePhone: '',
   };
-
-  if (shareUserId === viewerInfo.userId) {
-    shareInfo.shareId = 0;
-  }
-
   if (shareInfo.shareId !== 0) {
     const data = await Model.User.findOne({ where: { userId: shareUserId } });
     if (!data || !data.dataValues) {
@@ -145,6 +140,9 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       shareInfo.shareName = data.dataValues.userName;
       shareInfo.shareOpenId = data.dataValues.openId;
     }
+  } else if (parseInt(shareUserId, 0) === parseInt(viewerInfo.userId, 0)) {
+    shareInfo.shareName = viewerInfo.userName;
+    shareInfo.shareOpenId = viewerInfo.openId;
   }
 
   // 查询操作对应的积分数量
@@ -243,8 +241,12 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       }, { transaction });
     }
 
-    /** *********************如果有分享者，且被分享人第一次点入该链接，增加分享者积分日志*********************** */
-    if (shareInfo.shareId !== 0 && userNewPVNum === 1 && pointNum > 0) {
+    /** ******************如果有分享者(且非自己)，且被分享人第一次点入该链接，增加分享者积分日志******************** */
+    if (shareInfo.shareId !== 0 &&
+      parseInt(shareUserId, 0) !== parseInt(viewerInfo.userId, 0) &&
+      userNewPVNum === 1 &&
+      pointNum > 0
+    ) {
       const bonusPointKey = redisUtil.getRedisPrefix(18);
       const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, shareInfo.shareId, pointNum);
       await Model.PointRecord.create({
@@ -334,9 +336,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     shareName: '',
     sharePhone: '',
   };
-  if (shareUserId === viewerInfo.userId) {
-    shareInfo.shareId = 0;
-  }
+
   if (shareInfo.shareId !== 0) {
     const data = await Model.User.findOne({ where: { userId: shareUserId } });
     if (!data || !data.dataValues) {
@@ -345,6 +345,9 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       shareInfo.shareName = data.dataValues.userName;
       shareInfo.shareOpenId = data.dataValues.openId;
     }
+  } else if (parseInt(shareUserId, 0) === parseInt(viewerInfo.userId, 0)) {
+    shareInfo.shareName = viewerInfo.userName;
+    shareInfo.shareOpenId = viewerInfo.openId;
   }
 
   // 查询操作对应的积分数量
@@ -406,8 +409,12 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       }, { transaction });
     }
 
-    /** *********************如果有分享者，且被分享人第一次转发该链接，增加分享者积分日志*********************** */
-    if (shareInfo.shareId !== 0 && userNewTransmitNum === 1 && pointNum > 0) {
+    /** ****************如果有分享者(且不为本人)，且被分享人第一次转发该链接，增加分享者积分日志****************** */
+    if (shareInfo.shareId !== 0 &&
+      parseInt(shareUserId, 0) === parseInt(viewerInfo.userId, 0) &&
+      userNewTransmitNum === 1 &&
+      pointNum > 0
+    ) {
       const bonusPointKey = redisUtil.getRedisPrefix(18);
       const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, shareInfo.shareId, pointNum);
       await Model.PointRecord.create({

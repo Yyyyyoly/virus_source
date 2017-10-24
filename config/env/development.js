@@ -1,6 +1,7 @@
 module.exports = {
   // development configuration options
   serverPort: 3000,
+  // serverHost: 'http://118.31.16.48',
   serverHost: 'http://localhost',
   sessionSecret: 'xsm_development_secret',
 
@@ -19,7 +20,6 @@ module.exports = {
     port: '6379',
     password: '',
     ttl: 1800,
-    db: 0,
     logErrors: true,
   },
 

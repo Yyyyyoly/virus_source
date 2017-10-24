@@ -163,9 +163,6 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
     shareName: '',
     sharePhone: '',
   };
-  if (shareUserId === viewerInfo.userId) {
-    shareInfo.shareId = 0;
-  }
   if (shareInfo.shareId !== 0) {
     const data = await Model.User.findOne({ where: { userId: shareUserId } });
     if (!data || !data.dataValues) {
@@ -174,6 +171,9 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
       shareInfo.shareName = data.dataValues.userName;
       shareInfo.shareOpenId = data.dataValues.openId;
     }
+  } else if (parseInt(shareUserId, 0) === parseInt(viewerInfo.userId, 0)) {
+    shareInfo.shareName = viewerInfo.userName;
+    shareInfo.shareOpenId = viewerInfo.openId;
   }
 
   Model.sequelize.transaction(async (transaction) => {
@@ -338,7 +338,6 @@ exports.addPurchaseRecord = (req, res) => {
           changeNum: totalPrice,
           totalCommission: updateRedis[0],
         }, { transaction });
-
       }).then(() => resUtil.sendJson(constants.HTTP_SUCCESS));
     } catch (err) {
       console.log(err);

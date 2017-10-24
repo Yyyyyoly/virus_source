@@ -72,7 +72,8 @@ exports.index = (req, res, next) => {
     try {
       // 查询用户的佣金总额
       const commissionKey = redisUtil.getRedisPrefix(6);
-      const commissionNum = await redisClient.hgetAsync(commissionKey, userId);
+      let commissionNum = await redisClient.hgetAsync(commissionKey, userId);
+      commissionNum = parseInt(commissionNum, 0) || 0;
 
       const datas = await dataStatistics(userId);
       res.render('index', { commissionNum, datas });
