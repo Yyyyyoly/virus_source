@@ -43,4 +43,12 @@ module.exports = {
     port: 8080,
     privateKey: 'xsm_development_secret',
   },
+
+  // qiniu config
+  qiNiuConfig: {
+    accessKey: 'mrFUPeTjAbXn6eYl-K8ydEUW4EBV10Rc4DojZXbA',
+    secretKey: '0q9mSTZgKQtfQEZuILfiK44LXuvrYkdpACkTFEoY',
+    // 申请的空间名
+    bucket: 'wyg569983202',
+  },
 };

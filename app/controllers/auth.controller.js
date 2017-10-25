@@ -6,6 +6,8 @@ const OAuth = require('wechat-oauth');
 const url = require('url');
 const tokenRedis = require('../../config/redis')(2);
 const redisUtil = require('../utils/redis.util');
+const qiniu = require('qiniu');
+
 
 // 微信维护全局AccessToken的方法
 const api = new OAuth(
@@ -208,5 +210,17 @@ exports.checkSignature = (req, res) => {
   } else {
     res.end(result);
   }
+};
+
+// 获取七牛云的上传凭证
+exports.getQiNiuToken = (req, res) => {
+  const resUtil = new HttpSend(req, res);
+  const mac = new qiniu.auth.digest.Mac(config.qiNiuConfig.accessKey, config.qiNiuConfig.secretKey);
+  const options = {
+    scope: config.qiNiuConfig.bucket,
+  };
+  const putPolicy = new qiniu.rs.PutPolicy(options);
+  const uploadToken = putPolicy.uploadToken(mac);
+  resUtil.sendJson(200, '', { uploadToken });
 };
 
