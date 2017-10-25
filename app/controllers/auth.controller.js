@@ -218,6 +218,7 @@ exports.getQiNiuToken = (req, res) => {
   const mac = new qiniu.auth.digest.Mac(config.qiNiuConfig.accessKey, config.qiNiuConfig.secretKey);
   const options = {
     scope: config.qiNiuConfig.bucket,
+    returnBody: `{"key":"$(key)"$(key)","hash":"$(etag)","state":"SUCCESS","url":"${config.qiNiuConfig.showLink}/$(key)","title":"$(key)","original":"$(key)"}`,
   };
   const putPolicy = new qiniu.rs.PutPolicy(options);
   const uploadToken = putPolicy.uploadToken(mac);

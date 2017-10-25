@@ -48,7 +48,8 @@ module.exports = {
   qiNiuConfig: {
     accessKey: 'mrFUPeTjAbXn6eYl-K8ydEUW4EBV10Rc4DojZXbA',
     secretKey: '0q9mSTZgKQtfQEZuILfiK44LXuvrYkdpACkTFEoY',
-    // 申请的空间名
+    upHost: 'qiniu.zone.Zone_z0',
     bucket: 'wyg569983202',
+    showLink: 'http://oybluf8g8.bkt.clouddn.com',
   },
 };
