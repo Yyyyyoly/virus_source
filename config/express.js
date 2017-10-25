@@ -46,6 +46,8 @@ module.exports = function () {
 
   // always last, but before user middleware.
   app.use(express.static(path.join(__dirname, '../public/')));
+  app.locals.asset = JSON.parse(fs.readFileSync(path.join(__dirname, '../public/my-manifest.json')));
+
 
   // register user routes here.
   require('../app/routes/auth.route')(app);
@@ -63,7 +65,7 @@ module.exports = function () {
   });
 
   // error handler,
-  // eslint-disable-next-line no-unused-vars.
+  // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {
     res.status(err.status || 500);
     res.render('500', { error: err.toString() });
