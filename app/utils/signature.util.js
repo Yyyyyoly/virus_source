@@ -14,9 +14,7 @@ module.exports.genSignature = function (params, privateKey) {
   }
 
   // 没有额外的密钥  就取配置中的默认密钥
-  if (!privateKey) {
-    privateKey = config.shopServerConfig.privateKey;
-  }
+  privateKey = privateKey || config.shopServerConfig.privateKey;
 
   // 加入时间戳
   signatureParams.timestamp = signatureParams.timestamp || new Date().getTime();

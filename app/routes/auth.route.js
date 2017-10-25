@@ -11,7 +11,7 @@ router.get('/weChatCode', authController.weChatCodeGet);
 router.get('/bindWechat', authController.checkSignature);
 
 // 获取七牛云上传token的接口
-router.get('/qiNiuToken', authController.getQiNiuToken);
+router.get('/qiNiuToken', authController.isLogin, authController.getQiNiuToken);
 
 module.exports = function (app) {
   app.use(prefix, router);
