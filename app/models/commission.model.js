@@ -39,8 +39,10 @@ module.exports = function (sequelize, DataTypes) {
     collate: 'utf8_general_ci',
   });
 
-  Commission.associate = (models) => { Commission.belongsTo(models.User, { as: 'Share', foreignKey: 'shareId', targetKey: 'userId' }); };
-  Commission.associate = (models) => { Commission.belongsTo(models.User, { as: 'View', foreignKey: 'viewerId', targetKey: 'userId' }); };
+  Commission.associate = (models) => {
+    Commission.belongsTo(models.User, { as: 'Share', foreignKey: 'shareId', targetKey: 'userId' });
+    Commission.belongsTo(models.User, { as: 'Viewer', foreignKey: 'viewerId', targetKey: 'userId' });
+  };
 
   return Commission;
 };

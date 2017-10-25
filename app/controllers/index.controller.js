@@ -66,6 +66,7 @@ exports.index = (req, res, next) => {
   if (!userId) {
     const error = new Error('请先登录');
     next(error);
+    return;
   }
 
   const mainFunction = async () => {

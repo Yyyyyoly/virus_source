@@ -18,6 +18,7 @@ exports.commissionDetails = (req, res, next) => {
   if (!userId) {
     const error = new Error('userId error');
     next(error);
+    return;
   }
 
   const mainFunction = async () => {
@@ -56,6 +57,7 @@ exports.withdrawPage = (req, res, next) => {
   if (!userId) {
     const error = new Error('参数错误');
     next(error);
+    return;
   }
 
   const commissionKey = redisUtil.getRedisPrefix(6);
@@ -139,6 +141,7 @@ exports.bonusPointDetails = (req, res, next) => {
   if (!userId) {
     const error = new Error('userId error');
     next(error);
+    return;
   }
 
   const mainFunction = async () => {
@@ -192,12 +195,13 @@ exports.bonusPointDetailsByDay = (req, res, next) => {
   let incrSum = 0;
   // 当日累计减少
   let decrSum = 0;
-  const startDate = `${date} 00:00:00`;
-  const endDate = `${date} 23:59:59`;
+  const startDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 00:00:00');
+  const endDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 23:59:59');
 
   if (!userId) {
     const error = new Error('userId error');
     next(error);
+    return;
   }
 
   const mainFunction = async () => {
@@ -252,6 +256,7 @@ exports.qryDetailsByRecordId = (req, res, next) => {
   if (!userId || !recordId) {
     const error = new Error('参数有误');
     next(error);
+    return;
   }
 
   const mainFunction = async () => {
@@ -259,22 +264,26 @@ exports.qryDetailsByRecordId = (req, res, next) => {
       const logInfo = await Model.PointRecord.findOne({
         where: { recordId, viewerId: userId },
         include: [
-          { model: Model.User },
+          { model: Model.User, as: 'Share' },
           { model: Model.News },
         ],
       });
 
-      if (!logInfo || !logInfo.Share || !logInfo.News) {
+      if (!logInfo.dataValues) {
         throw new Error('查询失败');
       }
 
-      res.render('index', {
-        time: logInfo.dataValues.time,
+      const newsTitle = logInfo.News ? logInfo.News.dataValues.title : '文章已被删除';
+      const friendName = logInfo.Share ? logInfo.Share.dataValues.userName : '自己';
+      const data = {
+        time: logInfo.dataValues.createdAt,
         changeNum: logInfo.dataValues.changeNum,
-        friendName: logInfo.Share.userName,
+        friendName,
         operator: logInfo.dataValues.operator,
-        newsTitle: logInfo.News.title,
-      });
+        newsTitle,
+      };
+
+      res.render('index', data);
     } catch (err) {
       console.log(err);
       next(err);

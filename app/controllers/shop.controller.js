@@ -86,6 +86,7 @@ exports.searchProductByCategory = (req, res, next) => {
   if (!categoryId) {
     const err = new Error('参数有误');
     next(err);
+    return;
   }
 
   const mainFunction = async () => {
@@ -108,6 +109,7 @@ exports.searchProductById = (req, res, next) => {
   if (!productId) {
     const err = new Error('参数有误');
     next(err);
+    return;
   }
 
   const mainFunction = async () => {

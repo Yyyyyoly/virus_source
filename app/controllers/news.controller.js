@@ -276,6 +276,7 @@ exports.getNewsDetailById = (req, res, next) => {
   if (!newsId || !userId) {
     const error = new Error('参数错误');
     next(error);
+    return;
   }
 
   const mainFunction = async () => {
@@ -284,8 +285,7 @@ exports.getNewsDetailById = (req, res, next) => {
       const newsInfo = await Model.News.findOne({ where: { newsId } });
 
       if (!newsInfo || !newsInfo.dataValues) {
-        const error = new Error('该资讯不存在');
-        next(error);
+        throw new Error('该资讯不存在');
       }
 
       // 查询是否已经点过赞
@@ -548,6 +548,7 @@ exports.getTestDetailById = (req, res, next) => {
   if (!newsId) {
     const err = new Error('参数错误');
     next(err);
+    return;
   }
 
   const mainFunction = async () => {

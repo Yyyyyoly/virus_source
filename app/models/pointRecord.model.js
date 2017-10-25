@@ -5,7 +5,7 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.BIGINT, allowNull: false, primaryKey: true, autoIncrement: true,
     },
     // 操作人id
-    viewerId: { type: DataTypes.INTEGER },
+    viewerId: { type: DataTypes.BIGINT },
     // 可能值：operator = 1：分享上级uid，没有则为NULL ；operator = 2：分享下级uid
     shareId: { type: DataTypes.BIGINT },
     // 操作编号 ：
@@ -32,9 +32,11 @@ module.exports = function (sequelize, DataTypes) {
     collate: 'utf8_general_ci',
   });
 
-  PointRecord.associate = (models) => { PointRecord.belongsTo(models.User, { as: 'Share', foreignKey: 'shareId', targetKey: 'userId' }); };
-  PointRecord.associate = (models) => { PointRecord.belongsTo(models.User, { as: 'View', foreignKey: 'viewerId', targetKey: 'userId' }); };
-  PointRecord.associate = (models) => { PointRecord.belongsTo(models.News, { foreignKey: 'newsId', targetKey: 'newsId' }); };
+  PointRecord.associate = (models) => {
+    PointRecord.belongsTo(models.User, { as: 'Share', foreignKey: 'shareId', targetKey: 'userId' });
+    PointRecord.belongsTo(models.User, { as: 'Viewer', foreignKey: 'viewerId', targetKey: 'userId' });
+    PointRecord.belongsTo(models.News, { foreignKey: 'newsId', targetKey: 'newsId' });
+  };
 
   return PointRecord;
 };
