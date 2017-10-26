@@ -13,6 +13,11 @@ router.get('/bonusPoint/idLog', authController.isLogin, userController.qryDetail
 
 router.get('/advice', authController.isLogin, userController.getAdvicePage);
 router.post('/advice', authController.isLogin, userController.giveAdvice);
+
+// 绑定手机号
+router.get('/phone', authController.isLogin, userController.renderBindPage);
+router.post('/phone', authController.isLogin, userController.bindPhone);
+
 module.exports = function (app) {
   app.use(prefix, router);
 };

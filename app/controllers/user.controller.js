@@ -6,6 +6,36 @@ const redisClient = require('../../config/redis')(1);
 const redisUtil = require('../utils/redis.util');
 const moment = require('moment');
 
+// 渲染绑定手机号页面
+exports.renderBindPage = (req, res) => {
+  res.render('index');
+};
+
+// 绑定user表中的手机号、便于积分转化
+exports.bindPhone = (req, res) => {
+  const userId = req.session.user.userId || 0;
+  const phone = req.body.phone || '';
+  const captcha = req.body.captcha || '';
+  const remark = req.body.remark || '';
+  const resUtil = new HttpSend(req, res);
+
+  if (!userId) {
+    resUtil.sendJson(500, '请先登录');
+    return;
+  }
+
+  if (!phone || !captcha) {
+    resUtil.sendJson(500, '参数不能为空');
+    return;
+  }
+
+  Model.User.update({ phone, remark }, { where: { userId } }).then(() => {
+    resUtil.sendJson(200, '手机号绑定成功');
+  }).catch((err) => {
+    console.log(err);
+    resUtil.sendJson(500, '系统错误');
+  });
+};
 
 // 用户中心首页
 exports.index = (req, res) => {
