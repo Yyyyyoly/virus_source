@@ -39,21 +39,23 @@ const autoLoginAndRegister = (req, res) => {
   const city = req.query.city || 'Wuhan';
   const country = req.query.country || 'China';
   const headImgUrl = req.query.headImgUrl || '';
+  const unionId = req.query.unionId || '';
   const resUtil = new HttpSend(req, res);
 
   // 参数验证
-  if (!openId) {
+  if (!unionId) {
     resUtil.sendJson(constants.HTTP_FAIL, '获取微信相关信息失败');
     return;
   }
 
   const mainFunction = async () => {
     try {
-      let userInfo = await Model.User.findOne({ where: { openId } });
+      let userInfo = await Model.User.findOne({ where: { userId: unionId } });
 
       // 不存在则自动注册
       if (!userInfo || !userInfo.dataValues) {
         userInfo = await Model.User.create({
+          userId: unionId,
           openId,
           userName,
           sex,
@@ -74,7 +76,7 @@ const autoLoginAndRegister = (req, res) => {
           city,
           country,
           headImgUrl,
-        }, { where: { openId } });
+        }, { where: { userId: unionId } });
       }
 
       req.session.user = {
@@ -126,6 +128,7 @@ exports.weChatCodeGet = (req, res) => {
         if (error || !userInfo) {
           res.end(error);
         }
+        req.query.unionId = userInfo.unionId || '';
         req.query.openId = userInfo.openid || '';
         req.query.userName = userInfo.nickname || '';
         req.query.sex = userInfo.sex || 1;

@@ -5,9 +5,9 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.BIGINT, allowNull: false, primaryKey: true, autoIncrement: true,
     },
     // 操作人id
-    viewerId: { type: DataTypes.BIGINT },
+    viewerId: { type: DataTypes.STRING },
     // 可能值：operator = 1：分享上级uid，没有则为NULL ；operator = 2：分享下级uid
-    shareId: { type: DataTypes.BIGINT },
+    shareId: { type: DataTypes.STRING },
     // 操作编号 ：
     // 1.自己浏览 2.下级浏览 3.自己转发 4.下级转发 5.后台提取
     operator: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },

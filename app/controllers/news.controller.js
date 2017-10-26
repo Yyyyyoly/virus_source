@@ -576,7 +576,7 @@ exports.getTestDetailById = (req, res, next) => {
           testId: questionInfo.dataValues.testId,
           imgUrl: questionInfo.dataValues.imgUrl,
           question: questionInfo.dataValues.question,
-          options: questionInfo.dataValues.options,
+          options: JSON.parse(questionInfo.dataValues.options),
         });
       }
 

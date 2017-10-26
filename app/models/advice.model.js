@@ -1,7 +1,7 @@
 module.exports = function (sequelize, DataTypes) {
   const Advice = sequelize.define('Advice', {
     // 用户id
-    userId: { type: DataTypes.BIGINT, allowNull: false },
+    userId: { type: DataTypes.STRING, allowNull: false },
     // 操作状态   0: 待处理  1: 已处理
     operatorResult: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     // 建议内容

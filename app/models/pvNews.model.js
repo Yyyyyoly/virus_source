@@ -12,12 +12,12 @@ module.exports = function (sequelize, DataTypes) {
     writerName: { type: DataTypes.STRING, defaultValue: '管理员' },
 
     // 资讯浏览人详细信息
-    viewerId: { type: DataTypes.BIGINT, allowNull: false },
+    viewerId: { type: DataTypes.STRING, allowNull: false },
     viewerName: { type: DataTypes.STRING },
     viewerOpenId: { type: DataTypes.STRING, allowNull: false },
 
     // 分享人详细信息 如果有
-    shareId: { type: DataTypes.BIGINT, defaultValue: 0 },
+    shareId: { type: DataTypes.STRING },
     shareName: { type: DataTypes.STRING },
     shareOpenId: { type: DataTypes.STRING },
   }, {

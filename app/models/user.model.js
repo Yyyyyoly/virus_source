@@ -1,7 +1,8 @@
 module.exports = function (sequelize, DataTypes) {
   const User = sequelize.define('User', {
+    // 用户唯一id  目前直接用微信返回的unionId
     userId: {
-      type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true, unique: true,
+      type: DataTypes.STRING, primaryKey: true, unique: true,
     },
     openId: { type: DataTypes.STRING },
     userName: { type: DataTypes.STRING },

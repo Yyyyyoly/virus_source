@@ -5,7 +5,7 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.BIGINT, allowNull: false, primaryKey: true, autoIncrement: true,
     },
     // 用户信息
-    userId: { type: DataTypes.BIGINT, allowNull: false },
+    userId: { type: DataTypes.STRING, allowNull: false },
     userName: { type: DataTypes.STRING },
     userOpenId: { type: DataTypes.STRING },
 

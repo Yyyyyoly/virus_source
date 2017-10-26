@@ -5,7 +5,7 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.BIGINT, allowNull: false, primaryKey: true, autoIncrement: true,
     },
     // 分享（获利）用户id
-    shareId: { type: DataTypes.BIGINT, allowNull: false },
+    shareId: { type: DataTypes.STRING, allowNull: false },
     // 操作编号   1：成交订单获利 2：提现 3：积分兑换 4.订单取消，取消返利
     operator: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
     // 操作状态   0: 待处理  1: 已完成
@@ -16,7 +16,7 @@ module.exports = function (sequelize, DataTypes) {
     totalCommission: { type: DataTypes.FLOAT, allowNull: false },
 
     // 传播引流（购买）用户的id
-    viewerId: { type: DataTypes.BIGINT },
+    viewerId: { type: DataTypes.STRING },
     // 成交订单编号
     orderId: { type: DataTypes.STRING, unique: true },
     // 分享商品id
