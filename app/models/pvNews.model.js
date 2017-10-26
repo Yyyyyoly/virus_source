@@ -6,7 +6,7 @@ module.exports = function (sequelize, DataTypes) {
     },
     // 资讯详细细信息
     newsId: { type: DataTypes.BIGINT, allowNull: false },
-    type: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
+    newsClass: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
     title: { type: DataTypes.STRING },
     introduction: { type: DataTypes.STRING },
     writerName: { type: DataTypes.STRING, defaultValue: '管理员' },

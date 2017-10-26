@@ -20,7 +20,7 @@ module.exports = function (sequelize, DataTypes) {
     // 自测题id
     newsId: { type: DataTypes.BIGINT, allowNull: false },
     // 资讯所属类别 (eg. 糖尿病、痛风等)
-    type: { type: DataTypes.INTEGER, allowNull: false },
+    newsClass: { type: DataTypes.INTEGER, allowNull: false },
     // 资讯简介
     introduction: { type: DataTypes.STRING },
   }, {

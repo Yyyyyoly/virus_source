@@ -6,10 +6,10 @@ module.exports = function (sequelize, DataTypes) {
     },
     // 作者名称
     writerName: { type: DataTypes.STRING, defaultValue: '管理员' },
-    // 资讯内容地址链接
-    redirectUrl: { type: DataTypes.STRING, allowNull: false, defaultValue: 1 },
-    // 资讯所属类别 (eg. 糖尿病、痛风等)
+    // 资讯类型 自测题/文章
     type: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
+    // 资讯所属类别 (eg. 糖尿病、痛风等)
+    news_class: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
     // 资讯标题
     title: { type: DataTypes.STRING },
     // 资讯简介

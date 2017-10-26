@@ -43,7 +43,7 @@ exports.index = (req, res, next) => {
       limit,
     };
     if (contextType !== constants.CONTEXT_TOTAL) {
-      conditions.where = { type: contextType };
+      conditions.where = { newsClass: contextType };
     }
     const newsInfos = await Model.News.findAll(conditions);
     return newsInfos;
@@ -91,13 +91,13 @@ exports.index = (req, res, next) => {
         const newsId = newsInfo.dataValues.newsId || 0;
         const supportInfo = await exports.getPVAndThumpById(newsId);
         let redirectUrl = '/news/details';
-        if (parseInt(newsInfo.dataValues.redirectUrl, 0) === 2) {
+        if (parseInt(newsInfo.dataValues.type, 0) === 2) {
           redirectUrl = '/news/tests';
         }
         return {
           newsId,
           redirectUrl: `${redirectUrl}/${newsId}`,
-          type: newsInfo.dataValues.type,
+          newsClass: newsInfo.dataValues.newsClass,
           title: newsInfo.dataValues.title,
           introduction: newsInfo.dataValues.introduction,
           imgUrl: newsInfo.dataValues.imgUrl,
@@ -155,8 +155,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     const pvNewsInfo = await Model.PVNews.create({
       newsId: newsInfo.newsId,
       writerName: newsInfo.writerName,
-      redirectUrl: newsInfo.redirectUrl,
-      type: newsInfo.type,
+      newsClass: newsInfo.newsClass,
       title: newsInfo.title,
       introduction: newsInfo.introduction,
       viewerId: viewerInfo.userId,
@@ -172,7 +171,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     // 更新 所有文章 浏览总榜
     const pvTotalKey = redisUtil.getRedisPrefix(2);
     // 更新 所有文章 分类浏览总榜
-    const pvContextKey = redisUtil.getRedisPrefix(2, newsInfo.type);
+    const pvContextKey = redisUtil.getRedisPrefix(2, newsInfo.newsClass);
 
     // 用户 传播浏览所有记录
     const newsUvKey = redisUtil.getRedisPrefix(5, `${shareInfo.shareId}:date_${today}`);
@@ -302,7 +301,7 @@ exports.getNewsDetailById = (req, res, next) => {
       const pageInfo = {
         newsId: newsInfo.dataValues.newsId,
         userName: newsInfo.dataValues.writerName,
-        type: newsInfo.dataValues.type,
+        newsClass: newsInfo.dataValues.newsClass,
         title: newsInfo.dataValues.title,
         introduction: newsInfo.dataValues.introduction,
         context: newsInfo.dataValues.context,
@@ -362,8 +361,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     const transmitInfo = await Model.TransmitNews.create({
       newsId: newsInfo.newsId,
       writerName: newsInfo.writerName,
-      redirectUrl: newsInfo.redirectUrl,
-      type: newsInfo.type,
+      newsClass: newsInfo.newsClass,
       title: newsInfo.title,
       introduction: newsInfo.introduction,
       viewerId: viewerInfo.userId,
@@ -569,9 +567,9 @@ exports.getTestDetailById = (req, res, next) => {
       }
 
       const questLists = [];
-      let type = 0;
+      let newsClass = 0;
       for (const questionInfo of questionLists) {
-        type = type || questionInfo.dataValues.type;
+        newsClass = newsClass || questionInfo.dataValues.newsClass;
         questLists.push({
           order: questionInfo.dataValues.order,
           newsId: questionInfo.dataValues.newsId,
@@ -586,7 +584,7 @@ exports.getTestDetailById = (req, res, next) => {
       // 记录浏览日志
       exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareUid);
 
-      res.render('index', { type, questLists });
+      res.render('index', { newsClass, questLists });
     } catch (err) {
       console.log(err);
       next(err);
@@ -662,7 +660,7 @@ exports.finishTestById = (req, res) => {
       estimateId: estimateInfo.estimateId,
       estimate: estimateInfo.estimate,
       newsId,
-      type: newsInfo.dataValues.type || 0,
+      newsClass: newsInfo.dataValues.newsClass || 0,
       introduction: newsInfo.dataValues.introduction || '',
     });
 
