@@ -113,6 +113,7 @@ exports.login = (req, res, next) => {
     res.redirect(weChatUrl);
   } else {
     const error = new Error('请从微信浏览器登入');
+    console.log('请从微信浏览器登入');
     next(error);
   }
 };
@@ -128,7 +129,8 @@ exports.weChatCodeGet = (req, res) => {
         if (error || !userInfo) {
           res.end(error);
         }
-        req.query.unionId = userInfo.unionId || '';
+
+        req.query.unionId = userInfo.unionid || '';
         req.query.openId = userInfo.openid || '';
         req.query.userName = userInfo.nickname || '';
         req.query.sex = userInfo.sex || 1;
@@ -155,34 +157,11 @@ exports.isLogin = (req, res, next) => {
 
   req.session.originalUrl = originalUrl;
 
-  // if (!userInfo || !userInfo.userId) {
-  //   res.redirect(`${config.serverHost}:${config.serverPort}/auth/login`);
-  // } else {
-  //   next();
-  // }
-  req.session.user = {
-    userId: 1,
-    openId: 'od25_03YZ8710e3Qja7CD1TCdTa4',
-    userName: '叫我女王大人',
-    sex: 2,
-    province: 'Hubei',
-    city: 'Wuhan',
-    country: 'China',
-    headImgUrl: 'http://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTJiaWQI7tUfDVlCic7LEdYqZeNw0zzT1smgfenyCpdzGDqqJ6XZ8ibINYhBia9m4EKDtbicwGvibpASzjfw/0',
-    createdAt: '2017-10-24 13:58:38',
-  };
-  // req.session.user = {
-  //   userId: 2,
-  //   openId: 'od25_00ewsBeY-MbFC788-9DJh1s',
-  //   userName: '新君同学',
-  //   sex: 1,
-  //   province: 'Hubei',
-  //   city: 'Wuhan',
-  //   country: 'China',
-  //   headImgUrl: 'http://wx.qlogo.cn/mmopen/vi_32/augchqze9wX6rfF6ejtDZtlvfonqoGn1pT0NGwrW1kAI9q90Pz9EZkY4iaKf19U2asVrDUcbsLlkLtoRqIRRFMg/0',
-  //   createdAt: '2017-10-24 14:01:08',
-  // };
-  next();
+  if (!userInfo || !userInfo.userId) {
+    res.redirect(`${config.serverHost}:${config.serverPort}/auth/login`);
+  } else {
+    next();
+  }
 };
 
 // 判断请求是否来自微信客户端

@@ -20,20 +20,20 @@ exports.bindPhone = (req, res) => {
   const resUtil = new HttpSend(req, res);
 
   if (!userId) {
-    resUtil.sendJson(500, '请先登录');
+    resUtil.sendJson(constants.HTTP_FAIL, '请先登录');
     return;
   }
 
   if (!phone || !captcha) {
-    resUtil.sendJson(500, '参数不能为空');
+    resUtil.sendJson(constants.HTTP_FAIL, '参数不能为空');
     return;
   }
 
   Model.User.update({ phone, remark }, { where: { userId } }).then(() => {
-    resUtil.sendJson(200, '手机号绑定成功');
+    resUtil.sendJson(constants.HTTP_SUCCESS, '手机号绑定成功');
   }).catch((err) => {
     console.log(err);
-    resUtil.sendJson(500, '系统错误');
+    resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
   });
 };
 
