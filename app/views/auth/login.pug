@@ -1,0 +1,20 @@
+extends ../layout/base
+
+block content
+  .container#content
+    form(action="/auth/login", method="post")
+      input(type="hidden", name="_csrf", value=csrfToken)
+      h1.text-center login page
+      .form-group
+        label(for="phone") 电话号码
+        input.form-control#phone(name="phone", type="phone", placeholder="Enter phone number", v-model="phone")
+        //small.form-text.text-muted We'll never share your phone number with anyone else.
+      .form-group
+        label(for="password") 密码
+        .input-group
+          input.form-control#password(name="password", type="password", placeholder="Enter password", v-model="password")
+          span.input-group-btn
+            button.btn.btn-primary(type="button", @click="sendMessage") send message
+          //-small.form-text.text-muted We'll never share your phone number with anyone else.
+
+      button.btn.btn-primary(type="submit") Submit

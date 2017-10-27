@@ -1,0 +1,36 @@
+extends ../layout/base
+
+block content
+  .container#register
+    form(@submit.prevent="submit")
+      input(type="hidden", name="_csrf", value=csrfToken)
+      h1.text-center register page
+      .form-group
+        label(for="name") 姓名
+        input.form-control#name(required, type="name", placeholder="输入姓名", v-model="name")
+        //small.form-text We'll never share your phone number with anyone else.
+      .form-group
+        label(for="phone") 手机号码
+        input.form-control#phone(required, type="phone", placeholder="输入手机号码", v-model="phone")
+        small.form-text(v-cloak="true", v-if="phone_message.message", :class="phone_message.status?'text-success':'text-danger'") {{phone_message.message}}
+      .form-group
+        label(for="captcha") 验证码
+        .input-group
+          input.form-control#captcha(required, type="captcha", placeholder="输入验证码", v-model="captcha")
+          span.input-group-btn
+            button.btn.btn-primary#captcha_button(type="button", @click="sendMessage") 发送验证码
+        small.form-text(v-if="captcha_message.message", :class="captcha_message.status?'text-success':'text-danger'") {{captcha_message.message}}
+      .form-group
+        label(for="password") 密码
+        input.form-control#password(required, type="password", placeholder="输入密码", v-model="password")
+        small.form-text(v-if="password_message.message", :class="password_message.status?'text-success':'text-danger'") {{password_message.message}}
+      .form-group
+        label(for="retype_password") 再次输入密码
+        input.form-control#retype_password(required, type="password", placeholder="再次输入密码", v-model="retype_password")
+        small.form-text(v-if="password_message.message", :class="password_message.status?'text-success':'text-danger'") {{password_message.message}}
+
+      button.btn.btn-primary(type="submit") 提交
+
+block script
+  script(src="https://cdn.bootcss.com/distpicker/2.0.1/distpicker.min.js")
+  script(src=asset['auth.js'])
