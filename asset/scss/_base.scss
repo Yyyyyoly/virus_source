@@ -1,7 +1,31 @@
+$green: #01d491;
+
+html {
+  font-size: 90%;
+}
+
 body {
-  background-color: #eee;
+  background-color: #f4f4f4;
+  font-family: Microsoft YaHei,sans-serif;
+}
+
+a, a:visited, a:hover, a:visited {
+  color: inherit;
+  text-decoration: none;
 }
 
 [v-cloak] {
   display: none;
+}
+
+.navbar.fixed-bottom {
+  background-color: #efeff4;
+  i {
+    font-size: 1.5rem;
+    color: $green;
+  }
+  p {
+    margin: 0;
+    font-size: .8rem;
+  }
 }

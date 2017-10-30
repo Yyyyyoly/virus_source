@@ -1,2 +1,15 @@
-nav.navbar.fixed-bottom 123
+-
+  var bottom_items = {
+    '首页':{url: '/',icon: 'fa fa-home'},
+    '健康商城':{url: '/shop',icon: 'fa fa-plus-square'},
+    '热文资讯':{url: '/news',icon: 'fa fa-newspaper-o'},
+    '我的':{url: '/user',icon: 'fa fa-user'}
+  }
+
+nav.navbar.fixed-bottom.row
+  each val, item in bottom_items
+    a.col.text-center(href= val.url)
+      i(class= val.icon)
+      p= item
+
 

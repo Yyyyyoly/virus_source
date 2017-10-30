@@ -1,0 +1,38 @@
+extends ../layout/base
+
+block attributes
+  - var title = "index"
+
+block title
+  title #{title}
+block content
+  .container.index
+    .row.chart: .col
+      div#chart
+    .row
+      .col.text-center
+        p 热门文章排行
+        button.btn 当日
+        button.btn 累计
+    .row.article-block: .col
+      p
+        span 1
+        |中量家用室内迷你 下肢康复训练医疗脚踏 健身自行车 白色
+      p
+        span ￥60
+        span 累计：100人
+        span 当日：100人
+    .row.article-block: .col
+      p
+        span 2
+        |慢性疾病的预防
+      p
+        span ￥60
+        span 累计：100人
+        span 当日：100人
+
+
+  include ../layout/navbar-bottom
+
+block script
+  script(src=asset['index.js'])
