@@ -5,7 +5,7 @@ $green: #01d491;
     background-color: $green;
     color: #fff;
   }
-  h3,h4,h5 {
+  h3, h4, h5 {
     margin-top: 2rem;
   }
   .main {
@@ -81,8 +81,48 @@ $green: #01d491;
   .chart {
     background-color: #fff;
   }
+  .article-title {
+    p {
+      margin: 1rem 0 0 0;
+      color: #a5a5a5;
+    }
+
+    button {
+      margin: 1rem;
+      padding-left: 3.5rem;
+      padding-right: 3.5rem;
+      border-radius: 2rem;
+    }
+    .non-active {
+      background-color: #e2e2e2;
+      color: #666;
+    }
+  }
   .article-block {
     background-color: #fff;
     margin-bottom: .1rem;
+    padding-top: .8rem;
+    .num {
+      color: $green;
+      padding-left: .8rem;
+    }
+    .title {
+      font-weight: bolder;
+      height: 3rem;
+      margin-bottom: .8rem;
+    }
+    .info {
+      .price {
+        color: #ff5400;
+        font-size: 1.4rem;
+        font-weight: bolder;
+      }
+      .count,.daily {
+        float: right;
+        line-height: 2.2rem;
+        font-size: .8rem;
+        color: #949494;
+      }
+    }
   }
 }

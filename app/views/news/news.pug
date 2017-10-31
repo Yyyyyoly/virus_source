@@ -1,0 +1,41 @@
+extends ../layout/base
+
+block attributes
+  - var title = "news"
+
+block title
+  title #{title}
+block content
+  .container.news
+    .row.count-type
+      .col
+        ul.nav.nav-pills
+          li.nav-item
+            a.nav-link.active &ensp;最新&ensp;
+          li.nav-item
+            a.nav-link 热门
+    .row.news-type
+      .col
+        ul.nav.nav-pills
+          li.nav-item
+            a.nav-link.active 全部
+          li.nav-item
+            a.nav-link 糖尿病
+          li.nav-item
+            a.nav-link test
+          li.nav-item
+            a.nav-link test
+          li.nav-item
+            a.nav-link test
+    .row.news-block
+      .col
+        h4 糖尿病自测小方法
+          small 2017-09-01  12 : 00
+        p 其实在日常生活中我们就可以通过一些小细节判断到底有没有患上 糖尿病,以下就给大家介绍几种常见的判断糖尿病的方法。
+        img
+        p
+          span 浏览量：10000
+          span 点赞：12
+          span 评论：12
+          button 一键分享
+  include ../layout/navbar-bottom

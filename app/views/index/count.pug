@@ -8,28 +8,36 @@ block title
 block content
   .container.index
     .row.chart: .col
+      .dropdown.text-center
+        button.btn.dropdown-toggle(type="button", id="date", data-toggle="dropdown") 近一周
+        .dropdown-menu
+          a.dropdown-item 近一月
+          a.dropdown-item test
       div#chart
-    .row
+    .row.article-title
       .col.text-center
         p 热门文章排行
         button.btn 当日
-        button.btn 累计
-    .row.article-block: .col
-      p
-        span 1
-        |中量家用室内迷你 下肢康复训练医疗脚踏 健身自行车 白色
-      p
-        span ￥60
-        span 累计：100人
-        span 当日：100人
-    .row.article-block: .col
-      p
-        span 2
-        |慢性疾病的预防
-      p
-        span ￥60
-        span 累计：100人
-        span 当日：100人
+        button.btn.non-active 累计
+
+    .row.article-block
+      div.num 1
+      .col
+        p.title 中量家用室内迷你 下肢康复训练医疗脚踏 健身自行车 白色
+        p.info
+          span.price ￥60
+          span.daily 当日：100人
+          span.count 累计：100人&emsp;
+    .row.article-block
+      div.num 2
+      .col
+        p.title 中量家用室内
+        p.info
+          span.price ￥60
+          span.daily 当日：100人
+          span.count 累计：100人&emsp;
+
+
 
 
   include ../layout/navbar-bottom
