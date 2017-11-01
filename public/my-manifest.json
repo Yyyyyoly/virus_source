@@ -1,5 +1,6 @@
 {
   "auth.js": "/js/auth.js",
   "common.css": "/css/common.css",
-  "common.js": "/js/common.js"
+  "common.js": "/js/common.js",
+  "index.js": "/js/index.js"
 }

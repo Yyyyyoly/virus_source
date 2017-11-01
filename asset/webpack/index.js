@@ -1,2 +1,1 @@
-import '../js/base';
-import '../scss/_base.scss';
+import '../js/index/index';

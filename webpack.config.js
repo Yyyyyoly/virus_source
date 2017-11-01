@@ -8,8 +8,9 @@ const extractSass = new ExtractTextPlugin('css/[name].css');
 
 module.exports = {
   entry: {
-    common: './asset/webpack/index.js',
+    common: './asset/webpack/base.js',
     auth: './asset/webpack/auth.js',
+    index: './asset/webpack/index.js',
     // vendor: ['jquery'],
   },
   output: {
