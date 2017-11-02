@@ -16,6 +16,24 @@ router.get('/news', (req, res) => {
 router.get('/news-detail', (req, res) => {
   res.render('news/news-detail');
 });
+router.get('/user', (req, res) => {
+  res.render('user/user');
+});
+router.get('/commission', (req, res) => {
+  res.render('user/commission');
+});
+router.get('/credits', (req, res) => {
+  res.render('user/credits');
+});
+router.get('/credits-detail', (req, res) => {
+  res.render('user/credits-detail');
+});
+router.get('/credits-list', (req, res) => {
+  res.render('user/credits-list');
+});
+router.get('/withdraw', (req, res) => {
+  res.render('user/withdraw');
+});
 
 module.exports = function (app) {
   app.use(prefix, router);

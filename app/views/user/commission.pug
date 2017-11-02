@@ -1,0 +1,34 @@
+extends ../layout/base
+
+block attributes
+  - var title = "user"
+
+block title
+  title #{title}
+block content
+  .container.user
+    .row.commission
+      .col
+        h5.text-center 我的佣金
+        p.text-center
+          span.money 0.00
+          span.money-text 元
+          button.btn.btn-sm 提现
+    .row.strategy
+      .col.text-center
+        a: p &emsp;推广攻略？
+    .commission-list
+      .row: .col
+        p 收支明细
+      .row: .col
+        p.article 成交订单佣金
+          span.time 2017-09-01  12 : 00
+        p 余额： 200.00
+          span +10.00
+      .row: .col
+        p.article 提现（审核中）
+          span.time 2017-09-01  12 : 00
+        p 余额： 190.00
+          span -80.00
+
+  include ../layout/navbar-bottom

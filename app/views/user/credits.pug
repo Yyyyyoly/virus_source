@@ -1,0 +1,17 @@
+extends ../layout/base
+
+block attributes
+  - var title = "user"
+
+block title
+  title #{title}
+block content
+  .container.user
+    .row.credits
+      .col
+    .credits-list
+      .row: .col
+        p 积分变动明细
+
+
+  include ../layout/navbar-bottom

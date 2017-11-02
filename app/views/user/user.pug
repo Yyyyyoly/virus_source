@@ -1,0 +1,33 @@
+extends ../layout/base
+
+block attributes
+  - var title = "user"
+
+block title
+  title #{title}
+block content
+  .container.user
+    .row.head-picture
+      .col
+        img.bgc
+        img.picture
+        p.nickname 哦也哦哈哈
+        p.credits 积分：321
+    .row.credits-list
+      .col
+        ul.list-group
+          li.list-group-item
+            i.fa.fa-list-alt &emsp;
+            |我的订单
+          li.list-group-item
+            i.fa.fa-money &emsp;
+            |我的优惠券
+          li.list-group-item
+            i.fa.fa-credit-card-alt &emsp;
+            |我的E卡
+          li.list-group-item
+            i.fa.fa-share-alt-square &emsp;
+            |分享给好友
+
+
+  include ../layout/navbar-bottom

@@ -29,6 +29,7 @@ $green: #01d491;
     }
   }
   .news-type {
+    color: 666;
     .col {
       padding: 1rem 0;
     }
@@ -53,7 +54,37 @@ $green: #01d491;
   }
   .news-block {
     background-color: #fff;
-
+    padding-top: 1rem;
+    margin-bottom: 1rem;
+    small {
+      color: #979797;
+      font-size: .8rem;
+      float: right;
+      line-height: 1.5rem;
+    }
+    .abstract {
+      color: #999;
+      font-size: .9rem;
+      margin-top: 1rem;
+      line-height: 1.6rem;
+    }
+    .info {
+      color: #999;
+      font-size: .8rem;
+      margin-top: 1rem;
+      line-height: 1.8rem;
+      span {
+        margin-right: 1.5rem;
+      }
+      button {
+        position: absolute;
+        right: 1rem;
+        color: $green;
+        border-color: $green;
+        border-radius: 3rem;
+        padding: .2rem .8rem;
+      }
+    }
     img {
       background-color: #eee;
       width: 100%;
@@ -61,7 +92,23 @@ $green: #01d491;
     }
   }
   .news-detail {
-     background-color: #fff;
+    background-color: #fff;
+    padding-bottom: .5rem;
+    p {
+      margin-top: .5rem;
+    }
+    .info {
+      color: #979797;
+      padding-right: 1rem;
+      margin-bottom: .5rem;
+      font-size: .8rem;
+    }
+    span {
+      margin-right: 1rem;
+    }
+    i {
+      font-size: 150%;
+    }
 
     img {
       background-color: #eee;
@@ -70,17 +117,41 @@ $green: #01d491;
     }
   }
   .news-share {
+    button {
+      padding: .2rem 1.5rem;
+      color: $green;
+      background-color: transparent;
+      border-color: $green;
+      border-radius: 3rem;
+      font-size: .8rem;
+    }
+    p {
+      margin-top: .5rem;
+      margin-bottom: .5rem;
+      color: #a5a5a5;
+      font-size: .8rem;
+    }
   }
   .discuss {
     .row {
       background-color: #fff;
     }
     .edit-bar {
-
+      color: $green;
+      p {
+        margin: .5rem 0;
+      }
+    }
+    .user-id {
+      color: #999999;
+      margin-bottom: .1rem;
+    }
+    .discuss-block {
+      padding-bottom: 2rem;
     }
     .icon {
-      width: 4rem;
-      height: 4rem;
+      width: 3.5rem;
+      height: 3.5rem;
       margin-left: 1rem;
       background-color: #eee;
       border-radius: 100%;

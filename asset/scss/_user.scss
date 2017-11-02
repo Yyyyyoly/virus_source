@@ -1,0 +1,59 @@
+$green: #01d491;
+
+.user {
+  button {
+    background-color: $green;
+    color: #fff;
+  }
+  h3, h4, h5 {
+    margin-top: 2rem;
+  }
+  .commission {
+    color: #666666;
+
+    p {
+      margin-bottom: 0;
+      .money {
+        color: #ff6600;
+        font-size: 3rem;
+      }
+      .money-text {
+        position: absolute;
+        bottom: .8rem;
+      }
+      button {
+        position: absolute;
+        bottom: .8rem;
+        right: 15px;
+        padding: 0 10px;
+        border-radius: 30px;
+      }
+    }
+  }
+  .strategy {
+    a {
+      color: #999;
+    }
+    margin-bottom: 1.5rem;
+  }
+  .commission-list {
+    .row {
+      background-color: #fff;
+      margin-bottom: 1px;
+      p {
+        margin-bottom: .5rem;
+        margin-top: .5rem;
+        &.article {
+          font-size: 1.2rem;
+        }
+        span {
+          float: right;
+          &.time {
+            font-size: 1rem;
+            color: #999;
+          }
+        }
+      }
+    }
+  }
+}
