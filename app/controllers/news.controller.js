@@ -333,7 +333,7 @@ exports.getNewsDetailById = (req, res, next) => {
       const supportInfo = await exports.getPVAndThumpById(newsId);
 
       // 查询评论列表
-      const commentListKey = redisUtil.getRedisPrefix(14);
+      const commentListKey = redisUtil.getRedisPrefix(14,newsId);
       const commentList = await redisClient.lrangeAsync(commentListKey, 0, -1);
 
       const pageInfo = {
@@ -578,7 +578,7 @@ exports.commentNewsById = (req, res) => {
 exports.getTestDetailById = (req, res, next) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
   // 分享者id
-  const shareUid = req.query.shareUid ? parseInt(req.query.shareUid, 0) : 0;
+  const shareUid = req.query.shareUid ? parseInt(req.query.shareId, 0) : 0;
 
   if (!newsId) {
     const err = new Error('参数错误');
