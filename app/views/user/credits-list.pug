@@ -1,0 +1,35 @@
+extends ../layout/base
+
+block attributes
+  - var title = "user"
+
+block title
+  title #{title}
+block content
+  .container.user
+    .row.credits
+      .col
+        p 积分规则
+          span 选择时间
+        P 当天新增： +200
+        p 当天提现： -100
+    .credits-list
+      .row
+        table.table
+          thead
+            tr
+              th 时间
+              th 积分变动
+              th 详情
+          tbody
+            tr
+              td 2017-09-10
+              td 2158
+              td 提现（审核中）
+            tr
+              td 2017-09-10
+              td 524
+              td 好友转发文章
+
+
+  include ../layout/navbar-bottom

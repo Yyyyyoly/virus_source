@@ -8,6 +8,19 @@ $green: #01d491;
   h3, h4, h5 {
     margin-top: 2rem;
   }
+  .head-picture {
+    height: 18rem;
+    padding: 0;
+    align-items: center;
+    .user-info{
+      position: absolute;
+      .pic {
+        width: 4rem;
+        height: 4rem;
+        border-radius: 4rem;
+      }
+    }
+  }
   .commission {
     color: #666666;
 
@@ -54,6 +67,11 @@ $green: #01d491;
           }
         }
       }
+    }
+  }
+  .credits-list {
+    i {
+      width: 2rem;
     }
   }
 }

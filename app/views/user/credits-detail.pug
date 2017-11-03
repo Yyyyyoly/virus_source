@@ -1,0 +1,18 @@
+extends ../layout/base
+
+block attributes
+  - var title = "user"
+
+block title
+  title #{title}
+block content
+  .container.user
+    .credits-detail
+      .row: .col
+        p 时间：2017-10-18  10：00：00
+      .row: .col
+        p 积分变动：+200
+      .row: .col
+        p 详情：好友【微信昵称】浏览文章【慢病的食疗小窍门】
+
+  include ../layout/navbar-bottom
