@@ -250,8 +250,8 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
 // 跳转至购买链接
 exports.redirectToShopServer = (req, res, next) => {
   const productId = req.query.productId || 0;
-  const shareUserId = req.query.shareUserId || 0;
-  const userId = req.session.user.userId || 0;
+  const shareUserId = req.query.shareUserId || '';
+  const userId = req.session.user ? req.session.user.userId : '';
 
   const mainFunction = async () => {
     try {
@@ -287,8 +287,8 @@ exports.addPurchaseRecord = (req, res) => {
   const productId = req.body.productId || 0;
   const productName = req.body.productName || 0;
   const orderId = req.body.orderId || '';
-  const shareUserId = req.body.shareId || 0;
-  const userId = req.body.userId || 0;
+  const shareUserId = req.body.shareId || '';
+  const userId = req.body.userId || '';
   const totalPrice = parseFloat(req.body.totalPrice) || 0;
   const timestamp = req.body.timestamp || 0;
   const signature = req.body.signature || '';

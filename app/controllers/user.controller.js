@@ -13,7 +13,7 @@ exports.renderBindPage = (req, res) => {
 
 // 绑定user表中的手机号、便于积分转化
 exports.bindPhone = (req, res) => {
-  const userId = req.session.user.userId || 0;
+  const userId = req.session.user ? req.session.user.userId : '';
   const phone = req.body.phone || '';
   const captcha = req.body.captcha || '';
   const remark = req.body.remark || '';
@@ -44,7 +44,7 @@ exports.index = (req, res) => {
 
 // 佣金日志详情页
 exports.commissionDetails = (req, res, next) => {
-  const userId = req.session.user.userId || '';
+  const userId = req.session.user ? req.session.user.userId : '';
   if (!userId) {
     const error = new Error('userId error');
     next(error);
@@ -82,7 +82,7 @@ exports.commissionDetails = (req, res, next) => {
 
 // 佣金申请页面
 exports.withdrawPage = (req, res, next) => {
-  const userId = req.session.user.userId || '';
+  const userId = req.session.user ? req.session.user.userId : '';
 
   if (!userId) {
     const error = new Error('参数错误');
@@ -98,7 +98,7 @@ exports.withdrawPage = (req, res, next) => {
 
 // 佣金申请提现
 exports.withdraw = (req, res) => {
-  const userId = req.session.user.userId || '';
+  const userId = req.session.user ? req.session.user.userId : '';
   const changeNum = req.body.money || 0;
   const aliPayAccount = req.body.aliPayAccount || '';
   const aliPayAccountName = req.body.aliPayAccountName || '';
@@ -164,7 +164,7 @@ exports.withdraw = (req, res) => {
 
 // 积分日志详情页
 exports.bonusPointDetails = (req, res, next) => {
-  const userId = req.session.user.userId || '';
+  const userId = req.session.user ? req.session.user.userId : '';
   const startDate = moment().format('YYYYMMDD 00:00:00');
   const endDate = moment().format('YYYYMMDD 23:59:59');
 
@@ -214,7 +214,7 @@ exports.bonusPointDetails = (req, res, next) => {
 
 // 按天查询日志详情
 exports.bonusPointDetailsByDay = (req, res, next) => {
-  const userId = req.session.user.userId || '';
+  const userId = req.session.user ? req.session.user.userId : '';
   const date = req.query.date || moment().format('YYYYMMDD');
   const page = parseInt(req.query.page, 0) || 1;
   const limit = 10;
@@ -279,7 +279,7 @@ exports.bonusPointDetailsByDay = (req, res, next) => {
 
 // 根据pointRecordId 查询积分记录的详细情况
 exports.qryDetailsByRecordId = (req, res, next) => {
-  const userId = req.session.user.userId || '';
+  const userId = req.session.user ? req.session.user.userId : '';
   const recordId = req.query.recordId || 0;
 
 
@@ -330,7 +330,7 @@ exports.getAdvicePage = (req, res) => {
 
 // 上传建议
 exports.giveAdvice = (req, res) => {
-  const userId = req.session.user.userId || '';
+  const userId = req.session.user ? req.session.user.userId : '';
   const advice = req.query.advice || '';
   const resUtils = new HttpSend(req, res);
 

@@ -62,7 +62,7 @@ const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
 
 // 首页
 exports.index = (req, res, next) => {
-  const userId = req.session.user.userId || 0;
+  const userId = req.session.user.userId || '';
   if (!userId) {
     const error = new Error('请先登录');
     next(error);
@@ -89,7 +89,7 @@ exports.index = (req, res, next) => {
 
 // 首页 策略显示页面
 exports.renderStrategy = (req, res, next) => {
-  const userId = req.session.user ? req.session.user.userId : 0;
+  const userId = req.session.user ? req.session.user.userId : '';
 
   if (!userId) {
     const err = new Error('请先去登录');
@@ -116,7 +116,7 @@ exports.renderStrategy = (req, res, next) => {
 
 // 首页 获取每日数据汇总
 exports.getDailyData = (req, res) => {
-  const userId = req.session.user.userId || 0;
+  const userId = req.session.user.userId || '';
   const date = req.query.date || moment().format('YYYYMMDD');
   const resUtil = new HttpSend(req, res);
 
@@ -221,7 +221,7 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
 exports.getLineChart = (req, res) => {
   const days = parseInt(req.query.days, 0) || 5;
   const type = parseInt(req.params.type, 0) || 0;
-  const userId = req.session.user ? req.session.user.userId : 0;
+  const userId = req.session.user ? req.session.user.userId : '';
   const resUtil = new HttpSend(req, res);
 
   if (days <= 0 || !type || !userId) {
@@ -358,7 +358,7 @@ const getRankListByType = async (type, page, userId) => {
 exports.getRankList = (req, res) => {
   const type = parseInt(req.query.type, 0) || 0;
   const page = parseInt(req.query.page, 0) || 1;
-  const userId = req.session.user.userId || 0;
+  const userId = req.session.user ? req.session.user.userId : '';
   const resUtil = new HttpSend(req, res);
 
   if (page < 1 || (type <= 1 && type >= 8)) {
@@ -383,7 +383,7 @@ exports.getRankList = (req, res) => {
 // 首页 进入折现图+排行榜详情显示页面
 exports.renderDetails = (req, res, next) => {
   const type = parseInt(req.params.type, 0) || 0;
-  const userId = req.session.user ? req.session.user.userId : 0;
+  const userId = req.session.user ? req.session.user.userId : '';
 
   if (!type || !userId) {
     const err = new Error('参数错误');

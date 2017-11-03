@@ -304,8 +304,8 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
 exports.getNewsDetailById = (req, res, next) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
   // 分享者id
-  const shareId = req.query.shareId ? parseInt(req.query.shareId, 0) : 0;
-  const userId = req.session.user.userId || 0;
+  const shareId = req.query.shareId || '';
+  const userId = req.session.user.userId || '';
 
   if (!newsId || !userId) {
     const error = new Error('参数错误');
@@ -445,7 +445,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     }
 
     /** ****************如果有分享者(且不为本人)，且被分享人第一次转发该链接，增加分享者积分日志****************** */
-    if (!shareInfo.shareId !== 0 && shareUserId !== viewerInfo.userId &&
+    if (!shareInfo.shareId && shareUserId !== viewerInfo.userId &&
       userNewTransmitNum === 1 && pointNum > 0
     ) {
       const bonusPointKey = redisUtil.getRedisPrefix(18);
@@ -469,8 +469,8 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
 // 文章分享至朋友圈
 exports.shareNewsById = (req, res) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
-  const userId = req.session.user.userId || 0;
-  const shareId = req.body.shareId || 0;
+  const userId = req.session.user ? req.session.user.userId : '';
+  const shareId = req.body.shareId || '';
   const resUtil = new HttpSend(req, res);
 
   // 检查参数
@@ -502,7 +502,7 @@ exports.shareNewsById = (req, res) => {
 exports.thumbUpNewsById = (req, res) => {
   const newsId = parseInt(req.body.newsId, 0) || 0;
   const resUtil = new HttpSend(req, res);
-  const userId = req.session.user.userId || 0;
+  const userId = req.session.user ? req.session.user.userId : '';
 
   // 检查参数
   if (!newsId || !userId) {
@@ -537,7 +537,7 @@ exports.thumbUpNewsById = (req, res) => {
 exports.commentNewsById = (req, res) => {
   const newsId = parseInt(req.body.newsId, 0) || 0;
   const resUtil = new HttpSend(req, res);
-  const userId = req.session.user.userId || 0;
+  const userId = req.session.user ? req.session.user.userId : '';
   const comment = req.body.comment || '';
 
 
@@ -573,7 +573,7 @@ exports.commentNewsById = (req, res) => {
 exports.getTestDetailById = (req, res, next) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
   // 分享者id
-  const shareUid = req.query.shareUid ? parseInt(req.query.shareId, 0) : 0;
+  const shareUid = req.query.shareId || '';
 
   if (!newsId) {
     const err = new Error('参数错误');
