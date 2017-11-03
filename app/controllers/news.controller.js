@@ -139,7 +139,6 @@ exports.index = (req, res, next) => {
   mainFunction();
 };
 
-
 // 资讯首页
 exports.getNewsListByCondition = (req, res) => {
   // 资讯查找方式  按热门/按最新
@@ -170,15 +169,15 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     shareName: '',
     sharePhone: '',
   };
-  if (shareInfo.shareId !== 0) {
+  if (!shareInfo.shareId) {
     const data = await Model.User.findOne({ where: { userId: shareUserId } });
     if (!data || !data.dataValues) {
-      shareInfo.shareId = 0;
+      shareInfo.shareId = '';
     } else {
       shareInfo.shareName = data.dataValues.userName;
       shareInfo.shareOpenId = data.dataValues.openId;
     }
-  } else if (parseInt(shareUserId, 0) === parseInt(viewerInfo.userId, 0)) {
+  } else if (shareUserId === viewerInfo.userId) {
     shareInfo.shareName = viewerInfo.userName;
     shareInfo.shareOpenId = viewerInfo.openId;
   }
@@ -230,7 +229,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     let userPvNum = 0;
     let userNewPVNum = 0;
     let userNewPVTodayNum = 0;
-    if (shareInfo.shareId !== 0) {
+    if (!shareInfo.shareId) {
       updateRedis = await redisClient.multi()
         .zincrby(pvTotalKey, 1, newsInfo.newsId)
         .zincrby(pvContextKey, 1, newsInfo.newsId)
@@ -255,11 +254,11 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     }
 
     /** *********************如果有分享者，且被分享人第一次点入，计入分享者热门文章UV日榜、总榜******************* */
-    if (shareInfo.shareId !== 0 && userNewPVNum === 1) {
+    if (!shareInfo.shareId && userNewPVNum === 1) {
       const uvUserKey = redisUtil.getRedisPrefix(4, shareInfo.shareId);
       await redisClient.zincrbyAsync(uvUserKey, 1, newsInfo.newsId);
     }
-    if (shareInfo.shareId !== 0 && userNewPVTodayNum === 1) {
+    if (!shareInfo.shareId && userNewPVTodayNum === 1) {
       const uvUserKeyToday = redisUtil.getRedisPrefix(4, `${shareInfo.shareId}:date_${today}`);
       await redisClient.zincrbyAsync(uvUserKeyToday, 1, newsInfo.newsId);
     }
@@ -270,7 +269,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, viewerInfo.userId, pointNum);
       await Model.PointRecord.create({
         viewerId: viewerInfo.userId,
-        shareId: shareInfo.shareId === 0 ? null : shareInfo.shareId,
+        shareId: shareInfo.shareId,
         operator: 1,
         changeNum: pointNum,
         totalPoint,
@@ -280,10 +279,8 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     }
 
     /** ******************如果有分享者(且非自己)，且被分享人第一次点入该链接，增加分享者积分日志******************** */
-    if (shareInfo.shareId !== 0 &&
-      parseInt(shareUserId, 0) !== parseInt(viewerInfo.userId, 0) &&
-      userNewPVNum === 1 &&
-      pointNum > 0
+    if (!shareInfo.shareId && shareUserId !== viewerInfo.userId &&
+      userNewPVNum === 1 && pointNum > 0
     ) {
       const bonusPointKey = redisUtil.getRedisPrefix(18);
       const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, shareInfo.shareId, pointNum);
@@ -333,7 +330,7 @@ exports.getNewsDetailById = (req, res, next) => {
       const supportInfo = await exports.getPVAndThumpById(newsId);
 
       // 查询评论列表
-      const commentListKey = redisUtil.getRedisPrefix(14,newsId);
+      const commentListKey = redisUtil.getRedisPrefix(14, newsId);
       const commentList = await redisClient.lrangeAsync(commentListKey, 0, -1);
 
       const pageInfo = {
@@ -375,15 +372,15 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     sharePhone: '',
   };
 
-  if (shareInfo.shareId !== 0) {
+  if (!shareInfo.shareId) {
     const data = await Model.User.findOne({ where: { userId: shareUserId } });
     if (!data || !data.dataValues) {
-      shareInfo.shareId = 0;
+      shareInfo.shareId = '';
     } else {
       shareInfo.shareName = data.dataValues.userName;
       shareInfo.shareOpenId = data.dataValues.openId;
     }
-  } else if (parseInt(shareUserId, 0) === parseInt(viewerInfo.userId, 0)) {
+  } else if (shareUserId === viewerInfo.userId) {
     shareInfo.shareName = viewerInfo.userName;
     shareInfo.shareOpenId = viewerInfo.openId;
   }
@@ -418,7 +415,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     let updateRedis = [];
     let userTransmitNum = 0;
     let userNewTransmitNum = 0;
-    if (shareInfo.shareId !== 0) {
+    if (!shareInfo.shareId) {
       updateRedis = await redisClient.multi()
         .hincrby(transmitNewsLogKey, viewerInfo.userId, 1)
         .hincrby(transmitUserNewsLogKey, viewerInfo.userId, 1)
@@ -438,7 +435,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, viewerInfo.userId, pointNum);
       await Model.PointRecord.create({
         viewerId: viewerInfo.userId,
-        shareId: shareInfo.shareId === 0 ? null : shareInfo.shareId,
+        shareId: shareInfo.shareId,
         operator: 3,
         changeNum: pointNum,
         totalPoint,
@@ -448,10 +445,8 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     }
 
     /** ****************如果有分享者(且不为本人)，且被分享人第一次转发该链接，增加分享者积分日志****************** */
-    if (shareInfo.shareId !== 0 &&
-      parseInt(shareUserId, 0) !== parseInt(viewerInfo.userId, 0) &&
-      userNewTransmitNum === 1 &&
-      pointNum > 0
+    if (!shareInfo.shareId !== 0 && shareUserId !== viewerInfo.userId &&
+      userNewTransmitNum === 1 && pointNum > 0
     ) {
       const bonusPointKey = redisUtil.getRedisPrefix(18);
       const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, shareInfo.shareId, pointNum);
