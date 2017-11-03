@@ -64,6 +64,8 @@ const autoLoginAndRegister = (req, res) => {
           country,
           headImgUrl,
         });
+        // 首次进入系统，render规则说明页面
+        req.session.firstTime = true;
       } else if (userName !== userInfo.dataValues.userName || sex !== userInfo.dataValues.sex ||
           province !== userInfo.dataValues.province || city !== userInfo.dataValues.city ||
           country !== userInfo.dataValues.country || headImgUrl !== userInfo.dataValues.headImgUrl
@@ -92,7 +94,14 @@ const autoLoginAndRegister = (req, res) => {
       };
 
       // 如果有跳转前页面，先进入
-      const originalUrl = req.session.originalUrl || `${config.serverHost}:${config.serverPort}/`;
+      let originalUrl = '';
+      if (req.session.firstTime === true) {
+        req.session.firstTime = false;
+        originalUrl = req.session.originalUrl || `${config.serverHost}:${config.serverPort}/home/strategy`;
+      } else {
+        originalUrl = req.session.originalUrl || `${config.serverHost}:${config.serverPort}/`;
+      }
+
       req.session.originalUrl = null;
       res.redirect(originalUrl);
     } catch (err) {
@@ -204,6 +213,6 @@ exports.getQiNiuToken = (req, res) => {
   };
   const putPolicy = new qiniu.rs.PutPolicy(options);
   const uploadToken = putPolicy.uploadToken(mac);
-  resUtil.sendJson(200, '', { uploadToken });
+  resUtil.sendJson(constants.HTTP_SUCCESS, '', { uploadToken });
 };
 
