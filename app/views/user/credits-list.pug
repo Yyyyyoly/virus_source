@@ -6,13 +6,13 @@ block attributes
 block title
   title #{title}
 block content
-  .container.user
-    .row.credits
+  .container.user: .credits-page
+    .row.credits-info
       .col
-        p 积分规则
+        p.rule-button 积分规则
           span 选择时间
-        P 当天新增： +200
-        p 当天提现： -100
+        P.add 当天新增： +200
+        p.withdraw 当天提现： -100
     .credits-list
       .row
         table.table

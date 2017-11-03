@@ -6,16 +6,16 @@ block attributes
 block title
   title #{title}
 block content
-  .container.user
+  .container.user: .credits-page
     .row.credits
       .col
-        p 积分规则
-        h3 1200
-        p 可用积分
+        p.rule-button: a 积分规则?
+        h2.num.text-center 1200
+        p.sub-text.text-center 可用积分
     .credits-list
       .row: .col
         p 积分变动明细
-          span 查看全部
+          span: a 查看全部
       .row
         table.table
           thead

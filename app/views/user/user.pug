@@ -7,26 +7,28 @@ block title
   title #{title}
 block content
   .container.user
-    .row.head-picture
-      img.img-fluid.bgc(src='/img/user_bgc.png')
-      .col.user-info.text-center
-        img.pic
-        p.nickname test
-    .row.credits-list
-      .col
-        ul.list-group
-          li.list-group-item
-            i.fa.fa-gg-circle
-            |我的积分
-          li.list-group-item
-            i.fa.fa-dollar
-            |我的佣金
-          li.list-group-item
-            i.fa.fa-comment
-            |建议和反馈
-          li.list-group-item
-            i.fa.fa-share-alt-square
-            |分享给好友
+    .user-page
+      .row.head-picture
+        img.img-fluid.bgc(src='/img/user_bgc.png')
+        .col.user-info.text-center
+          .pic
+            img
+          p.nickname test
+      .row.credits-list
+        .col
+          ul.list-group
+            li.list-group-item
+              i.fa.fa-gg-circle
+              |我的积分
+            li.list-group-item
+              i.fa.fa-dollar
+              |我的佣金
+            li.list-group-item
+              i.fa.fa-comment
+              |建议和反馈
+            li.list-group-item
+              i.fa.fa-share-alt-square
+              |分享给好友
 
 
   include ../layout/navbar-bottom

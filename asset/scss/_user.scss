@@ -8,38 +8,80 @@ $green: #01d491;
   h3, h4, h5 {
     margin-top: 2rem;
   }
-  .head-picture {
-    height: 18rem;
-    padding: 0;
-    align-items: center;
-    .user-info{
-      position: absolute;
-      .pic {
-        width: 4rem;
-        height: 4rem;
-        border-radius: 4rem;
+  .user-page {
+    .head-picture {
+      padding: 0;
+      align-items: center;
+      justify-content: center;
+      .user-info {
+        position: absolute;
+        .pic {
+          width: 5rem;
+          height: 5rem;
+          margin: auto;
+          border-radius: 4rem;
+          border: 2px #fff solid;
+        }
+        .nickname {
+          color: #fff;
+        }
+      }
+    }
+    .col {
+      padding: 0;
+      li {
+        border-left: none;
+        border-right: none;
+        border-radius: 0;
+        border-color: #f4f4f4;
+      }
+      i {
+        width: 2rem;
+        color: $green;
       }
     }
   }
-  .commission {
-    color: #666666;
+  .commission-page {
+    .commission {
+      color: #666666;
 
-    p {
-      margin-bottom: 0;
-      .money {
-        color: #ff6600;
-        font-size: 3rem;
+      p {
+        margin-bottom: 0;
+        .money {
+          color: #ff6600;
+          font-size: 3rem;
+        }
+        .money-text {
+          position: absolute;
+          bottom: .8rem;
+        }
+        button {
+          position: absolute;
+          bottom: .8rem;
+          right: 15px;
+          padding: 0 10px;
+          border-radius: 30px;
+        }
       }
-      .money-text {
-        position: absolute;
-        bottom: .8rem;
-      }
-      button {
-        position: absolute;
-        bottom: .8rem;
-        right: 15px;
-        padding: 0 10px;
-        border-radius: 30px;
+    }
+    .commission-list {
+      .row {
+        background-color: #fff;
+        margin-bottom: 1px;
+        p {
+          margin-bottom: .5rem;
+          margin-top: .5rem;
+          &.article {
+            font-size: 1.2rem;
+          }
+          span {
+            float: right;
+            &.time {
+              font-size: 1rem;
+              color: #999;
+            }
+          }
+        }
       }
     }
   }
@@ -49,29 +91,77 @@ $green: #01d491;
     }
     margin-bottom: 1.5rem;
   }
-  .commission-list {
-    .row {
-      background-color: #fff;
-      margin-bottom: 1px;
-      p {
-        margin-bottom: .5rem;
-        margin-top: .5rem;
-        &.article {
-          font-size: 1.2rem;
-        }
-        span {
-          float: right;
-          &.time {
-            font-size: 1rem;
-            color: #999;
-          }
-        }
+  .credits-page {
+    .credits {
+      .rule-button {
+        color: $green;
+        margin-top: .7rem;
+      }
+      .num {
+        font-size: 3rem;
+        padding-top: 1rem;
+      }
+      .sub-text {
+        color: #999;
+        font-size: .8rem;
+        padding-bottom: 1rem;
       }
     }
-  }
-  .credits-list {
-    i {
-      width: 2rem;
+    .credits-info {
+      margin-bottom: 1rem;
+      .rule-button {
+        margin-top: .7rem;
+        span {
+          color: $green;
+          float: right;
+        }
+      }
+      .add, .withdraw {
+        font-size: 1.4rem;
+        margin-top: .5rem;
+        margin-bottom: .5rem;
+      }
+    }
+    .credits-detail {
+      p {
+        margin-top: .5rem;
+        margin-bottom: .5rem;
+      }
+      .time {
+        font-size: .8rem;
+        color: #999999;
+      }
+      .change {
+        background-color: #fff;
+        font-size: 1.4rem;
+      }
+    }
+    .credits-list {
+      .row {
+        background-color: #fff;
+        p {
+          margin: 0.5rem 0;
+          span {
+            float: right;
+            color: $green;
+          }
+        }
+        table {
+          margin-bottom: 0;
+          td, th {
+            padding: .5rem 1rem;
+          }
+          thead {
+            color: #999;
+            background-color: #f4f4f4;
+            th {
+              border: none;
+              font-weight: inherit;
+            }
+          }
+        }
+
+      }
     }
   }
 }
