@@ -77,7 +77,34 @@ exports.index = (req, res, next) => {
       commissionNum = parseInt(commissionNum, 0) || 0;
 
       const datas = await dataStatistics(userId);
-      res.render('index', { commissionNum, datas });
+      res.render('index/index', { title: '首页', commissionNum, datas });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  };
+
+  mainFunction();
+};
+
+// 首页 策略显示页面
+exports.renderStrategy = (req, res, next) => {
+  const userId = req.session.user ? req.session.user.userId : 0;
+
+  if (!userId) {
+    const err = new Error('请先去登录');
+    next(err);
+    return;
+  }
+
+  const mainFunction = async () => {
+    try {
+      // 查询用户的佣金总额
+      const commissionKey = redisUtil.getRedisPrefix(6);
+      let commissionNum = await redisClient.hgetAsync(commissionKey, userId);
+      commissionNum = parseInt(commissionNum, 0) || 0;
+
+      res.render('index/strategy', { title: '推广攻略', commissionNum });
     } catch (err) {
       console.log(err);
       next(err);
@@ -102,11 +129,7 @@ exports.getDailyData = (req, res) => {
     try {
       const datas = await dataStatistics(userId, date);
 
-      resUtil.sendJson(constants.HTTP_SUCCESS, '', {
-        newsView: datas.newsView,
-        productView: datas.productView,
-        purchaseRecord: datas.purchaseRecord,
-      });
+      resUtil.sendJson(constants.HTTP_SUCCESS, '', datas);
     } catch (err) {
       console.log(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统出错');
@@ -209,12 +232,12 @@ exports.getLineChart = (req, res) => {
   const mainFunction = async () => {
     try {
       // 获取折线图
-      const dataList = getLineChartInfoByType(userId, type, days);
+      const dataList = await getLineChartInfoByType(userId, type, days);
 
-      resUtil.sendJson(200, '', { dataList });
+      resUtil.sendJson(constants.HTTP_SUCCESS, '', { dataList });
     } catch (err) {
       console.log(err);
-      resUtil.sendJson(500, '系统错误');
+      resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
     }
   };
 
@@ -235,27 +258,17 @@ const formatZrangeReturn = (list) => {
   return formatObject;
 };
 
-// 获取排行列表数据
-exports.getRankList = (req, res) => {
-  const type = parseInt(req.query.type, 0) || 0;
+// 获排行榜数据
+const getRankListByType = async (type, page, userId) => {
   const limit = 10;
-  const page = parseInt(req.query.page, 0) || 1;
-  const userId = req.session.user.userId || 0;
-  const resUtil = new HttpSend(req, res);
   const hotList = [];
   let totalPage = 1;
-
-  if (page < 1 || (type <= 1 && type >= 8)) {
-    resUtil.sendJson(500, '参数有误');
-    return;
-  }
-
   const startIndex = (page - 1) * limit;
   const endIndex = (page * limit) - 1;
+  const today = moment().format('YYYYMMDD');
 
   // 根据type查找对应的redisKey
   const getRedisKeyByType = () => {
-    const today = moment().format('YYYYMMDD');
     let viewKeyToday = '';
     let viewKeyTotal = '';
     let logKey = '';
@@ -332,10 +345,63 @@ exports.getRankList = (req, res) => {
         });
       }
 
-      resUtil.sendJson(constants.HTTP_SUCCESS, '', { totalPage, page, hotList });
+      return { totalPage, page, hotList };
+    } catch (err) {
+      console.log(err);
+      return {};
+    }
+  };
+  mainFunction();
+};
+
+// 获取排行列表数据
+exports.getRankList = (req, res) => {
+  const type = parseInt(req.query.type, 0) || 0;
+  const page = parseInt(req.query.page, 0) || 1;
+  const userId = req.session.user.userId || 0;
+  const resUtil = new HttpSend(req, res);
+
+  if (page < 1 || (type <= 1 && type >= 8)) {
+    resUtil.sendJson(constants.HTTP_FAIL, '参数有误');
+    return;
+  }
+
+  const mainFunction = async () => {
+    try {
+      const data = await getRankListByType(type, page, userId);
+
+      resUtil.sendJson(constants.HTTP_SUCCESS, '', data);
     } catch (err) {
       console.log(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统出错');
+    }
+  };
+
+  mainFunction();
+};
+
+// 首页 进入折现图+排行榜详情显示页面
+exports.renderDetails = (req, res, next) => {
+  const type = parseInt(req.params.type, 0) || 0;
+  const userId = req.session.user ? req.session.user.userId : 0;
+
+  if (!type || !userId) {
+    const err = new Error('参数错误');
+    next(err);
+    return;
+  }
+
+  const mainFunction = async () => {
+    try {
+      // 折现图数据
+      const lineChart = await getLineChartInfoByType(userId, type, 5);
+
+      // 排行榜数据
+      const rankList = await getRankListByType(type, 1, userId);
+
+      res.render('index/count', { lineChart, rankList });
+    } catch (err) {
+      next(err);
     }
   };
 

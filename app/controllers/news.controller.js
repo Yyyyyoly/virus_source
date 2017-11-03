@@ -114,7 +114,7 @@ exports.index = (req, res, next) => {
         newLists.push(info);
       }
 
-      res.render('index', { title: 'index page', newLists });
+      res.render('news/news', { title: '热文资讯', newLists });
     } catch (error) {
       console.log(error);
       next(error);
@@ -319,7 +319,7 @@ exports.getNewsDetailById = (req, res, next) => {
 
       const shareUid = shareId || userId;
       const shareLink = encodeURI(`${config.shopServerConfig.host}:${config.shopServerConfig.port}/news/details/${pageInfo.newsId}?shareId=${shareUid}`);
-      res.render('index', { pageInfo, shareLink });
+      res.render('news/news-detail', { pageInfo, shareLink });
     } catch (err) {
       console.log(err);
       next(err);

@@ -39,7 +39,7 @@ exports.bindPhone = (req, res) => {
 
 // 用户中心首页
 exports.index = (req, res) => {
-  res.render('user', { user: req.session.user });
+  res.render('user/user', { user: req.session.user });
 };
 
 // 佣金日志详情页
@@ -70,7 +70,7 @@ exports.commissionDetails = (req, res, next) => {
         });
       }
 
-      res.render('index', { commissionNum, logLists });
+      res.render('user/commission', { commissionNum, logLists });
     } catch (err) {
       console.log(err);
       next(err);
@@ -92,7 +92,7 @@ exports.withdrawPage = (req, res, next) => {
 
   const commissionKey = redisUtil.getRedisPrefix(6);
   redisClient.hget(commissionKey, userId).then((commissionNum) => {
-    res.render('index', { commissionNum });
+    res.render('user/withdraw', { commissionNum });
   });
 };
 
@@ -201,7 +201,7 @@ exports.bonusPointDetails = (req, res, next) => {
         });
       }
 
-      res.render('index', { pointNum, logLists });
+      res.render('user/credits', { pointNum, logLists });
     } catch (err) {
       console.log(err);
       next(err);
@@ -264,7 +264,7 @@ exports.bonusPointDetailsByDay = (req, res, next) => {
         });
       }
 
-      res.render('index', {
+      res.render('user/credits-list', {
         date, totalPage, page, decrSum, incrSum, logLists,
       });
     } catch (err) {
@@ -313,7 +313,7 @@ exports.qryDetailsByRecordId = (req, res, next) => {
         newsTitle,
       };
 
-      res.render('index', data);
+      res.render('user/credits-detail', data);
     } catch (err) {
       console.log(err);
       next(err);
