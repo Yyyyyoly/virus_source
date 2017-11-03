@@ -165,7 +165,7 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
     shareName: '',
     sharePhone: '',
   };
-  if (!shareInfo.shareId) {
+  if (shareInfo.shareId) {
     const data = await Model.User.findOne({ where: { userId: shareUserId } });
     if (!data || !data.dataValues) {
       shareInfo.shareId = '';
@@ -215,7 +215,7 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
     let updateRedis = [];
     let userProductPVNum = 0;
     let userProductPVTodayNum = 0;
-    if (!shareInfo.shareId) {
+    if (shareInfo.shareId) {
       updateRedis = await redisClient.multi()
         .zincrby(pvProductKey, 1, productInfo.id)
         .zincrby(pvProductKeyToday, 1, productInfo.id)
@@ -233,11 +233,11 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
 
 
     /** *********************如果有分享者，且被分享人第一次点入，计入分享者热门商品UV日榜、总榜******************* */
-    if (!shareInfo.shareId && userProductPVNum === 1) {
+    if (shareInfo.shareId && userProductPVNum === 1) {
       const uvUserKey = redisUtil.getRedisPrefix(8, shareInfo.shareId);
       await redisClient.zincrbyAsync(uvUserKey, 1, productInfo.id);
     }
-    if (!shareInfo.shareId && userProductPVTodayNum === 1) {
+    if (shareInfo.shareId && userProductPVTodayNum === 1) {
       const uvUserKeyToday = redisUtil.getRedisPrefix(8, `${shareInfo.shareId}:date_${today}`);
       await redisClient.zincrbyAsync(uvUserKeyToday, 1, productInfo.id);
     }
