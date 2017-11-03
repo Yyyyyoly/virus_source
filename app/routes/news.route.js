@@ -3,6 +3,8 @@ const newsController = require('../controllers/news.controller');
 const authController = require('../controllers/auth.controller');
 
 const prefix = '/news';
+router.get('/list', authController.isLogin, newsController.getNewsListByCondition);
+
 // 资讯相关操作
 router.get('/details/:newsId', authController.isLogin, newsController.getNewsDetailById);
 router.post('/details/thumb', authController.isLogin, newsController.thumbUpNewsById);

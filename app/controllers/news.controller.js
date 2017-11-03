@@ -24,14 +24,7 @@ exports.getPVAndThumpById = async (newsId) => {
   };
 };
 
-// 资讯首页
-exports.index = (req, res, next) => {
-  // 资讯查找方式  按热门/按最新
-  const orderType = parseInt(req.query.order, 0) || constants.HOT_NEWS;
-  // 资讯内容分类  按领域分类/全部
-  const contextType = parseInt(req.query.context, 0) || constants.CONTEXT_TOTAL;
-  // 分页
-  const page = req.query.page || 1;
+const getNewsList = async (orderType, contextType, page) => {
   // 分页中每页的最大数量
   const limit = 10;
 
@@ -45,8 +38,7 @@ exports.index = (req, res, next) => {
     if (contextType !== constants.CONTEXT_TOTAL) {
       conditions.where = { newsClass: contextType };
     }
-    const newsInfos = await Model.News.findAll(conditions);
-    return newsInfos;
+    return Model.News.findAndCountAll(conditions);
   };
 
   // 按照热门程度查找资讯  热门目前按照总浏览量排序
@@ -55,22 +47,26 @@ exports.index = (req, res, next) => {
       redisUtil.getRedisPrefix(2) :
       redisUtil.getRedisPrefix(2, contextType);
     const [start, end] = [(page - 1) * limit, page * limit];
-    const rankList = await redisClient.zrevrangeAsync([rankKey, start, end]);
+    const rankList = await redisClient.zrevrangeAsync(rankKey, start, end);
+    const count = await redisClient.zcardAsync(rankKey);
 
-    let newsInfos = [];
+    let newsInfos = {
+      rows: [],
+      count,
+    };
     if (rankList.length) {
       const datas = await Model.News.findAll({ where: { newsId: { $in: rankList } } });
       // 按照排行榜的顺序重新排序
       for (const newsId of rankList) {
         for (const data of datas) {
           if (data.dataValues && parseInt(data.dataValues.newsId, 0) === parseInt(newsId, 0)) {
-            newsInfos.push({ dataValues: data.dataValues });
+            newsInfos.rows.push({ dataValues: data.dataValues });
             break;
           }
         }
       }
     } else {
-      newsInfos = findByNew();
+      newsInfos = await findByNew();
     }
 
     return newsInfos;
@@ -87,7 +83,7 @@ exports.index = (req, res, next) => {
       }
 
       // 并发查询每个资讯的点赞数和访问数
-      const getNewsPromises = newsInfos.map(async (newsInfo) => {
+      const getNewsPromises = newsInfos.rows.map(async (newsInfo) => {
         const newsId = newsInfo.dataValues.newsId || 0;
         const supportInfo = await exports.getPVAndThumpById(newsId);
         let redirectUrl = '/news/details';
@@ -113,14 +109,56 @@ exports.index = (req, res, next) => {
         const info = await newsPromise;
         newLists.push(info);
       }
-
-      res.render('news/news', { title: '热文资讯', newLists });
+      return { newLists, totalPage: Math.ceil(newsInfos.count / limit) };
     } catch (error) {
       console.log(error);
-      next(error);
+      throw error;
     }
   };
 
+  return mainFunction();
+};
+
+// 资讯首页
+exports.index = (req, res, next) => {
+  // 资讯查找方式  按热门/按最新
+  const orderType = parseInt(req.query.order, 0) || constants.HOT_NEWS;
+  // 资讯内容分类  按领域分类/全部
+  const contextType = parseInt(req.query.context, 0) || constants.CONTEXT_TOTAL;
+  // 分页
+  const page = req.query.page || 1;
+
+  const mainFunction = async () => {
+    try {
+      const rtn = await getNewsList(orderType, contextType, page);
+      res.render('news/news', { title: '热文资讯', newLists: rtn.newLists, totalPage: rtn.totalPage });
+    } catch (err) {
+      next(err);
+    }
+  };
+  mainFunction();
+};
+
+
+// 资讯首页
+exports.getNewsListByCondition = (req, res) => {
+  // 资讯查找方式  按热门/按最新
+  const orderType = parseInt(req.query.order, 0) || constants.HOT_NEWS;
+  // 资讯内容分类  按领域分类/全部
+  const contextType = parseInt(req.query.context, 0) || constants.CONTEXT_TOTAL;
+  // 分页
+  const page = req.query.page || 1;
+  const resUtil = new HttpSend(req, res);
+
+  const mainFunction = async () => {
+    try {
+      const rtn = await getNewsList(orderType, contextType, page);
+      resUtil.sendJson(constants.HTTP_SUCCESS, '', { newLists: rtn.newLists, totalPage: rtn.totalPage });
+    } catch (err) {
+      console.log(err);
+      resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
+    }
+  };
   mainFunction();
 };
 
@@ -307,7 +345,7 @@ exports.getNewsDetailById = (req, res, next) => {
         context: newsInfo.dataValues.context,
         imgUrl: newsInfo.dataValues.imgUrl,
         createdAt: newsInfo.dataValues.createdAt,
-        pv: supportInfo.pvNum,
+        pv: supportInfo.pvNum + 1,
         thumbUp: supportInfo.thumbUpNum,
         commentNum: supportInfo.commentNum,
         commentList,
@@ -316,7 +354,6 @@ exports.getNewsDetailById = (req, res, next) => {
 
 
       exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareId);
-
       const shareUid = shareId || userId;
       const shareLink = encodeURI(`${config.shopServerConfig.host}:${config.shopServerConfig.port}/news/details/${pageInfo.newsId}?shareId=${shareUid}`);
       res.render('news/news-detail', { pageInfo, shareLink });

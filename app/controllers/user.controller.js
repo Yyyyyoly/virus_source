@@ -246,7 +246,7 @@ exports.bonusPointDetailsByDay = (req, res, next) => {
         limit,
       });
 
-      totalPage = logInfos.count;
+      totalPage = Math.ceil(logInfos.count / limit);
       const logLists = [];
       for (const log of logInfos.rows) {
         if (log.dataValues.changeNum < 0) {

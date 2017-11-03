@@ -351,7 +351,7 @@ const getRankListByType = async (type, page, userId) => {
       return {};
     }
   };
-  mainFunction();
+  return mainFunction();
 };
 
 // 获取排行列表数据
