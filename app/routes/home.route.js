@@ -6,8 +6,8 @@ const prefix = '/home';
 router.get('/dailyData', authController.isLogin, homeController.getDailyData);
 
 router.get('/details/:type', authController.isLogin, homeController.renderDetails);
-router.get('/rankListDetails/:type', authController.isLogin, homeController.getRankList);
-router.get('/lineChartDetails/:type', authController.isLogin, homeController.getLineChart);
+router.get('/rankListDetails', authController.isLogin, homeController.getRankList);
+router.get('/lineChartDetails', authController.isLogin, homeController.getLineChart);
 
 router.get('/strategy', authController.isLogin, homeController.renderStrategy);
 

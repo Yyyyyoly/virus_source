@@ -8,7 +8,7 @@ const moment = require('moment');
 
 // 渲染绑定手机号页面
 exports.renderBindPage = (req, res) => {
-  res.render('index');
+  res.render('index', { title: '绑定手机号' });
 };
 
 // 绑定user表中的手机号、便于积分转化
@@ -39,7 +39,15 @@ exports.bindPhone = (req, res) => {
 
 // 用户中心首页
 exports.index = (req, res) => {
-  res.render('user/user', { user: req.session.user });
+  const user = {
+    userName: req.session.user.userName,
+    sex: req.session.user.sex,
+    province: req.session.user.province,
+    city: req.session.user.city,
+    country: req.session.user.country,
+    headImgUrl: req.session.user.headImgUrl,
+  };
+  res.render('user/user', { user, title: '用户中心' });
 };
 
 // 佣金日志详情页
@@ -55,7 +63,7 @@ exports.commissionDetails = (req, res, next) => {
     try {
       // 查询佣金总额
       const commissionKey = redisUtil.getRedisPrefix(6);
-      const commissionNum = await redisClient.hgetAsync(commissionKey, userId);
+      const commissionNum = await redisClient.hgetAsync(commissionKey, userId) || 0;
 
       // 查询佣金明细日志
       const logInfos = await Model.Commission.findAll({ where: { shareId: userId } });
@@ -145,6 +153,8 @@ exports.withdraw = (req, res) => {
           aliPayAccount,
           aliPayAccountName,
         }, { transaction });
+      }).then(() => {
+        resUtil.sendJson(constants.HTTP_SUCCESS);
       }).catch((err) => {
         if (err.message !== 'redis update failed') {
           // 数据库插入失败，redis回滚
@@ -165,8 +175,8 @@ exports.withdraw = (req, res) => {
 // 积分日志详情页
 exports.bonusPointDetails = (req, res, next) => {
   const userId = req.session.user ? req.session.user.userId : '';
-  const startDate = moment().format('YYYYMMDD 00:00:00');
-  const endDate = moment().format('YYYYMMDD 23:59:59');
+  const startDate = moment().format('YYYY-MM-DD 00:00:00');
+  const endDate = moment().format('YYYY-MM-DD 23:59:59');
 
   if (!userId) {
     const error = new Error('userId error');
@@ -299,8 +309,8 @@ exports.qryDetailsByRecordId = (req, res, next) => {
         ],
       });
 
-      if (!logInfo.dataValues) {
-        throw new Error('查询失败');
+      if (!logInfo || !logInfo.dataValues) {
+        throw new Error('参数有误，查询失败');
       }
 
       const newsTitle = logInfo.News ? logInfo.News.dataValues.title : '文章已被删除';
@@ -325,13 +335,13 @@ exports.qryDetailsByRecordId = (req, res, next) => {
 
 // 建议页面
 exports.getAdvicePage = (req, res) => {
-  res.render('index', {});
+  res.render('index', { title: '建议和反馈' });
 };
 
 // 上传建议
 exports.giveAdvice = (req, res) => {
   const userId = req.session.user ? req.session.user.userId : '';
-  const advice = req.query.advice || '';
+  const advice = req.body.advice || '';
   const resUtils = new HttpSend(req, res);
 
 

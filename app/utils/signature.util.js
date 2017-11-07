@@ -25,4 +25,4 @@ module.exports.genSignature = function (params, privateKey) {
 
   // 返回带签名的参数列表
   return signatureParams;
-}
+};

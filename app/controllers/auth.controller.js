@@ -67,8 +67,8 @@ const autoLoginAndRegister = (req, res) => {
         // 首次进入系统，render规则说明页面
         req.session.firstTime = true;
       } else if (userName !== userInfo.dataValues.userName || sex !== userInfo.dataValues.sex ||
-        province !== userInfo.dataValues.province || city !== userInfo.dataValues.city ||
-        country !== userInfo.dataValues.country || headImgUrl !== userInfo.dataValues.headImgUrl
+          province !== userInfo.dataValues.province || city !== userInfo.dataValues.city ||
+          country !== userInfo.dataValues.country || headImgUrl !== userInfo.dataValues.headImgUrl
       ) {
         // 如果存在但是发生了信息变更，更新信息
         await Model.User.update({
@@ -155,6 +155,26 @@ exports.weChatCodeGet = (req, res) => {
 
 // 中间件：判断是否已经登录
 exports.isLogin = (req, res, next) => {
+  // req.session.user = {
+  //   userId: 'o82p90mawNIGJ6lmo0vDDN9YSTtU',
+  //   openId: 'od25_00ewsBeY-MbFC788-9DJh1s',
+  //   userName: '新君同学',
+  //   sex: 1,
+  //   province: 'Hubei',
+  //   city: 'Wuhan',
+  //   country: 'China',
+  //   headImgUrl: 'http://wx.qlogo.cn/mmhead/DYAIOgq83eoU7Zpe8yvbIMGLwy5s610uJpE1YAD3eGI6lzZpoiaLZ6A/0',
+  // };
+  req.session.user = {
+    userId: 'o82p90sZgb-aPqbUC7ejWUitE_Fg',
+    openId: 'od25_03YZ8710e3Qja7CD1TCdTa4',
+    userName: '叫我女王大人',
+    sex: 2,
+    province: 'Hubei',
+    city: 'Wuhan',
+    country: 'China',
+    headImgUrl: 'http://wx.qlogo.cn/mmhead/Q3auHgzwzM61WMU23LmA22f7BZPc8TJpNbmaUEDjYeKZcianIHUeNiaw/0',
+  };
   const userInfo = req.session.user || {};
 
   // 记载用户的起始url，方便登录/注册后跳转
@@ -166,23 +186,11 @@ exports.isLogin = (req, res, next) => {
 
   req.session.originalUrl = originalUrl;
 
-  req.session.user = {
-    userId: 'o82p90sZgb-aPqbUC7ejWUitE_Fg',
-    openId: 'od25_03YZ8710e3Qja7CD1TCdTa4',
-    userName: '叫我女王大人',
-    sex: 2,
-    province: 'Hubei',
-    city: 'Wuhan',
-    country: 'China',
-    headImgUrl: 'http://wx.qlogo.cn/mmhead/Q3auHgzwzM61WMU23LmA22f7BZPc8TJpNbmaUEDjYeKZcianIHUeNiaw/0',
-  };
-  next();
-
-  // if (!userInfo || !userInfo.userId) {
-  //   res.redirect(`${config.serverHost}:${config.serverPort}/auth/login`);
-  // } else {
-  //   next();
-  // }
+  if (!userInfo || !userInfo.userId) {
+    res.redirect(`${config.serverHost}:${config.serverPort}/auth/login`);
+  } else {
+    next();
+  }
 };
 
 // 判断请求是否来自微信客户端

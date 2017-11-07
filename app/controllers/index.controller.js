@@ -220,7 +220,7 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
 // 获取折线图json数据
 exports.getLineChart = (req, res) => {
   const days = parseInt(req.query.days, 0) || 5;
-  const type = parseInt(req.params.type, 0) || 0;
+  const type = parseInt(req.query.type, 0) || 0;
   const userId = req.session.user ? req.session.user.userId : '';
   const resUtil = new HttpSend(req, res);
 
@@ -310,38 +310,38 @@ const getRankListByType = async (type, page, userId) => {
   const mainFunction = async () => {
     try {
       const keys = getRedisKeyByType();
-      let formatViewTotal = [];
-      let viewTodayList = [];
-      let viewTotalList = [];
+      let formatSubTotal = [];
+      let viewMainList = [];
+      let viewSubList = [];
       let info = [];
       let totalPageNum = 0;
       // 当日热门榜
       if (type === 1 || type === 3 || type === 5 || type === 7) {
-        [viewTodayList, viewTotalList, info, totalPageNum] = await Promise.all([
+        [viewMainList, viewSubList, info, totalPageNum] = await Promise.all([
           redisClient.zrevrangeAsync(keys.viewKeyToday, startIndex, endIndex, 'WITHSCORES'),
           redisClient.zrevrangeAsync(keys.viewKeyTotal, 0, -1, 'WITHSCORES'),
           redisClient.hgetallAsync(keys.logKey),
           redisClient.zcardAsync(keys.viewKeyToday),
         ]);
-        formatViewTotal = formatZrangeReturn(viewTotalList);
+        formatSubTotal = formatZrangeReturn(viewSubList);
       } else if (type === 2 || type === 4 || type === 6 || type === 8) {
         // 累计热门榜
-        [viewTodayList, viewTotalList, info, totalPageNum] = await Promise.all([
-          redisClient.zrevrangeAsync(keys.viewKeyToday, 0, -1, 'WITHSCORES'),
+        [viewMainList, viewSubList, info, totalPageNum] = await Promise.all([
           redisClient.zrevrangeAsync(keys.viewKeyTotal, startIndex, endIndex, 'WITHSCORES'),
+          redisClient.zrevrangeAsync(keys.viewKeyToday, 0, -1, 'WITHSCORES'),
           redisClient.hgetallAsync(keys.logKey),
-          redisClient.zcardAsync(keys.viewKeyToday),
+          redisClient.zcardAsync(keys.viewKeyTotal),
         ]);
-        formatViewTotal = formatZrangeReturn(viewTodayList);
+        formatSubTotal = formatZrangeReturn(viewMainList);
       }
 
       totalPage = Math.ceil(totalPageNum / limit);
-      for (let i = 0; i < viewTodayList.length; i += 2) {
+      for (let i = 0; i < viewMainList.length; i += 2) {
         hotList.push({
-          id: viewTodayList[i],
-          info: info[viewTodayList[i]],
-          currentViewNum: viewTodayList[i + 1],
-          totalViewNum: formatViewTotal[viewTodayList[i]],
+          id: viewMainList[i],
+          info: info[viewMainList[i]],
+          currentViewNum: viewMainList[i + 1],
+          totalViewNum: formatSubTotal[viewMainList[i]],
         });
       }
 
