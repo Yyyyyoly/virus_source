@@ -81,7 +81,9 @@ const searchProductsWithCondition = async (categoryId = 0, searchWord = '', page
 
 // 商城  根据分类查询商品列表
 exports.searchProductByCategory = (req, res, next) => {
-  const categoryId = req.params.categoryId || 0;
+  const categoryId = req.query.categoryId || 0;
+  const page = req.query.page || 1;
+  const limit = req.query.limit || 10;
 
   if (!categoryId) {
     const err = new Error('参数有误');
@@ -91,7 +93,7 @@ exports.searchProductByCategory = (req, res, next) => {
 
   const mainFunction = async () => {
     try {
-      const productList = await searchProductsWithCondition(categoryId);
+      const productList = await searchProductsWithCondition(categoryId, '', page, limit);
       res.render('index', { categoryId, productList });
     } catch (err) {
       console.log(err);
@@ -142,11 +144,13 @@ exports.searchProductById = (req, res, next) => {
 exports.searchProduct = (req, res) => {
   const categoryId = req.query.categoryId || 0;
   const searchWord = req.query.searchWord || '';
+  const page = req.query.page || 1;
+  const limit = req.query.limit || 10;
   const resUtil = new HttpSend(req, res);
 
   const mainFunction = async () => {
     try {
-      const productList = await searchProductsWithCondition(categoryId, searchWord);
+      const productList = await searchProductsWithCondition(categoryId, searchWord, page, limit);
       resUtil.sendJson(constants.HTTP_SUCCESS, '', { productList });
     } catch (err) {
       console.log(err);
@@ -292,6 +296,7 @@ exports.addPurchaseRecord = (req, res) => {
   const totalPrice = parseFloat(req.body.totalPrice) || 0;
   const timestamp = req.body.timestamp || 0;
   const signature = req.body.signature || '';
+  const now = Date.now();
   const resUtil = new HttpSend(req, res);
 
   // 计算签名 检验参数是否来自合法源
@@ -304,13 +309,20 @@ exports.addPurchaseRecord = (req, res) => {
     totalPrice,
     timestamp,
   }, config.shopServerConfig.privateKey);
+
   if (signature !== signatureInfo.signature) {
     resUtil.sendJson(104, '签名错误');
     return;
   }
 
+  if (timestamp < now - (5 * 60 * 1000) || timestamp > now) {
+    resUtil.sendJson(408, '请求已经超时');
+    return;
+  }
+
   if (totalPrice <= 0) {
     resUtil.sendJson(constants.HTTP_SUCCESS);
+    return;
   }
 
   const mainFunction = async () => {
