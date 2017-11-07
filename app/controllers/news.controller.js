@@ -198,7 +198,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       viewerId: viewerInfo.userId,
       viewerName: viewerInfo.userName,
       viewerOpenId: viewerInfo.openId,
-      shareId: shareInfo.shareId,
+      shareId: shareInfo.shareId || null,
       shareName: shareInfo.shareName,
       shareOpenId: shareInfo.shareOpenId,
     }, { transaction });
@@ -269,7 +269,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, viewerInfo.userId, pointNum);
       await Model.PointRecord.create({
         viewerId: viewerInfo.userId,
-        shareId: shareInfo.shareId,
+        shareId: shareInfo.shareId || null,
         operator: 1,
         changeNum: pointNum,
         totalPoint,
