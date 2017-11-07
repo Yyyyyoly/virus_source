@@ -1,7 +1,6 @@
 extends ../layout/base
 
 block attributes
-  - var title = "news"
 
 block title
   title #{title}
@@ -22,33 +21,20 @@ block content
           li.nav-item
             a.nav-link 糖尿病
           li.nav-item
-            a.nav-link test
+            a.nav-link 甲状腺
           li.nav-item
-            a.nav-link test
-          li.nav-item
-            a.nav-link test
-    .row.news-block
-      .col
-        h5 糖尿病自测小方法
-          small 2017-09-01  12 : 00
-        p.abstract 其实在日常生活中我们就可以通过一些小细节判断到底有没有患上 糖尿病,以下就给大家介绍几种常见的判断糖尿病的方法。
-        img
-        p.info
-          span 浏览量：10000
-          span 点赞：12
-          span 评论：12
-          button.btn.btn-sm.btn-outline-primary 一键分享
-    .row.news-block
-      .col
-        h5 糖尿病自测小方法
-          small 2017-09-01  12 : 00
-        p.abstract 其实在日常生活中我们就可以通过一些小细节判断到底有没有患上 糖尿病,以下就给大家介绍几种常见的判断糖尿病的方法。
-        img
-        p.info
-          span 浏览量：10000
-          span 点赞：12
-          span 评论：12
-          button.btn.btn-sm.btn-outline-primary 一键分享
-
+            a.nav-link 痛风
+    for news in newLists
+      .row.news-block
+        .col: a(href= news.redirectUrl)
+          h5= news.title
+            small= moment(news.title).format('YYYY-MM-DD  hh:mm')
+          p.abstract= news.introduction
+          img(src= news.imgUrl)
+          p.info
+            span 浏览量：#{news.pv}
+            span 点赞：#{news.thumbUp}
+            span 评论：#{news.commentNum}
+            button.btn.btn-sm.btn-outline-primary 一键分享
 
   include ../layout/navbar-bottom

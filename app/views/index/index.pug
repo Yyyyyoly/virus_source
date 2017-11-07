@@ -1,7 +1,6 @@
 extends ../layout/base
 
 block attributes
-  - var title = "index"
 
 block title
   title #{title}
@@ -11,44 +10,40 @@ block content
       .col
         h5.text-center 我的佣金
         p.text-center
-          span.money 0.00
-          //span.money= commissionNum.toFixed(2)
+          span.money= commissionNum.toFixed(2)
           span.money-text 元
           button.btn.btn-sm 提现
     .row.main
       .col.text-center
-        a: p &emsp;推广攻略？
-        a
+        a(href='/home/strategy'): p &emsp;推广攻略？
+        a(href='/home/details/1')
           i.fa.fa-bar-chart.fa-3x
           p 每日数据
     .count.text-center
       .row: .col-12
-        h3 2017-09-03
+        h3#now_date 2017-09-03
       .row
         .col.count-block
           p 浏览文章用户数
-          p 100
+          p= datas.newsView.uvNews
         .col.count-block
           p 浏览文章次数
-          p 100
+          p= datas.newsView.pvNews
       .row
         .col.count-block
           p 浏览商品用户数
-          p 100
+          p= datas.productView.uvProducts
         .col.count-block
           p 浏览商品次数
-          p 100
+          p= datas.productView.pvProducts
       .row
         .col.count-block
           p 下单用户数
-          p 100
+          p= datas.purchaseRecord.userNum
         .col.count-block
           p 下单数
-          p 100
-  //.container
-  //  h2 commissionNum
-  //  p= commissionNum
-  //  h2 datas
-  //  p= JSON.stringify(datas)
+          p= datas.purchaseRecord.orderNum
 
   include ../layout/navbar-bottom
+
+block script

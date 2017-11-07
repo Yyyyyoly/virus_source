@@ -1,7 +1,6 @@
 extends ../layout/base
 
 block attributes
-  - var title = "index"
 
 block title
   title #{title}
@@ -11,8 +10,7 @@ block content
       .col
         h5.text-center 我的佣金
         p.text-center
-          span.money 0.00
-          //span.money= commissionNum.toFixed(2)
+          span.money= commissionNum.toFixed(2)
           span.money-text 元
           button.btn.btn-sm 提现
 

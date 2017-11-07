@@ -9,32 +9,25 @@ block content
   .container.news
     .row.news-detail: .col
       p.info
-        span 2017-09-01  12 : 00
+        span= moment(pageInfo.title).format('YYYY-MM-DD  hh:mm')
         span 迈德科技
-      h5 糖尿病自测小方法
-      p 糖尿病已经成为生活中较为常见的慢性疾病,而在治疗糖尿病的过 程中,监测血糖也是很关键的一项内容。
-      img
-      p 当发现排尿时，泡沫很多，且难以消去，尿在便器中粘粘地难以 流下。这时就应该去医院作检查。
+      div= pageInfo.context
       p.info
-        span 浏览量：10000
+        span pageInfo.pv
         i.fa.fa-thumbs-o-up
-        span 点赞：12
+        span pageInfo.thumbUp
     .row.news-share: .col.text-center
       p: button.btn 分享
       p 分享好友，还能获得积分哦
     .discuss
       .row.edit-bar: p.col.text-right: a 写评论&nbsp;
         i.fa.fa-edit
-      .row.discuss-block
-        .icon: img
-        .col
-          p.user-id.small 用户1231455078
-          p.content 不错，收藏了
-      .row.discuss-block
-        .icon: img
-        .col
-          p.user-id.small 用户1231455078
-          p.content 不错，收藏了
+      for comment in commentList
+        .row.discuss-block
+          .icon: img(src= headImgUrl)
+          .col
+            p.user-id.small= comment.userName
+            p.content= comment.comment
 
 
   include ../layout/navbar-bottom

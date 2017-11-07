@@ -1,8 +1,9 @@
 /* eslint-disable */
+
 $('#chart').height(200);
-var myChart = echarts.init(document.getElementById('chart'));
-var option = {
-  color: ['#3398DB'],
+let myChart = echarts.init(document.getElementById('chart'));
+let option = {
+  color: ['#ffffff'],
   tooltip: {
     trigger: 'axis',
     axisPointer: {            // 坐标轴指示器，坐标轴触发有效
@@ -10,6 +11,7 @@ var option = {
     }
   },
   grid: {
+    top: '3%',
     left: '3%',
     right: '4%',
     bottom: '3%',

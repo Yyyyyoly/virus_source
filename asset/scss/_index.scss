@@ -79,7 +79,11 @@ $green: #01d491;
     }
   }
   .chart {
-    background-color: #fff;
+    background-color: $green;
+    button.dropdown-toggle {
+      outline: none;
+      box-shadow: none;
+    }
   }
   .article-title {
     p {
