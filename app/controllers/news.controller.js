@@ -87,7 +87,7 @@ const getNewsList = async (orderType, contextType, page) => {
         const newsId = newsInfo.dataValues.newsId || 0;
         const supportInfo = await exports.getPVAndThumpById(newsId);
         let redirectUrl = '/news/details';
-        if (parseInt(newsInfo.dataValues.type, 0) === 2) {
+        if (parseInt(newsInfo.dataValues.type, 0) === constants.TYPE_ESTIMATE) {
           redirectUrl = '/news/tests';
         }
         return {
@@ -320,6 +320,10 @@ exports.getNewsDetailById = (req, res, next) => {
 
       if (!newsInfo || !newsInfo.dataValues) {
         throw new Error('该资讯不存在');
+      }
+
+      if (newsInfo.dataValues.type !== constants.TYPE_NEWS) {
+        throw new Error('资讯类型错误');
       }
 
       // 查询是否已经点过赞
@@ -589,6 +593,10 @@ exports.getTestDetailById = (req, res, next) => {
         throw new Error('自测题不存在');
       }
 
+      if (newsInfo.dataValues.type !== constants.TYPE_ESTIMATE) {
+        throw new Error('资讯类型错误');
+      }
+
       // 查询自测题题目
       const questionLists = await Model.SelfTest.findAll({
         where: { newsId },
@@ -599,24 +607,20 @@ exports.getTestDetailById = (req, res, next) => {
       }
 
       const questLists = [];
-      let newsClass = 0;
       for (const questionInfo of questionLists) {
-        newsClass = newsClass || questionInfo.dataValues.newsClass;
         questLists.push({
-          order: questionInfo.dataValues.order,
           newsId: questionInfo.dataValues.newsId,
           testId: questionInfo.dataValues.testId,
+          type: questionInfo.dataValues.type,
           imgUrl: questionInfo.dataValues.imgUrl,
           question: questionInfo.dataValues.question,
-          options: JSON.parse(questionInfo.dataValues.options),
+          options: questionInfo.dataValues.options,
         });
       }
 
-
       // 记录浏览日志
       exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareUid);
-
-      res.render('index', { newsClass, questLists });
+      res.render('index', { questLists });
     } catch (err) {
       console.log(err);
       next(err);

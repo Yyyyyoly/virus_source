@@ -24,6 +24,11 @@ const constants = {
   CONTEXT_TOTAL: 1,
   // 资讯内容类型 痛风专栏
   CONTEXT_GOUT: 2,
+
+  // 资讯类型 普通新闻
+  TYPE_NEWS: 1,
+  // 资讯类型 自测题
+  TYPE_ESTIMATE: 2,
 };
 
 module.exports = constants;
