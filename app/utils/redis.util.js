@@ -80,8 +80,11 @@ exports.getRedisPrefix = (type, id = '') => {
       break;
 
 
+    case 998:
+      redisKey = 'weChat|jsapi_ticket'; // wechat全局存储jsapi_ticket
+      break;
     case 999:
-      redisKey = 'weChat|token'; // 一些排行中需要显示的精简product信息
+      redisKey = 'weChat|token'; // wechat全局存储token
       break;
     default:
       break;

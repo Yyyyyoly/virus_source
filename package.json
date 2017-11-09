@@ -40,7 +40,7 @@
     "request-promise": "^4.2.2",
     "sequelize": "^4.11.5",
     "url": "^0.11.0",
-    "wechat-oauth": "^1.2.1"
+    "wechat-api": "^1.35.1"
   },
   "devDependencies": {
     "assets-webpack-plugin": "^3.5.1",

@@ -63,6 +63,7 @@ const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
 // 首页
 exports.index = (req, res, next) => {
   const userId = req.session.user.userId || '';
+  const httpUtil = new HttpSend(req, res);
   if (!userId) {
     const error = new Error('请先登录');
     next(error);
@@ -77,7 +78,7 @@ exports.index = (req, res, next) => {
       commissionNum = parseInt(commissionNum, 0) || 0;
 
       const datas = await dataStatistics(userId);
-      res.render('index/index', { title: '首页', commissionNum, datas });
+      httpUtil.render('index/index', { title: '首页', commissionNum, datas });
     } catch (err) {
       console.log(err);
       next(err);
@@ -90,6 +91,7 @@ exports.index = (req, res, next) => {
 // 首页 策略显示页面
 exports.renderStrategy = (req, res, next) => {
   const userId = req.session.user ? req.session.user.userId : '';
+  const httpUtil = new HttpSend(req, res);
 
   if (!userId) {
     const err = new Error('请先去登录');
@@ -104,7 +106,7 @@ exports.renderStrategy = (req, res, next) => {
       let commissionNum = await redisClient.hgetAsync(commissionKey, userId);
       commissionNum = parseInt(commissionNum, 0) || 0;
 
-      res.render('index/strategy', { title: '推广攻略', commissionNum });
+      httpUtil.render('index/strategy', { title: '推广攻略', commissionNum });
     } catch (err) {
       console.log(err);
       next(err);
@@ -384,6 +386,7 @@ exports.getRankList = (req, res) => {
 exports.renderDetails = (req, res, next) => {
   const type = parseInt(req.params.type, 0) || 0;
   const userId = req.session.user ? req.session.user.userId : '';
+  const httpUtil = new HttpSend(req, res);
 
   if (!type || !userId) {
     const err = new Error('参数错误');
@@ -399,7 +402,7 @@ exports.renderDetails = (req, res, next) => {
       // 排行榜数据
       const rankList = await getRankListByType(type, 1, userId);
 
-      res.render('index/count', { lineChart, rankList });
+      httpUtil.render('index/count', { lineChart, rankList });
     } catch (err) {
       next(err);
     }

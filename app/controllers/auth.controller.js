@@ -2,7 +2,7 @@ const Model = require('../models/index');
 const HttpSend = require('../utils/http.util');
 const config = require('../../config/config');
 const constants = require('../../config/constants');
-const OAuth = require('wechat-oauth');
+const WechatAPI = require('wechat-api');
 const url = require('url');
 const tokenRedis = require('../../config/redis')(2);
 const redisUtil = require('../utils/redis.util');
@@ -10,21 +10,41 @@ const qiniu = require('qiniu');
 
 
 // 微信维护全局AccessToken的方法
-const api = new OAuth(
+// accessToken和用户无关，没过期时都可以用
+const api = new WechatAPI(
   config.weChatConfig.appId,
   config.weChatConfig.appSecret,
-  (openid, callback) => {
-    // 传入一个根据openid获取对应的全局token的方法
-    const keys = redisUtil.getRedisPrefix(999, openid);
+  (callback) => {
+    // 获取对应的全局token的方法
+    const keys = redisUtil.getRedisPrefix(999);
     tokenRedis.getAsync(keys).then((token) => {
       callback(null, JSON.parse(token));
     });
   },
-  ((openid, token, callback) => {
+  ((token, callback) => {
     // 请将token存储到全局，跨进程、跨机器级别的全局，比如写到数据库、redis等
     // 这样才能在cluster模式及多机情况下使用
-    const keys = redisUtil.getRedisPrefix(999, openid);
+    const keys = redisUtil.getRedisPrefix(999);
     tokenRedis.setAsync(keys, JSON.stringify(token)).then(() => {
+      callback(null);
+    });
+  }),
+);
+
+// 定义微信维护全局ticketToken的方法
+// ticketToken和用户无关，没过期时都可以用
+api.registerTicketHandle(
+  (type, callback) => {
+    // 获取对应的全局ticket的方法
+    const keys = redisUtil.getRedisPrefix(998, type);
+    tokenRedis.getAsync(keys).then((ticket) => {
+      callback(null, JSON.parse(ticket));
+    });
+  },
+  ((type, ticket, callback) => {
+    // 设置全局ticket的方法
+    const keys = redisUtil.getRedisPrefix(998, type);
+    tokenRedis.setAsync(keys, JSON.stringify(ticket)).then(() => {
       callback(null);
     });
   }),
@@ -201,6 +221,40 @@ exports.isFromWeChat = (req) => {
     return true;
   }
   return false;
+};
+
+// 调用微信JS-SDK时的注入
+exports.getWeChatJsConfig = (req) => {
+  // 获取ticket
+  api.getTicket((err, data) => {
+    if (err || !data) {
+      console.log('get ticket err');
+      return {};
+    }
+    // 获取config
+    const wxConfig = {
+      debug: true,
+      jsApiList: [
+        'onMenuShareTimeline',
+        'onMenuShareAppMessage',
+        'onMenuShareQQ',
+        'onMenuShareWeibo',
+        'onMenuShareQZone',
+      ],
+      url: url.format({
+        protocol: req.protocol,
+        host: req.hostname,
+        pathname: req.originalUrl,
+      }),
+    };
+    api.getJsConfig(wxConfig, (error, result) => {
+      if (err || !result) {
+        console.log('get js config err');
+        return {};
+      }
+      return result;
+    });
+  });
 };
 
 // 微信绑定域名时会回调的接口

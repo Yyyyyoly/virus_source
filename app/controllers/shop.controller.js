@@ -10,6 +10,7 @@ const moment = require('moment');
 
 // 商城首页
 exports.index = (req, res, next) => {
+  const httpUtil = new HttpSend(req, res);
   // 查询分类
   const getCategories = async () => {
     try {
@@ -41,7 +42,7 @@ exports.index = (req, res, next) => {
         getHotProductList(),
       ]);
 
-      res.render('index', { categories, hotProductList });
+      httpUtil.render('index', { categories, hotProductList });
     } catch (err) {
       console.log(err);
       next(err);
@@ -84,6 +85,7 @@ exports.searchProductByCategory = (req, res, next) => {
   const categoryId = req.query.categoryId || 0;
   const page = req.query.page || 1;
   const limit = req.query.limit || 10;
+  const httpUtil = new HttpSend(req, res);
 
   if (!categoryId) {
     const err = new Error('参数有误');
@@ -94,7 +96,7 @@ exports.searchProductByCategory = (req, res, next) => {
   const mainFunction = async () => {
     try {
       const productList = await searchProductsWithCondition(categoryId, '', page, limit);
-      res.render('index', { categoryId, productList });
+      httpUtil.render('index', { categoryId, productList });
     } catch (err) {
       console.log(err);
       next(err);
@@ -107,6 +109,7 @@ exports.searchProductByCategory = (req, res, next) => {
 // 商城  根据商品唯一id查询详细
 exports.searchProductById = (req, res, next) => {
   const productId = req.params.productId || 0;
+  const httpUtil = new HttpSend(req, res);
 
   if (!productId) {
     const err = new Error('参数有误');
@@ -130,7 +133,7 @@ exports.searchProductById = (req, res, next) => {
         throw new Error('商品不存在');
       }
 
-      res.render('index', { productDetails: repos.data.product });
+      httpUtil.render('index', { productDetails: repos.data.product });
     } catch (err) {
       console.log(err);
       next(err);

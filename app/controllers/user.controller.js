@@ -8,7 +8,8 @@ const moment = require('moment');
 
 // 渲染绑定手机号页面
 exports.renderBindPage = (req, res) => {
-  res.render('index', { title: '绑定手机号' });
+  const httpUtil = new HttpSend(req, res);
+  httpUtil.render('index', { title: '绑定手机号' });
 };
 
 // 绑定user表中的手机号、便于积分转化
@@ -39,6 +40,7 @@ exports.bindPhone = (req, res) => {
 
 // 用户中心首页
 exports.index = (req, res) => {
+  const httpUtil = new HttpSend(req, res);
   const user = {
     userName: req.session.user.userName,
     sex: req.session.user.sex,
@@ -47,12 +49,14 @@ exports.index = (req, res) => {
     country: req.session.user.country,
     headImgUrl: req.session.user.headImgUrl,
   };
-  res.render('user/user', { user, title: '用户中心' });
+  httpUtil.render('user/user', { user, title: '用户中心' });
 };
 
 // 佣金日志详情页
 exports.commissionDetails = (req, res, next) => {
   const userId = req.session.user ? req.session.user.userId : '';
+  const httpUtil = new HttpSend(req, res);
+  
   if (!userId) {
     const error = new Error('userId error');
     next(error);
@@ -78,7 +82,7 @@ exports.commissionDetails = (req, res, next) => {
         });
       }
 
-      res.render('user/commission', { commissionNum, logLists });
+      httpUtil.render('user/commission', { commissionNum, logLists });
     } catch (err) {
       console.log(err);
       next(err);
@@ -91,6 +95,7 @@ exports.commissionDetails = (req, res, next) => {
 // 佣金申请页面
 exports.withdrawPage = (req, res, next) => {
   const userId = req.session.user ? req.session.user.userId : '';
+  const httpUtil = new HttpSend(req, res);
 
   if (!userId) {
     const error = new Error('参数错误');
@@ -100,7 +105,7 @@ exports.withdrawPage = (req, res, next) => {
 
   const commissionKey = redisUtil.getRedisPrefix(6);
   redisClient.hget(commissionKey, userId).then((commissionNum) => {
-    res.render('user/withdraw', { commissionNum });
+    httpUtil.render('user/withdraw', { commissionNum });
   });
 };
 
@@ -177,6 +182,7 @@ exports.bonusPointDetails = (req, res, next) => {
   const userId = req.session.user ? req.session.user.userId : '';
   const startDate = moment().format('YYYY-MM-DD 00:00:00');
   const endDate = moment().format('YYYY-MM-DD 23:59:59');
+  const httpUtil = new HttpSend(req, res);
 
   if (!userId) {
     const error = new Error('userId error');
@@ -211,7 +217,7 @@ exports.bonusPointDetails = (req, res, next) => {
         });
       }
 
-      res.render('user/credits', { pointNum, logLists });
+      httpUtil.render('user/credits', { pointNum, logLists });
     } catch (err) {
       console.log(err);
       next(err);
@@ -224,6 +230,7 @@ exports.bonusPointDetails = (req, res, next) => {
 
 // 按天查询日志详情
 exports.bonusPointDetailsByDay = (req, res, next) => {
+  const httpUtil = new HttpSend(req, res);
   const userId = req.session.user ? req.session.user.userId : '';
   const date = req.query.date || moment().format('YYYYMMDD');
   const page = parseInt(req.query.page, 0) || 1;
@@ -274,7 +281,7 @@ exports.bonusPointDetailsByDay = (req, res, next) => {
         });
       }
 
-      res.render('user/credits-list', {
+      httpUtil.render('user/credits-list', {
         date, totalPage, page, decrSum, incrSum, logLists,
       });
     } catch (err) {
@@ -291,7 +298,7 @@ exports.bonusPointDetailsByDay = (req, res, next) => {
 exports.qryDetailsByRecordId = (req, res, next) => {
   const userId = req.session.user ? req.session.user.userId : '';
   const recordId = req.query.recordId || 0;
-
+  const httpUtil = new HttpSend(req, res);
 
   if (!userId || !recordId) {
     const error = new Error('参数有误');
@@ -323,7 +330,7 @@ exports.qryDetailsByRecordId = (req, res, next) => {
         newsTitle,
       };
 
-      res.render('user/credits-detail', data);
+      httpUtil.render('user/credits-detail', data);
     } catch (err) {
       console.log(err);
       next(err);
@@ -335,7 +342,8 @@ exports.qryDetailsByRecordId = (req, res, next) => {
 
 // 建议页面
 exports.getAdvicePage = (req, res) => {
-  res.render('index', { title: '建议和反馈' });
+  const httpUtil = new HttpSend(req, res);
+  httpUtil.render('index', { title: '建议和反馈' });
 };
 
 // 上传建议

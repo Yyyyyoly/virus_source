@@ -127,11 +127,12 @@ exports.index = (req, res, next) => {
   const contextType = parseInt(req.query.context, 0) || constants.CONTEXT_TOTAL;
   // 分页
   const page = req.query.page || 1;
+  const httpUtil = new HttpSend(req, res);
 
   const mainFunction = async () => {
     try {
       const rtn = await getNewsList(orderType, contextType, page);
-      res.render('news/news', { title: '热文资讯', newLists: rtn.newLists, totalPage: rtn.totalPage });
+      httpUtil.render('news/news', { title: '热文资讯', newLists: rtn.newLists, totalPage: rtn.totalPage });
     } catch (err) {
       next(err);
     }
@@ -306,6 +307,7 @@ exports.getNewsDetailById = (req, res, next) => {
   // 分享者id
   const shareId = req.query.shareId || '';
   const userId = req.session.user.userId || '';
+  const httpUtil = new HttpSend(req, res);
 
   if (!newsId || !userId) {
     const error = new Error('参数错误');
@@ -357,7 +359,7 @@ exports.getNewsDetailById = (req, res, next) => {
       exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareId);
       const shareUid = shareId || userId;
       const shareLink = encodeURI(`${config.shopServerConfig.host}:${config.shopServerConfig.port}/news/details/${pageInfo.newsId}?shareId=${shareUid}`);
-      res.render('news/news-detail', { pageInfo, shareLink });
+      httpUtil.render('news/news-detail', { pageInfo, shareLink });
     } catch (err) {
       console.log(err);
       next(err);
@@ -578,6 +580,7 @@ exports.getTestDetailById = (req, res, next) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
   // 分享者id
   const shareUid = req.query.shareId || '';
+  const httpUtil = new HttpSend(req, res);
 
   if (!newsId) {
     const err = new Error('参数错误');
@@ -620,7 +623,7 @@ exports.getTestDetailById = (req, res, next) => {
 
       // 记录浏览日志
       exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareUid);
-      res.render('index', { questLists });
+      httpUtil.render('index', { questLists });
     } catch (err) {
       console.log(err);
       next(err);
