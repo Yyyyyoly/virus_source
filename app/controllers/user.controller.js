@@ -56,7 +56,7 @@ exports.index = (req, res) => {
 exports.commissionDetails = (req, res, next) => {
   const userId = req.session.user ? req.session.user.userId : '';
   const httpUtil = new HttpSend(req, res);
-  
+
   if (!userId) {
     const error = new Error('userId error');
     next(error);
@@ -227,23 +227,60 @@ exports.bonusPointDetails = (req, res, next) => {
   mainFunction();
 };
 
-
 // 按天查询日志详情
-exports.bonusPointDetailsByDay = (req, res, next) => {
+const bonusPointDetailsByDay = async (userId, date, page, limit) => {
+  try {
+    const startDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 00:00:00');
+    const endDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 23:59:59');
+
+    // 查询积分明细日志
+    const logInfos = await Model.PointRecord.findAndCountAll({
+      where: {
+        viewerId: userId,
+        createdAt: { $gte: startDate, $lte: endDate },
+      },
+      offset: (page - 1) * limit,
+      limit,
+    });
+
+    // 总页数
+    const totalPage = Math.ceil(logInfos.count / limit);
+    // 当日累计新增
+    let incrSum = 0;
+    // 当日累计减少
+    let decrSum = 0;
+    const logLists = [];
+    for (const log of logInfos.rows) {
+      if (log.dataValues.changeNum < 0) {
+        decrSum += parseInt(log.dataValues.changeNum, 0);
+      } else {
+        incrSum += parseInt(log.dataValues.changeNum, 0);
+      }
+      logLists.push({
+        recordId: log.dataValues.recordId,
+        time: log.dataValues.createdAt,
+        changeNum: log.dataValues.changeNum,
+        totalNum: log.dataValues.totalPoint,
+        operator: log.dataValues.operator,
+        operatorResult: log.dataValues.operatorResult,
+      });
+    }
+
+    return {
+      date, totalPage, page, decrSum, incrSum, logLists,
+    };
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+};
+
+exports.renderBonusPointDetailsByDay = (req, res, next) => {
   const httpUtil = new HttpSend(req, res);
   const userId = req.session.user ? req.session.user.userId : '';
   const date = req.query.date || moment().format('YYYYMMDD');
   const page = parseInt(req.query.page, 0) || 1;
   const limit = 10;
-
-  // 分页总数
-  let totalPage = 1;
-  // 当日累计新增
-  let incrSum = 0;
-  // 当日累计减少
-  let decrSum = 0;
-  const startDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 00:00:00');
-  const endDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 23:59:59');
 
   if (!userId) {
     const error = new Error('userId error');
@@ -253,40 +290,38 @@ exports.bonusPointDetailsByDay = (req, res, next) => {
 
   const mainFunction = async () => {
     try {
-      // 查询积分明细日志
-      const logInfos = await Model.PointRecord.findAndCountAll({
-        where: {
-          viewerId: userId,
-          createdAt: { $gte: startDate, $lte: endDate },
-        },
-        offset: (page - 1) * limit,
-        limit,
-      });
+      const data = await bonusPointDetailsByDay(userId, date, page, limit);
 
-      totalPage = Math.ceil(logInfos.count / limit);
-      const logLists = [];
-      for (const log of logInfos.rows) {
-        if (log.dataValues.changeNum < 0) {
-          decrSum += parseInt(log.dataValues.changeNum, 0);
-        } else {
-          incrSum += parseInt(log.dataValues.changeNum, 0);
-        }
-        logLists.push({
-          recordId: log.dataValues.recordId,
-          time: log.dataValues.createdAt,
-          changeNum: log.dataValues.changeNum,
-          totalNum: log.dataValues.totalPoint,
-          operator: log.dataValues.operator,
-          operatorResult: log.dataValues.operatorResult,
-        });
-      }
-
-      httpUtil.render('user/credits-list', {
-        date, totalPage, page, decrSum, incrSum, logLists,
-      });
+      httpUtil.render('user/credits-list', data);
     } catch (err) {
       console.log(err);
       next(err);
+    }
+  };
+
+  mainFunction();
+};
+
+exports.jsonBonusPointDetailsByDay = (req, res) => {
+  const httpUtil = new HttpSend(req, res);
+  const userId = req.session.user ? req.session.user.userId : '';
+  const date = req.query.date || moment().format('YYYYMMDD');
+  const page = parseInt(req.query.page, 0) || 1;
+  const limit = 10;
+
+  if (!userId) {
+    httpUtil.sendJson(constants.HTTP_FAIL, '请先登录');
+    return;
+  }
+
+  const mainFunction = async () => {
+    try {
+      const data = await bonusPointDetailsByDay(userId, date, page, limit);
+
+      httpUtil.sendJson(constants.HTTP_SUCCESS, '', data);
+    } catch (err) {
+      console.log(err);
+      httpUtil.sendJson(constants.HTTP_FAIL, '系统错误');
     }
   };
 

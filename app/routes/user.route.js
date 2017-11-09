@@ -8,7 +8,8 @@ router.get('/commission/withdraw', authController.isLogin, userController.withdr
 router.post('/commission/withdraw', authController.isLogin, userController.withdraw);
 
 router.get('/bonusPoint', authController.isLogin, userController.bonusPointDetails);
-router.get('/bonusPoint/dayLog', authController.isLogin, userController.bonusPointDetailsByDay);
+router.get('/bonusPoint/dayLog/render', authController.isLogin, userController.renderBonusPointDetailsByDay);
+router.get('/bonusPoint/dayLog/json', authController.isLogin, userController.jsonBonusPointDetailsByDay);
 router.get('/bonusPoint/idLog', authController.isLogin, userController.qryDetailsByRecordId);
 
 router.get('/advice', authController.isLogin, userController.getAdvicePage);
