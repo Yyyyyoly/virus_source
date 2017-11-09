@@ -1,7 +1,18 @@
 extends ../layout/base
 
 block attributes
-  - var title = "user"
+  -
+    var operators = {
+    1: '自己浏览',
+    2: '好友浏览',
+    3: '自己转发',
+    4: '好友转发',
+    5: '后台提取'
+    };
+    var operatorResults = {
+    0: '（审核中）',
+    1: '已完成'
+    }
 
 block title
   title #{title}
@@ -10,12 +21,12 @@ block content
     .row.credits
       .col
         p.rule-button: a 积分规则?
-        h2.num.text-center 1200
+        h2.num.text-center= pointNum
         p.sub-text.text-center 可用积分
     .credits-list
       .row: .col
         p 积分变动明细
-          span: a 查看全部
+          span: a#showAll 查看全部
       .row
         table.table
           thead
@@ -24,14 +35,20 @@ block content
               th 积分变动
               th 详情
           tbody
-            tr
-              td 2017-09-10
-              td 2158
-              td 提现（审核中）
-            tr
-              td 2017-09-10
-              td 524
-              td 好友转发文章
+            for log in logLists
+              tr
+                td.time= log.time
+                td= log.changeNum
+                td= operators[log.operator] + (log.operatorResult?'':operatorResults[log.operatorResult])
 
 
   include ../layout/navbar-bottom
+
+block script
+  script.
+    $('.time').text(function () {
+      $(this).removeClass('sr-only');
+      return moment($(this).text()).format('YYYY-MM-DD')
+    })
+
+    $('#showAll').attr('href','/user/bonusPoint/dayLog/render?'+'date='+moment().format('YYYYMMDD')+'&page='+'1')

@@ -1,35 +1,86 @@
 extends ../layout/base
 
 block attributes
-  - var title = "user"
+  link(href="https://cdn.bootcss.com/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker.min.css", rel="stylesheet")
+
 
 block title
   title #{title}
 block content
-  .container.user: .credits-page
+  .container.user: .credits-page#credistsList
     .row.credits-info
       .col
         p.rule-button 积分规则
-          span 选择时间
-        P.add 当天新增： +200
-        p.withdraw 当天提现： -100
+          span: input#datePicker(type='text', v-model='dateSelect')
+        P.add 当天新增： +{{data.incrSum}}
+        p.withdraw 当天提现： -{{data.decrSum}}
     .credits-list
       .row
         table.table
           thead
             tr
-              th 时间
-              th 积分变动
-              th 详情
+              th(nowrap) 时间
+              th(nowrap) 积分变动
+              th(nowrap) 详情
           tbody
-            tr
-              td 2017-09-10
-              td 2158
-              td 提现（审核中）
-            tr
-              td 2017-09-10
-              td 524
-              td 好友转发文章
+            tr(v-for="log in data.logLists")
+              td(nowrap): a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{timeFormat(log.time)}}
+              td: a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{log.changeNum}}
+              td: a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{operators[log.operator]+(log.operatorResult?'':operatorResults[log.operatorResult])}}
 
 
   include ../layout/navbar-bottom
+
+block script
+  script(src="https://cdn.bootcss.com/bootstrap-datepicker/1.7.1/js/bootstrap-datepicker.min.js")
+  script(src="https://cdn.bootcss.com/bootstrap-datepicker/1.7.1/locales/bootstrap-datepicker.zh-CN.min.js")
+  script.
+    $(document).ready(function () {
+      $('#datePicker').datepicker({
+        format: 'yyyy-mm-dd',
+        language: 'zh-CN'
+      }).on('changeDate', function () {
+        vm.selectDate();
+      })
+    })
+    var vm = new Vue({
+      el: '#credistsList',
+      data: {
+        operators: {
+          1: '成交订单获利',
+          2: '提现',
+          3: '积分兑换',
+          4: '订单取消，取消返利'
+        },
+        operatorResults: {
+          0: '（审核中）',
+          1: '已完成'
+        },
+        dateSelect: '选择时间',
+        data: {
+          date: #{date},
+          totalPage: #{totalPage},
+          page: #{page},
+          decrSum: #{decrSum},
+          incrSum: #{incrSum},
+          logLists: !{JSON.stringify(logLists)}
+        }
+      },
+      methods: {
+        timeFormat: function (e) {
+          return moment(e).format('YYYY-MM-DD')
+        },
+        selectDate: function () {
+          $('#datePicker').datepicker('hide');
+          vm.dateSelect = $('#datePicker').val();
+          $.get('/user/bonusPoint/dayLog/json', {
+            date: moment(vm.dateSelect).format('YYMMDD'),
+            page: 1
+          }, function (data) {
+            if (data) {
+              vm.data = data;
+            }
+          }, 'json')
+        }
+      }
+    })

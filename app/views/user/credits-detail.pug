@@ -1,7 +1,14 @@
 extends ../layout/base
 
 block attributes
-  - var title = "user"
+  -
+    var operators = {
+    1: '自己浏览',
+    2: '好友浏览',
+    3: '自己转发',
+    4: '好友转发',
+    5: '后台提取'
+    };
 
 block title
   title #{title}
@@ -9,10 +16,17 @@ block content
   .container.user: .credits-page
     .credits-detail
       .row.time: .col
-        p 时间：2017-10-18  10：00：00
+        p 时间：
+          span#time= time
       .row.change: .col
-        p 积分变动：+200
+        p 积分变动： #{changeNum}
       .row.detail: .col
-        p 详情：好友【微信昵称】浏览文章【慢病的食疗小窍门】
+        p 详情：好友【#{friendName}】浏览文章【#{newsTitle}】
 
   include ../layout/navbar-bottom
+
+block script
+  script.
+    $('#time').text(function () {
+      return moment($(this).text()).format('YYYY-MM-DD hh:mm:ss')
+    })

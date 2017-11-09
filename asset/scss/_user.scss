@@ -120,6 +120,13 @@ $green: #01d491;
           color: $green;
           float: right;
         }
+        input {
+          text-align: right;
+          color: $green;
+          border: none;
+          outline: none;
+          background-color: transparent;
+        }
       }
       .add, .withdraw {
         font-size: 1.4rem;
