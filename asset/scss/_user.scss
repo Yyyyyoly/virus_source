@@ -19,8 +19,11 @@ $green: #01d491;
           width: 5rem;
           height: 5rem;
           margin: auto;
-          border-radius: 4rem;
+          border-radius: 5rem;
           border: 2px #fff solid;
+        }
+        img {
+          border-radius: 5rem;
         }
         .nickname {
           color: #fff;
@@ -55,7 +58,9 @@ $green: #01d491;
           position: absolute;
           bottom: .8rem;
         }
-        button {
+        .btn {
+          background-color: $green;
+          color: #fff;
           position: absolute;
           bottom: .8rem;
           right: 15px;

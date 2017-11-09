@@ -1,7 +1,19 @@
 extends ../layout/base
 
 block attributes
-  - var title = "user"
+  -
+    var title = "user";
+    var operators = {
+      1: '成交订单获利',
+      2: '提现',
+      3: '积分兑换',
+      4: '订单取消，取消返利'
+    };
+    var operatorResults = {
+      0: '待处理',
+      1: '已完成'
+    }
+
 
 block title
   title #{title}
@@ -12,24 +24,27 @@ block content
         .col
           h5.text-center 我的佣金
           p.text-center
-            span.money 0.00
+            span.money= commissionNum.toFixed(2)
             span.money-text 元
-            button.btn.btn-sm 提现
+            a.btn.btn-sm(href='/user/commission/withdraw') 提现
       .row.strategy
         .col.text-center
-          a: p &emsp;推广攻略？
+          a(href='/home/strategy'): p &emsp;推广攻略？
       .commission-list
         .row: .col
           p 收支明细
-        .row: .col
-          p.article 成交订单佣金
-            span.time 2017-09-01  12 : 00
-          p 余额： 200.00
-            span +10.00
-        .row: .col
-          p.article 提现（审核中）
-            span.time 2017-09-01  12 : 00
-          p 余额： 190.00
-            span -80.00
+        for list in logLists
+          .row: .col
+            p.article= operators[list.operator]
+              span.time.sr-only= list.time
+            p 余额： #{list.totalNum}
+              span= list.changeNum
 
   include ../layout/navbar-bottom
+
+block script
+  script.
+    $('.time').text(function () {
+      $(this).removeClass('sr-only');
+      return moment($(this).text()).format('YYYY-MM-DD hh:mm')
+    })

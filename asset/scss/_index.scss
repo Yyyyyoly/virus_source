@@ -49,7 +49,9 @@ $green: #01d491;
         position: absolute;
         bottom: .8rem;
       }
-      button {
+      a {
+        background-color: $green;
+        color: #fff;
         position: absolute;
         bottom: .8rem;
         right: 15px;
@@ -121,7 +123,7 @@ $green: #01d491;
         font-size: 1.4rem;
         font-weight: bolder;
       }
-      .count,.daily {
+      .count, .daily {
         float: right;
         line-height: 2.2rem;
         font-size: .8rem;

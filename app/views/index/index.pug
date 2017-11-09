@@ -12,7 +12,7 @@ block content
         p.text-center
           span.money= commissionNum.toFixed(2)
           span.money-text 元
-          button.btn.btn-sm 提现
+          a.btn.btn-sm(href='/user/commission/withdraw') 提现
     .row.main
       .col.text-center
         a(href='/home/strategy'): p &emsp;推广攻略？
@@ -21,7 +21,7 @@ block content
           p 每日数据
     .count.text-center
       .row: .col-12
-        h3#now_date 2017-09-03
+        h3#now_date
       .row
         .col.count-block
           p 浏览文章用户数

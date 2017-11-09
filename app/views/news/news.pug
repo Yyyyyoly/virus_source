@@ -5,36 +5,81 @@ block attributes
 block title
   title #{title}
 block content
-  .container.news
+  .container.news#newsPage
     .row.count-type
       .col
         ul.nav.nav-pills
-          li.nav-item
-            a.nav-link.active &ensp;最新&ensp;
-          li.nav-item
-            a.nav-link 热门
+          li.nav-item(v-for="(order, index) in orders")
+            a.nav-link(@click="chooseOrder(index)", href="javascript:;", :class="(index == active.order) ? 'active' : ''" ) &ensp;{{order}}&ensp;
     .row.news-type
       .col
         ul.nav.nav-pills
-          li.nav-item
-            a.nav-link.active 全部
-          li.nav-item
-            a.nav-link 糖尿病
-          li.nav-item
-            a.nav-link 甲状腺
-          li.nav-item
-            a.nav-link 痛风
-    for news in newLists
-      .row.news-block
-        .col: a(href= news.redirectUrl)
-          h5= news.title
-            small= moment(news.title).format('YYYY-MM-DD  hh:mm')
-          p.abstract= news.introduction
-          img(src= news.imgUrl)
-          p.info
-            span 浏览量：#{news.pv}
-            span 点赞：#{news.thumbUp}
-            span 评论：#{news.commentNum}
-            button.btn.btn-sm.btn-outline-primary 一键分享
+          li.nav-item(v-for="(newsClass, index) in newsClasses")
+            a.nav-link(@click="chooseClass(index)", href='javascript:;', :class="(index == active.newsClass) ? 'active' : ''" ) {{newsClass}}
+    .row.news-block(v-for= "news in newLists")
+      .col: a(:href= "news.redirectUrl")
+        h5 {{news.title}}
+          small {{timeFormat(news.createdAt)}}
+        .clearfix
+        p.abstract {{news.introduction}}
+        img(:src= "news.imgUrl")
+        p.info
+          span 浏览量：{{news.pv}}
+          span 点赞：{{news.thumbUp}}
+          span 评论：{{news.commentNum}}
+          button.btn.btn-sm.btn-outline-primary 一键分享
+
 
   include ../layout/navbar-bottom
+
+block script
+  script.
+
+    var vm = new Vue({
+      el: '#newsPage',
+      data: {
+        newsClasses: {
+          1: '全部',
+          2: '痛风',
+          3: '糖尿病'
+        },
+        orders: {
+          1: '热门',
+          2: '最新'
+        },
+        active: {
+          newsClass: 1,
+          order: 1
+        },
+        newLists: !{JSON.stringify(newLists)}
+      },
+      methods: {
+        timeFormat: function (e) {
+          return moment(e).format('YYYY-MM-DD hh:mm')
+        },
+        chooseOrder: function (e) {
+          this.active.order = e;
+          $.get('/news/list', {
+            order: vm.active.order,
+            context: vm.active.newsClass,
+            page: 1
+          }, function (data) {
+            if (data.errCode === 200) {
+              vm.newLists = data.params.newLists;
+            }
+          }, 'json')
+        },
+        chooseClass: function (e) {
+          this.active.newsClass = e;
+          $.get('/news/list', {
+            order: vm.active.order,
+            context: vm.active.newsClass,
+            page: 1
+          }, function (data) {
+            if (data.errCode === 200) {
+              vm.newLists = data.params.newLists;
+            }
+          }, 'json')
+        }
+      }
+    });

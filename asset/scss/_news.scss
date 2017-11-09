@@ -103,6 +103,16 @@ $green: #01d491;
       margin-bottom: .5rem;
       font-size: .8rem;
     }
+    button {
+      background-color: transparent;
+      border: none;
+      outline: none;
+
+      &.thumb {
+        color: $green;
+        font-size: 1.1rem;
+      }
+    }
     span {
       margin-right: 1rem;
     }
@@ -133,6 +143,15 @@ $green: #01d491;
     }
   }
   .discuss {
+    form {
+      button {
+        border-color: $green;
+        color:  $green;
+      }
+      textarea {
+        background-color: #f4f4f4;
+      }
+    }
     .row {
       background-color: #fff;
     }
