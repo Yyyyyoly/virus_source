@@ -242,38 +242,39 @@ exports.isFromWeChat = (req) => {
 };
 
 // 调用微信JS-SDK时的注入
-exports.getWeChatJsConfig = (req, callback) => {
+exports.getWeChatJsConfig = req => new Promise(((resolve) => {
   // 获取ticket
   baseApi.getTicket((err, data) => {
     if (err || !data) {
       console.log('get ticket err');
-      return callback({});
+      resolve({});
+    } else {
+      // 获取config
+      const wxConfig = {
+        debug: true,
+        jsApiList: [
+          'onMenuShareTimeline',
+          'onMenuShareAppMessage',
+          'onMenuShareQQ',
+          'onMenuShareWeibo',
+          'onMenuShareQZone',
+        ],
+        url: url.format({
+          protocol: req.protocol,
+          host: req.hostname,
+          pathname: req.originalUrl,
+        }),
+      };
+      baseApi.getJsConfig(wxConfig, (error, result) => {
+        if (err || !result) {
+          console.log('get js config err');
+          resolve({});
+        }
+        resolve(result);
+      });
     }
-    // 获取config
-    const wxConfig = {
-      debug: true,
-      jsApiList: [
-        'onMenuShareTimeline',
-        'onMenuShareAppMessage',
-        'onMenuShareQQ',
-        'onMenuShareWeibo',
-        'onMenuShareQZone',
-      ],
-      url: url.format({
-        protocol: req.protocol,
-        host: req.hostname,
-        pathname: req.originalUrl,
-      }),
-    };
-    return baseApi.getJsConfig(wxConfig, (error, result) => {
-      if (err || !result) {
-        console.log('get js config err');
-        return callback({});
-      }
-      return callback(result);
-    });
   });
-};
+}));
 
 
 // 微信绑定域名时会回调的接口

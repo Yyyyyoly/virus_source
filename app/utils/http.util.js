@@ -12,12 +12,10 @@ class HttpSend {
   }
 
   // 统一的render方法
-  render(path, params) {
+  async render(path, params) {
     const newsParams = params;
-    authController.getWeChatJsConfig(this.req, (data) => {
-      newsParams.wxConfig = data;
-      return this.res.render(path, newsParams);
-    });
+    newsParams.wxConfig = await authController.getWeChatJsConfig(this.req);
+    return this.res.render(path, newsParams);
   }
 }
 
