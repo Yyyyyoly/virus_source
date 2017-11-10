@@ -359,7 +359,7 @@ exports.getNewsDetailById = (req, res, next) => {
       exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareId);
       const shareUid = shareId || userId;
       const shareLink = encodeURI(`${config.shopServerConfig.host}:${config.shopServerConfig.port}/news/details/${pageInfo.newsId}?shareId=${shareUid}`);
-      httpUtil.render('news/news-detail', { pageInfo, shareLink });
+      httpUtil.render('news/news-detail', { title: '热文资讯', pageInfo, shareLink });
     } catch (err) {
       console.log(err);
       next(err);

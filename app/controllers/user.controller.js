@@ -49,7 +49,7 @@ exports.index = (req, res) => {
     country: req.session.user.country,
     headImgUrl: req.session.user.headImgUrl,
   };
-  httpUtil.render('user/user', { user, title: '用户中心' });
+  httpUtil.render('user/user', { user, title: '个人中心' });
 };
 
 // 佣金日志详情页

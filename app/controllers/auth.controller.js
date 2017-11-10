@@ -242,12 +242,12 @@ exports.isFromWeChat = (req) => {
 };
 
 // 调用微信JS-SDK时的注入
-exports.getWeChatJsConfig = (req) => {
+exports.getWeChatJsConfig = (req, callback) => {
   // 获取ticket
   baseApi.getTicket((err, data) => {
     if (err || !data) {
       console.log('get ticket err');
-      return {};
+      return callback({});
     }
     // 获取config
     const wxConfig = {
@@ -265,15 +265,16 @@ exports.getWeChatJsConfig = (req) => {
         pathname: req.originalUrl,
       }),
     };
-    baseApi.getJsConfig(wxConfig, (error, result) => {
+    return baseApi.getJsConfig(wxConfig, (error, result) => {
       if (err || !result) {
         console.log('get js config err');
-        return {};
+        return callback({});
       }
-      return result;
+      return callback(result);
     });
   });
 };
+
 
 // 微信绑定域名时会回调的接口
 exports.checkSignature = (req, res) => {
