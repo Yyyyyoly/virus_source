@@ -1,11 +1,9 @@
 extends ../layout/base
 
-block attributes
-
 block title
   title #{title}
 block content
-  .container.news#newsPage
+  .container.news#newsPage(v-cloak)
     .row.count-type
       .col
         ul.nav.nav-pills
@@ -36,7 +34,6 @@ block content
 
 block script
   script.
-
     var vm = new Vue({
       el: '#newsPage',
       data: {

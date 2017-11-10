@@ -4,7 +4,7 @@ extends ../layout/base
 block title
   title #{title}
 block content
-  .container.news#newsDetailPage
+  .container.news#newsDetailPage(v-cloak)
     .row.news-detail: .col
       p.info
         span.time.sr-only= pageInfo.createdAt

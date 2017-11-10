@@ -1,7 +1,7 @@
 extends ../layout/base
 
 block stylesheet
-  link(href="https://cdn.bootcss.com/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker3.min.css", rel="stylesheet")
+  //link(href="https://cdn.bootcss.com/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker3.min.css", rel="stylesheet")
 
 
 block title
@@ -11,7 +11,8 @@ block content
     .row.credits-info
       .col
         p.rule-button 积分规则
-          span: input#datePicker(type='text', v-model='dateSelect')
+          span: label {{dateSelect}}
+            input#datePicker.sr-only(type='date', v-model='dateSelect')
         P.add 当天新增： + {{data.incrSum}}
         p.withdraw 当天提现： -  {{data.decrSum}}
     .credits-list(v-if='data.logLists.length !== 0')
@@ -33,17 +34,9 @@ block content
   include ../layout/navbar-bottom
 
 block script
-  script(src="https://cdn.bootcss.com/bootstrap-datepicker/1.7.1/js/bootstrap-datepicker.min.js")
-  script(src="https://cdn.bootcss.com/bootstrap-datepicker/1.7.1/locales/bootstrap-datepicker.zh-CN.min.js")
+  //script(src="https://cdn.bootcss.com/bootstrap-datepicker/1.7.1/js/bootstrap-datepicker.min.js")
+  //script(src="https://cdn.bootcss.com/bootstrap-datepicker/1.7.1/locales/bootstrap-datepicker.zh-CN.min.js")
   script.
-    $(document).ready(function () {
-      $('#datePicker').datepicker({
-        format: 'yyyy-mm-dd',
-        language: 'zh-CN'
-      }).on('changeDate', function () {
-        vm.selectDate();
-      })
-    })
     var vm = new Vue({
       el: '#credistsList',
       data: {
@@ -72,8 +65,6 @@ block script
           return moment(e).format('YYYY-MM-DD')
         },
         selectDate: function () {
-          $('#datePicker').datepicker('hide');
-          vm.dateSelect = $('#datePicker').val();
           $.get('/user/bonusPoint/dayLog/json', {
             date: moment(vm.dateSelect).format('YYYYMMDD'),
             page: 1
