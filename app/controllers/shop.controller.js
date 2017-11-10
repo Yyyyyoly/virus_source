@@ -11,6 +11,7 @@ const moment = require('moment');
 // 商城首页
 exports.index = (req, res, next) => {
   const httpUtil = new HttpSend(req, res);
+  const limit = 25;
   // 查询分类
   const getCategories = async () => {
     try {
@@ -31,8 +32,26 @@ exports.index = (req, res, next) => {
   };
 
   // 查询热销列表
-  const getHotProductList = () => {
+  const getHotProductList = async (page = 1) => {
+    try {
+      const options = {
+        uri: `${config.shopServerConfig.host}:${config.shopServerConfig.port}/v1/categories`,
+        qs: {
+          page,
+          limit,
+        },
+        json: true,
+      };
 
+      const repos = await request(options);
+      if (repos.success !== true) {
+        throw new Error('热销数据获取失败！');
+      } else {
+        return repos.data;
+      }
+    } catch (err) {
+      throw err;
+    }
   };
 
   const mainFunction = async () => {

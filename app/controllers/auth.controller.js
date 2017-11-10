@@ -2,39 +2,56 @@ const Model = require('../models/index');
 const HttpSend = require('../utils/http.util');
 const config = require('../../config/config');
 const constants = require('../../config/constants');
-const WechatAPI = require('wechat-api');
+const WeChatAPI = require('wechat-api');
+const WeChatAuth = require('wechat-oauth');
 const url = require('url');
 const tokenRedis = require('../../config/redis')(2);
 const redisUtil = require('../utils/redis.util');
 const qiniu = require('qiniu');
-const querystring = require('querystring');
 
-
-// 微信维护全局AccessToken的方法
-// accessToken和用户无关，没过期时都可以用
-const api = new WechatAPI(
+// 微信维护授权AccessToken的方法
+const api = new WeChatAuth(
   config.weChatConfig.appId,
   config.weChatConfig.appSecret,
-  (callback) => {
+  (openid, callback) => {
     // 获取对应的全局token的方法
-    const keys = redisUtil.getRedisPrefix(999);
+    const keys = redisUtil.getRedisPrefix(999, openid);
     tokenRedis.getAsync(keys).then((token) => {
       callback(null, JSON.parse(token));
     });
   },
-  ((token, callback) => {
+  ((openid, token, callback) => {
     // 请将token存储到全局，跨进程、跨机器级别的全局，比如写到数据库、redis等
     // 这样才能在cluster模式及多机情况下使用
-    const keys = redisUtil.getRedisPrefix(999);
+    const keys = redisUtil.getRedisPrefix(999, openid);
     tokenRedis.setAsync(keys, JSON.stringify(token)).then(() => {
       callback(null);
     });
   }),
 );
 
-// 定义微信维护全局ticketToken的方法
-// ticketToken和用户无关，没过期时都可以用
-api.registerTicketHandle(
+
+// 微信维护全局基础信息AccessToken的方法
+const baseApi = new WeChatAPI(
+  config.weChatConfig.appId,
+  config.weChatConfig.appSecret,
+  (callback) => {
+    // 获取对应的全局token的方法
+    const keys = redisUtil.getRedisPrefix(997);
+    tokenRedis.getAsync(keys).then((token) => {
+      callback(null, JSON.parse(token));
+    });
+  },
+  ((token, callback) => {
+    const keys = redisUtil.getRedisPrefix(997);
+    tokenRedis.setAsync(keys, JSON.stringify(token)).then(() => {
+      callback(null);
+    });
+  }),
+);
+
+// 定义微信维护jssdk ticketToken的方法
+baseApi.registerTicketHandle(
   (type, callback) => {
     // 获取对应的全局ticket的方法
     const keys = redisUtil.getRedisPrefix(998, type);
@@ -88,8 +105,8 @@ const autoLoginAndRegister = (req, res) => {
         // 首次进入系统，render规则说明页面
         req.session.firstTime = true;
       } else if (userName !== userInfo.dataValues.userName || sex !== userInfo.dataValues.sex ||
-          province !== userInfo.dataValues.province || city !== userInfo.dataValues.city ||
-          country !== userInfo.dataValues.country || headImgUrl !== userInfo.dataValues.headImgUrl
+        province !== userInfo.dataValues.province || city !== userInfo.dataValues.city ||
+        country !== userInfo.dataValues.country || headImgUrl !== userInfo.dataValues.headImgUrl
       ) {
         // 如果存在但是发生了信息变更，更新信息
         await Model.User.update({
@@ -139,14 +156,7 @@ exports.login = (req, res, next) => {
   const weChatFlag = exports.isFromWeChat(req);
   if (weChatFlag) {
     // 跳转 获取用户授权的code  微信不接受80端口以外的回调
-    const info = {
-      appid: config.weChatConfig.appId,
-      redirect_uri: `${config.serverHost}/auth/weChatCode`,
-      response_type: 'code',
-      scope: 'snsapi_userinfo',
-      state: '',
-    };
-    const weChatUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?${querystring.stringify(info)}#wechat_redirect`;
+    const weChatUrl = api.getAuthorizeURL(`${config.serverHost}/auth/weChatCode`, '', 'snsapi_userinfo');
     res.redirect(weChatUrl);
   } else {
     const error = new Error('请从微信浏览器登入');
@@ -234,7 +244,7 @@ exports.isFromWeChat = (req) => {
 // 调用微信JS-SDK时的注入
 exports.getWeChatJsConfig = (req) => {
   // 获取ticket
-  api.getTicket((err, data) => {
+  baseApi.getTicket((err, data) => {
     if (err || !data) {
       console.log('get ticket err');
       return {};
@@ -255,7 +265,7 @@ exports.getWeChatJsConfig = (req) => {
         pathname: req.originalUrl,
       }),
     };
-    api.getJsConfig(wxConfig, (error, result) => {
+    baseApi.getJsConfig(wxConfig, (error, result) => {
       if (err || !result) {
         console.log('get js config err');
         return {};
