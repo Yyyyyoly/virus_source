@@ -14,8 +14,8 @@ block content
         ul.nav.nav-pills
           li.nav-item(v-for="(newsClass, index) in newsClasses")
             a.nav-link(@click="chooseClass(index)", href='javascript:;', :class="(index == active.newsClass) ? 'active' : ''" ) {{newsClass}}
-    .news-block(v-for= "news in newLists")
-      .row: .col: a(:href= "news.redirectUrl")
+    .news-block(v-for= "news in newLists"): a(:href= "news.redirectUrl")
+      .row: .col
         h5 {{news.title}}
           small {{timeFormat(news.createdAt)}}
         .clearfix
@@ -27,7 +27,7 @@ block content
           span 浏览量：{{news.pv}}
           span 点赞：{{news.thumbUp}}
           span 评论：{{news.commentNum}}
-          button.btn.btn-sm.btn-outline-primary 一键分享
+          button.btn.btn-sm.btn-outline-primary(@click.prevent='share(news.shareLink)') 一键分享
 
 
   include ../layout/navbar-bottom
@@ -80,6 +80,33 @@ block script
               vm.newLists = data.params.newLists;
             }
           }, 'json')
+        },
+        share: function (e) {
+          wx.onMenuShareTimeline({
+            title: '#{title}', // 分享标题
+            link: e, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+            imgUrl: '', // 分享图标
+            success: function () {
+              // 用户确认分享后执行的回调函数
+            },
+            cancel: function () {
+              // 用户取消分享后执行的回调函数
+            }
+          });
+          wx.onMenuShareAppMessage({
+            title: '#{title}', // 分享标题
+            desc: '', // 分享描述
+            link: e, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+            imgUrl: '', // 分享图标
+            type: '', // 分享类型,music、video或link，不填默认为link
+            dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+            success: function () {
+              // 用户确认分享后执行的回调函数
+            },
+            cancel: function () {
+              // 用户取消分享后执行的回调函数
+            }
+          });
         }
       }
     });

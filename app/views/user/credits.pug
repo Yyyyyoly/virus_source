@@ -27,19 +27,21 @@ block content
       .row: .col
         p 积分变动明细
           span: a#showAll 查看全部
-      .row
-        table.table
-          thead
-            tr
-              th 时间
-              th 积分变动
-              th 详情
-          tbody
-            for log in logLists
+
+      if logLists.length !== 0
+        .row
+          table.table
+            thead
               tr
-                td.time= log.time
-                td= log.changeNum
-                td= operators[log.operator] + (log.operatorResult?'':operatorResults[log.operatorResult])
+                th 时间
+                th 积分变动
+                th 详情
+            tbody
+              for log in logLists
+                tr
+                  td.time= log.time
+                  td= log.changeNum
+                  td= operators[log.operator] + (log.operatorResult?'':operatorResults[log.operatorResult])
 
 
   include ../layout/navbar-bottom

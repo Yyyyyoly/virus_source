@@ -22,3 +22,5 @@ $("a[href='/user/commission/withdraw'],a[href='/mall'],a[href='/user/advice']").
   alert('暂未开放！')
 });
 
+$(".fixed-bottom a[href='/"+window.location.pathname.split('/')[1]+"']").addClass('active');
+

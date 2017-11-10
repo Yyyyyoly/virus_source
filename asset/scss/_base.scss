@@ -1,16 +1,16 @@
 $green: #01d491;
 
 html {
-  font-size: 90%;
+  font-size: 14px;
 }
 
-*{
-  transition: all .3s;
+* {
+  transition: all .5s;
 }
 
 body {
   background-color: #f4f4f4;
-  font-family: Microsoft YaHei,sans-serif;
+  font-family: Microsoft YaHei, sans-serif;
 }
 
 a, a:visited, a:hover, a:visited {
@@ -26,13 +26,23 @@ a, a:visited, a:hover, a:visited {
   background-color: #efeff4;
   i {
     font-size: 1.5rem;
-    color: $green;
+    color: #666;
   }
   p {
+    color: #999;
     margin: 0;
     font-size: .8rem;
   }
+  .active {
+    p {
+      color: $green;
+    }
+    i {
+      color: $green;
+    }
+  }
 }
+
 .bottom-fix {
   height: 60px;
 }
