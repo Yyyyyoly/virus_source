@@ -15,7 +15,7 @@ block content
         button(class=pageInfo.ifThumb ? 'thumb' : '', @click= 'thumbUp'): i.fa.fa-thumbs-o-up
         span 点赞数：#{pageInfo.thumbUp}
     .row.news-share: .col.text-center
-      p: button.btn 分享
+      //p: button.btn 分享
       p 分享好友，还能获得积分哦
     .discuss
       .row.edit-bar
@@ -47,7 +47,7 @@ block script
   script.
     $('.time').text(function () {
       $(this).removeClass('sr-only');
-      return moment($(this).text()).format('YYYY-MM-DD hh:mm')
+      return moment(new Date($(this).text())).format('YYYY-MM-DD hh:mm')
     })
 
     var vm = new Vue({
@@ -55,7 +55,7 @@ block script
       data: {
         form: {
           newsId: #{pageInfo.newsId},
-          comment: '',
+          comment: ''
         },
         ifThumb: #{pageInfo.ifThumb}
       },

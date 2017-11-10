@@ -60,6 +60,11 @@ block script
           logLists: !{JSON.stringify(logLists)}
         }
       },
+      watch: {
+        dataSelect: function () {
+          vm.selectDate();
+        }
+      },
       methods: {
         timeFormat: function (e) {
           return moment(e).format('YYYY-MM-DD')
