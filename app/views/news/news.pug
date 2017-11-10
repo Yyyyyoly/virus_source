@@ -16,13 +16,15 @@ block content
         ul.nav.nav-pills
           li.nav-item(v-for="(newsClass, index) in newsClasses")
             a.nav-link(@click="chooseClass(index)", href='javascript:;', :class="(index == active.newsClass) ? 'active' : ''" ) {{newsClass}}
-    .row.news-block(v-for= "news in newLists")
-      .col: a(:href= "news.redirectUrl")
+    .news-block(v-for= "news in newLists")
+      .row: .col: a(:href= "news.redirectUrl")
         h5 {{news.title}}
           small {{timeFormat(news.createdAt)}}
         .clearfix
         p.abstract {{news.introduction}}
+      .row.d-block
         img(:src= "news.imgUrl")
+      .row: .col
         p.info
           span 浏览量：{{news.pv}}
           span 点赞：{{news.thumbUp}}

@@ -56,9 +56,13 @@ $green: #01d491;
     }
   }
   .news-block {
-    background-color: #fff;
-    padding-top: 1rem;
     margin-bottom: 1rem;
+    .row {
+      background-color: #fff;
+    }
+    h5 {
+      padding-top: 1rem;
+    }
     small {
       color: #979797;
       font-size: .8rem;
@@ -89,9 +93,7 @@ $green: #01d491;
       }
     }
     img {
-      background-color: #eee;
       width: 100%;
-      height: 10rem;
     }
   }
   .news-detail {
