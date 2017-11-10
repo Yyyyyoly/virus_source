@@ -21,22 +21,50 @@ let option = {
     {
       type: 'category',
       data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      axisLine: {
+        lineStyle: {
+          color: '#fff'
+        }
+      },
       axisTick: {
+        show: false,
         alignWithLabel: true
+      },
+      splitArea: {
+        show: true,
+        areaStyle: {
+          color: ['rgba(250,250,250,0)', 'rgba(0,0,0,0.1)'],
+        }
       }
     }
   ],
   yAxis: [
     {
-      type: 'value'
+      type: 'value',
+      axisLine: {
+        lineStyle: {
+          color: '#fff'
+        }
+      },
+      axisTick: {
+        show: false,
+      },
+      splitLine: {
+        show: false
+      }
     }
   ],
   series: [
     {
-      name: '直接访问',
+      name: '浏览量',
       type: 'bar',
-      barWidth: '60%',
-      data: [10, 52, 200, 334, 390, 330, 220]
+      barWidth: 10,
+      data: [10, 52, 200, 334, 390, 330, 220],
+      itemStyle: {
+        normal: {
+          barBorderRadius: [10, 10, 0, 0]
+        }
+      }
     }
   ]
 };

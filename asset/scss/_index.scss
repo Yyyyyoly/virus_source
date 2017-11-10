@@ -81,8 +81,10 @@ $green: #01d491;
     }
   }
   .chart {
+    padding-bottom: 1rem;
     background-color: $green;
     button.dropdown-toggle {
+      width: 7rem;
       outline: none;
       box-shadow: none;
     }

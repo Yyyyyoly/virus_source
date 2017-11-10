@@ -1,7 +1,7 @@
 extends ../layout/base
 
 block attributes
-  link(href="https://cdn.bootcss.com/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker.min.css", rel="stylesheet")
+  link(href="https://cdn.bootcss.com/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker3.min.css", rel="stylesheet")
 
 
 block title
@@ -12,9 +12,9 @@ block content
       .col
         p.rule-button 积分规则
           span: input#datePicker(type='text', v-model='dateSelect')
-        P.add 当天新增： +{{data.incrSum}}
-        p.withdraw 当天提现： -{{data.decrSum}}
-    .credits-list
+        P.add 当天新增： + {{data.incrSum}}
+        p.withdraw 当天提现： -  {{data.decrSum}}
+    .credits-list(v-if='data.logLists.length !== 0')
       .row
         table.table
           thead
@@ -27,7 +27,8 @@ block content
               td(nowrap): a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{timeFormat(log.time)}}
               td: a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{log.changeNum}}
               td: a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{operators[log.operator]+(log.operatorResult?'':operatorResults[log.operatorResult])}}
-
+    .no-data(v-else)
+      h1.info 无数据
 
   include ../layout/navbar-bottom
 
@@ -74,11 +75,13 @@ block script
           $('#datePicker').datepicker('hide');
           vm.dateSelect = $('#datePicker').val();
           $.get('/user/bonusPoint/dayLog/json', {
-            date: moment(vm.dateSelect).format('YYMMDD'),
+            date: moment(vm.dateSelect).format('YYYYMMDD'),
             page: 1
           }, function (data) {
             if (data) {
-              vm.data = data;
+              if (data.errCode === 200) {
+                vm.data = data.params;
+              }
             }
           }, 'json')
         }

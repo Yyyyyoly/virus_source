@@ -44,6 +44,7 @@ block content
 block script
   script.
     $('.time').text(function () {
+      let a = new Date($(this).text());
       $(this).removeClass('sr-only');
-      return moment($(this).text()).format('YYYY-MM-DD hh:mm')
+      return moment(a).format('YYYY-MM-DD hh:mm')
     })

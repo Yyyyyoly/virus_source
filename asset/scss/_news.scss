@@ -29,7 +29,7 @@ $green: #01d491;
     }
   }
   .news-type {
-    color: 666;
+    color: #666;
     .col {
       padding: 1rem 0;
     }
@@ -39,11 +39,14 @@ $green: #01d491;
       &::-webkit-scrollbar {
         display: none;
       }
+      .nav-item {
+        width: 25%;
+      }
       .nav-link {
-        width: 5rem;
+        //width: 5rem;
         text-align: center;
         margin: 0 1rem;
-        padding: .2rem 1rem;
+        padding: .2rem 0;
         &.active {
           background-color: $green;
           color: #fff;
