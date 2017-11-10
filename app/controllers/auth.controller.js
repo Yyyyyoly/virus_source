@@ -260,6 +260,7 @@ exports.getWeChatJsConfig = req => new Promise(((resolve) => {
           'onMenuShareQZone',
         ],
         url: url.format({
+          port: config.serverPort,
           protocol: req.protocol,
           host: req.hostname,
           pathname: req.originalUrl,
