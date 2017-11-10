@@ -348,7 +348,7 @@ exports.getNewsDetailById = (req, res, next) => {
         context: newsInfo.dataValues.context,
         imgUrl: newsInfo.dataValues.imgUrl,
         createdAt: newsInfo.dataValues.createdAt,
-        pv: supportInfo.pvNum + 1,
+        pv: parseInt(supportInfo.pvNum, 0) + 1,
         thumbUp: supportInfo.thumbUpNum,
         commentNum: supportInfo.commentNum,
         commentList,
