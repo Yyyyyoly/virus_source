@@ -7,6 +7,7 @@ const url = require('url');
 const tokenRedis = require('../../config/redis')(2);
 const redisUtil = require('../utils/redis.util');
 const qiniu = require('qiniu');
+const querystring = require('querystring');
 
 
 // 微信维护全局AccessToken的方法
@@ -138,7 +139,14 @@ exports.login = (req, res, next) => {
   const weChatFlag = exports.isFromWeChat(req);
   if (weChatFlag) {
     // 跳转 获取用户授权的code  微信不接受80端口以外的回调
-    const weChatUrl = api.getAuthorizeURL(`${config.serverHost}/auth/weChatCode`, '', 'snsapi_userinfo');
+    const info = {
+      appid: config.weChatConfig.appId,
+      redirect_uri: `${config.serverHost}/auth/weChatCode`,
+      response_type: 'code',
+      scope: 'snsapi_userinfo',
+      state: '',
+    };
+    const weChatUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?${querystring.stringify(info)}#wechat_redirect`;
     res.redirect(weChatUrl);
   } else {
     const error = new Error('请从微信浏览器登入');
@@ -185,16 +193,16 @@ exports.isLogin = (req, res, next) => {
   //   country: 'China',
   //   headImgUrl: 'http://wx.qlogo.cn/mmhead/DYAIOgq83eoU7Zpe8yvbIMGLwy5s610uJpE1YAD3eGI6lzZpoiaLZ6A/0',
   // };
-  req.session.user = {
-    userId: 'o82p90sZgb-aPqbUC7ejWUitE_Fg',
-    openId: 'od25_03YZ8710e3Qja7CD1TCdTa4',
-    userName: '叫我女王大人',
-    sex: 2,
-    province: 'Hubei',
-    city: 'Wuhan',
-    country: 'China',
-    headImgUrl: 'http://wx.qlogo.cn/mmhead/Q3auHgzwzM61WMU23LmA22f7BZPc8TJpNbmaUEDjYeKZcianIHUeNiaw/0',
-  };
+  // req.session.user = {
+  //   userId: 'o82p90sZgb-aPqbUC7ejWUitE_Fg',
+  //   openId: 'od25_03YZ8710e3Qja7CD1TCdTa4',
+  //   userName: '叫我女王大人',
+  //   sex: 2,
+  //   province: 'Hubei',
+  //   city: 'Wuhan',
+  //   country: 'China',
+  //   headImgUrl: 'http://wx.qlogo.cn/mmhead/Q3auHgzwzM61WMU23LmA22f7BZPc8TJpNbmaUEDjYeKZcianIHUeNiaw/0',
+  // };
   const userInfo = req.session.user || {};
 
   // 记载用户的起始url，方便登录/注册后跳转
