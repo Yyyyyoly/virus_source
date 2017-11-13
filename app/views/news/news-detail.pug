@@ -65,7 +65,7 @@ block script
       },
       methods: {
         submitComment: function () {
-          $.get('/news/details/comment', {
+          $.post('/news/details/comment', {
             newsId: this.form.newsId,
             comment: this.form.comment
           }, function (data) {
@@ -77,7 +77,7 @@ block script
         },
         thumbUp: function () {
           if (!this.ifThumb) {
-            $.post('/news/details/thumb', {
+            $.get('/news/details/thumb', {
               newsId: this.form.newsId
             }, function (data) {
               if (data.errCode === 200) {
