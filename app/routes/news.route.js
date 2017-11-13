@@ -7,8 +7,8 @@ router.get('/list', authController.isLogin, newsController.getNewsListByConditio
 
 // 资讯相关操作
 router.get('/details/:newsId', authController.isLogin, newsController.getNewsDetailById);
-router.get('/details/thumb', authController.isLogin, newsController.thumbUpNewsById);
-router.post('/details/comment', authController.isLogin, newsController.commentNewsById);
+router.get('/details/operator/thumb', authController.isLogin, newsController.thumbUpNewsById);
+router.post('/details/operator/comment', authController.isLogin, newsController.commentNewsById);
 
 // 自测题相关操作
 router.get('/tests/:newsId', authController.isLogin, newsController.getTestDetailById);
