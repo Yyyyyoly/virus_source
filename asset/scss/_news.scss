@@ -109,6 +109,7 @@ $green: #01d491;
       //font-size: .8rem;
     }
     button {
+      color: #979797;
       padding: 0;
       background-color: transparent;
       border: none;
@@ -116,9 +117,6 @@ $green: #01d491;
 
       &.thumb {
         color: $green;
-        span {
-          color: #979797;
-        }
       }
     }
     span {
