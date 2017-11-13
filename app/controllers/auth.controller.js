@@ -156,7 +156,7 @@ exports.login = (req, res, next) => {
   const weChatFlag = exports.isFromWeChat(req);
   if (weChatFlag) {
     // 跳转 获取用户授权的code  微信不接受80端口以外的回调
-    const weChatUrl = api.getAuthorizeURL(`${config.serverHost}/auth/weChatCode`, '', 'snsapi_userinfo');
+    const weChatUrl = api.getAuthorizeURL(`${config.serverHost}/auth/weChat/code`, '', 'snsapi_userinfo');
     res.redirect(weChatUrl);
   } else {
     const error = new Error('请从微信浏览器登入');
@@ -277,6 +277,46 @@ exports.getWeChatJsConfig = req => new Promise(((resolve) => {
   });
 }));
 
+// 微信 增加底部菜单
+exports.menuCreate = (req, res) => {
+  const resUtil = new HttpSend(req, res);
+  const menu = {
+    button: [
+      {
+        name: '每日数据',
+        type: 'view',
+        url: `${config.serverHost}`,
+      },
+      {
+        name: '我要分享',
+        sub_button: [
+          {
+            name: '热文资讯',
+            type: 'view',
+            url: `${config.serverHost}:${config.serverPort}/news`,
+          },
+          {
+            name: '健康商城',
+            type: 'view',
+            url: `${config.serverHost}:${config.serverPort}/mall`,
+          },
+        ],
+      },
+      {
+        name: '个人中心',
+        type: 'view',
+        url: `${config.serverHost}:${config.serverPort}/user`,
+      },
+    ],
+  };
+  baseApi.createMenu(menu, (err, result) => {
+    if (err || result.errcode) {
+      resUtil.sendJson(constants.HTTP_FAIL, err || result.errmsg);
+    } else {
+      resUtil.sendJson(constants.HTTP_SUCCESS, err || result.errmsg);
+    }
+  });
+};
 
 // 微信绑定域名时会回调的接口
 exports.checkSignature = (req, res) => {
