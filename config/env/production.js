@@ -32,8 +32,8 @@ module.exports = {
 
   // weChat config
   weChatConfig: {
-    appId: 'wxb7e964d18e56c250',
-    appSecret: '7a4f11e20bc12b5aa16c06879108680f',
+    appId: 'wx3ae6e4b87579e542',
+    appSecret: '2077caf7478e9a00ce4854b2a7c98e99',
     token: 'medsci',
     encodingAESKey: 'F3LIW8XvsHH41nCLcKCSGufnCfKNdLxqaYMM5TjelgV',
   },
