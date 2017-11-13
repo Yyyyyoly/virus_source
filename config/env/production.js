@@ -6,18 +6,18 @@ module.exports = {
 
   // mysql config
   mysqlConfig: {
-    host: '127.0.0.1',
+    host: 'rm-2ze62b8v9ox9m35k7o.mysql.rds.aliyuncs.com',
     port: 3306,
     database: 'virus_source_app',
-    username: 'root',
-    password: 'root',
+    username: 'virus_source',
+    password: 'virus_source_123$%^',
   },
 
   // redis config
   redisConfig: {
-    host: '127.0.0.1',
+    host: 'r-2zebafe77a6fd114.redis.rds.aliyuncs.com',
     port: '6379',
-    password: 'root',
+    password: 'xuLU5900',
     ttl: 1800,
     logErrors: true,
   },
@@ -34,7 +34,8 @@ module.exports = {
   weChatConfig: {
     appId: 'wxb7e964d18e56c250',
     appSecret: '7a4f11e20bc12b5aa16c06879108680f',
-    token: 'wangyg',
+    token: 'medsci',
+    encodingAESKey: 'F3LIW8XvsHH41nCLcKCSGufnCfKNdLxqaYMM5TjelgV',
   },
 
   // shop server config
