@@ -359,7 +359,9 @@ exports.getNewsDetailById = (req, res, next) => {
       exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareId);
       const shareUid = shareId || userId;
       const shareLink = encodeURI(`${config.serverHost}/news/details/${pageInfo.newsId}?shareId=${shareUid}`);
-      httpUtil.render('news/news-detail', { title: '热文资讯', pageInfo, shareLink, shareUid });
+      httpUtil.render('news/news-detail', {
+        title: '热文资讯', pageInfo, shareLink, shareUid,
+      });
     } catch (err) {
       console.log(err);
       next(err);
@@ -563,8 +565,13 @@ exports.commentNewsById = (req, res) => {
         commentTime: Date.now(),
       };
 
+      const commentRankKey = redisUtil.getRedisPrefix(13);
       const rangeKey = redisUtil.getRedisPrefix(14, newsId);
-      await redisClient.rpushAsync(rangeKey, JSON.stringify(commentInfo));
+      await redisClient.multi()
+        .rpush(rangeKey, JSON.stringify(commentInfo))
+        .zincrby(commentRankKey, newsId, 1)
+        .execAsync();
+
       resUtil.sendJson(constants.HTTP_SUCCESS, '', { commentInfo: JSON.stringify(commentInfo) });
     } catch (err) {
       console.log(err);

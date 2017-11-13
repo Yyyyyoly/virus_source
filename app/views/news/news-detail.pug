@@ -65,7 +65,7 @@ block script
       },
       methods: {
         submitComment: function () {
-          $.post('/news/details/comment', {
+          $.get('/news/details/comment', {
             newsId: this.form.newsId,
             comment: this.form.comment
           }, function (data) {
