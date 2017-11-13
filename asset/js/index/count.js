@@ -33,7 +33,7 @@ let option = {
       splitArea: {
         show: true,
         areaStyle: {
-          color: ['rgba(250,250,250,0)', 'rgba(0,0,0,0.1)'],
+          color: ['rgba(250,250,250,0)', 'rgba(0,0,0,0.05)'],
         }
       }
     }
