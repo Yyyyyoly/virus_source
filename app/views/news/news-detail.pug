@@ -10,19 +10,17 @@ block content
         span.time.sr-only= pageInfo.createdAt
         span 迈德科技
       .d-block!= pageInfo.context
-    .row.news-share: .col
-      //p: button.btn 分享
-      p 分享好友，还能获得积分哦
-    .row.news-thumb: .col
       p.info
         span 浏览数：#{pageInfo.pv}
-      p.info
-        button(class=pageInfo.ifThumb ? 'thumb' : '', @click= 'thumbUp'): i.fa.fa-thumbs-o-up
-        span 点赞数：#{pageInfo.thumbUp}
-
+        button(class=pageInfo.ifThumb ? 'thumb' : '', @click= 'thumbUp')
+          i.fa.fa-thumbs-o-up
+          span &ensp;点赞数：#{pageInfo.thumbUp}
+    .row.news-share: .col.text-center
+      //p: button.btn 分享
+      p
     .discuss
       .row.edit-bar
-        p.col.text-right: a(href="#commentArea", data-toggle="collapse") 写评论&nbsp;
+        p.col: a(href="#commentArea", data-toggle="collapse") 写评论&nbsp;
           i.fa.fa-edit
       .row#commentArea.collapse
         form.col
@@ -32,8 +30,11 @@ block content
           .form-group
             label.sr-only(for= comment )
             textarea.form-control(v-model= 'form.comment', id= comment, rows= 3)
-          button.btn.btn-outline-secondary.btn-sm.float-right(@click= 'submitComment', type= 'button') 提交
+          button.btn.btn-outline-secondary.btn-sm.float-right(@click= 'submitComment', type= 'button', style='margin-bottom:1rem') 提交
           .clearfix
+
+      .row: .col
+        hr(style='margin-top: 0')
 
       for comment in pageInfo.commentList
         - comment = JSON.parse(comment);
