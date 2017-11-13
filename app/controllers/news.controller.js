@@ -569,7 +569,7 @@ exports.commentNewsById = (req, res) => {
       const rangeKey = redisUtil.getRedisPrefix(14, newsId);
       await redisClient.multi()
         .rpush(rangeKey, JSON.stringify(commentInfo))
-        .zincrby(commentRankKey, newsId, 1)
+        .zincrby(commentRankKey, 1, newsId)
         .execAsync();
 
       resUtil.sendJson(constants.HTTP_SUCCESS, '', { commentInfo: JSON.stringify(commentInfo) });
