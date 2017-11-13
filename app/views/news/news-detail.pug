@@ -10,13 +10,14 @@ block content
         span.time.sr-only= pageInfo.createdAt
         span 迈德科技
       .d-block!= pageInfo.context
+    .row.news-share: .col
+      //p: button.btn 分享
+      p 分享好友，还能获得积分哦
       p.info
         span 浏览数：#{pageInfo.pv}
         button(class=pageInfo.ifThumb ? 'thumb' : '', @click= 'thumbUp'): i.fa.fa-thumbs-o-up
         span 点赞数：#{pageInfo.thumbUp}
-    .row.news-share: .col.text-center
-      //p: button.btn 分享
-      p 分享好友，还能获得积分哦
+
     .discuss
       .row.edit-bar
         p.col.text-right: a(href="#commentArea", data-toggle="collapse") 写评论&nbsp;
