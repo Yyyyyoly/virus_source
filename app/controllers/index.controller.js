@@ -397,12 +397,15 @@ exports.renderDetails = (req, res, next) => {
   const mainFunction = async () => {
     try {
       // 折现图数据
-      const lineChart = await getLineChartInfoByType(userId, type, 5);
+      // const lineChart = await getLineChartInfoByType(userId, type, 5);
 
       // 排行榜数据
-      const rankList = await getRankListByType(type, 1, userId);
+      // const rankList = await getRankListByType(type, 1, userId);
 
-      httpUtil.render('index/count', { lineChart, rankList });
+      httpUtil.render('index/count', {
+        // lineChart,
+        // rankList,
+      });
     } catch (err) {
       next(err);
     }
