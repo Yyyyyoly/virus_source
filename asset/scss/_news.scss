@@ -116,6 +116,9 @@ $green: #01d491;
 
       &.thumb {
         color: $green;
+        span {
+          color: #979797;
+        }
       }
     }
     span {
