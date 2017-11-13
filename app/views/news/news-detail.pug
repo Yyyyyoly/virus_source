@@ -116,7 +116,7 @@ block script
           // 用户确认分享后执行的回调函数
           $.post('/news/share/#{pageInfo.newsId}', {
             shareId: '#{shareLink.split('?')[1].split('=')[1]}'
-          },function () {
+          },function (data) {
             if (data && data.errCode === 200) {
               alert('分享成功!')
             }
