@@ -12,7 +12,7 @@ let option = {
   },
   grid: {
     top: '3%',
-    left: '3%',
+    left: '-4%',
     right: '4%',
     bottom: '3%',
     containLabel: true
@@ -40,6 +40,7 @@ let option = {
   ],
   yAxis: [
     {
+      show: false,
       type: 'value',
       axisLine: {
         lineStyle: {

@@ -1,5 +1,7 @@
 extends ../layout/base
 
+block attributes
+  - title = '文章浏览用户数'
 
 block title
   title #{title}
@@ -7,7 +9,7 @@ block content
   .container.index
     .row.chart: .col
       .dropdown.text-center
-        button.btn.dropdown-toggle 近一周
+        button.btn 近一周趋势
         //button.btn.dropdown-toggle(type="button", id="date", data-toggle="dropdown") 近一周
         //.dropdown-menu
           a.dropdown-item 近一月
@@ -15,7 +17,7 @@ block content
       div#chart
     .row.article-title
       .col.text-center
-        p 热门文章排行
+        p 平台热门文章排行
         button.btn 当日
         button.btn.non-active 累计
 
