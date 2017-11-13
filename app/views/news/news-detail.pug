@@ -16,6 +16,7 @@ block content
     .row.news-thumb: .col
       p.info
         span 浏览数：#{pageInfo.pv}
+      p.info
         button(class=pageInfo.ifThumb ? 'thumb' : '', @click= 'thumbUp'): i.fa.fa-thumbs-o-up
         span 点赞数：#{pageInfo.thumbUp}
 
