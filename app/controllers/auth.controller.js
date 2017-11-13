@@ -251,7 +251,7 @@ exports.getWeChatJsConfig = req => new Promise(((resolve) => {
     } else {
       // 获取config
       const wxConfig = {
-        debug: true,
+        debug: false,
         jsApiList: [
           'onMenuShareTimeline',
           'onMenuShareAppMessage',
