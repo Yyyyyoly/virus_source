@@ -508,7 +508,7 @@ exports.shareNewsById = (req, res) => {
 
 // 文章点赞
 exports.thumbUpNewsById = (req, res) => {
-  const newsId = parseInt(req.body.newsId, 0) || 0;
+  const newsId = parseInt(req.query.newsId, 0) || 0;
   const resUtil = new HttpSend(req, res);
   const userId = req.session.user ? req.session.user.userId : '';
 
