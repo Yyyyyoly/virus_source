@@ -13,6 +13,7 @@ block content
     .row.news-share: .col
       //p: button.btn 分享
       p 分享好友，还能获得积分哦
+    .row.news-thumb: .col
       p.info
         span 浏览数：#{pageInfo.pv}
         button(class=pageInfo.ifThumb ? 'thumb' : '', @click= 'thumbUp'): i.fa.fa-thumbs-o-up
