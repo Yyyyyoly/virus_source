@@ -39,7 +39,7 @@ block content
           .col
             p.user-id.small= comment.userName
             p.content= comment.comment
-    div #{pageInfo.userId}
+    div #{JSON.stringify(pageInfo)}
 
   include ../layout/navbar-bottom
 
