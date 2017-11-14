@@ -248,37 +248,29 @@ exports.isFromWeChat = (req) => {
 
 // 调用微信JS-SDK时的注入
 exports.getWeChatJsConfig = req => new Promise(((resolve) => {
-  // 获取ticket
-  baseApi.getTicket((err, data) => {
-    if (err || !data) {
-      console.log('get ticket err');
+  // 获取config
+  const wxConfig = {
+    debug: false,
+    jsApiList: [
+      'onMenuShareTimeline',
+      'onMenuShareAppMessage',
+      'onMenuShareQQ',
+      'onMenuShareWeibo',
+      'onMenuShareQZone',
+    ],
+    url: url.format({
+      port: config.serverPort,
+      protocol: req.protocol,
+      host: req.hostname,
+      pathname: req.originalUrl,
+    }),
+  };
+  baseApi.getJsConfig(wxConfig, (error, result) => {
+    if (error || !result) {
+      console.log('get js config err');
       resolve({});
-    } else {
-      // 获取config
-      const wxConfig = {
-        debug: false,
-        jsApiList: [
-          'onMenuShareTimeline',
-          'onMenuShareAppMessage',
-          'onMenuShareQQ',
-          'onMenuShareWeibo',
-          'onMenuShareQZone',
-        ],
-        url: url.format({
-          port: config.serverPort,
-          protocol: req.protocol,
-          host: req.hostname,
-          pathname: req.originalUrl,
-        }),
-      };
-      baseApi.getJsConfig(wxConfig, (error, result) => {
-        if (err || !result) {
-          console.log('get js config err');
-          resolve({});
-        }
-        resolve(result);
-      });
     }
+    resolve(result);
   });
 }));
 
