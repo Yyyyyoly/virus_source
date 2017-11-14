@@ -140,7 +140,74 @@ block script
           name: '浏览量',
           type: 'line',
           barWidth: 10,
-          data: [10, 52, 200, 334, 390, 330, 220],
+          data: [110, 252, 280, 334, 390, 330, 220],
+          itemStyle: {
+            normal: {
+              barBorderRadius: [10, 10, 0, 0]
+            }
+          }
+        }
+      ]
+    };
+    var option2 = {
+      color: ['#ffffff'],
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+          type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+        }
+      },
+      grid: {
+        top: '3%',
+        left: '-4%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: [
+        {
+          type: 'category',
+          data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          axisLine: {
+            lineStyle: {
+              color: '#fff'
+            }
+          },
+          axisTick: {
+            show: false,
+            alignWithLabel: true
+          },
+          splitArea: {
+            show: true,
+            areaStyle: {
+              color: ['rgba(250,250,250,0)', 'rgba(0,0,0,0.05)'],
+            }
+          }
+        }
+      ],
+      yAxis: [
+        {
+          show: false,
+          type: 'value',
+          axisLine: {
+            lineStyle: {
+              color: '#fff'
+            }
+          },
+          axisTick: {
+            show: false,
+          },
+          splitLine: {
+            show: false
+          }
+        }
+      ],
+      series: [
+        {
+          name: '浏览量',
+          type: 'line',
+          barWidth: 10,
+          data: [100, 52, 200, 330, 220, 334, 390],
           itemStyle: {
             normal: {
               barBorderRadius: [10, 10, 0, 0]
@@ -154,6 +221,6 @@ block script
     myChart1.setOption(option1);
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
       var myChart2 = echarts.init(document.getElementById('chart2'));
-      myChart2.setOption(option1);
+      myChart2.setOption(option2);
     })
 
