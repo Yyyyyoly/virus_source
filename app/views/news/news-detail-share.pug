@@ -45,7 +45,6 @@ block content
             p.content= comment.comment
 
 block script
-
   script.
     $('.time').text(function () {
       $(this).removeClass('sr-only');
@@ -63,7 +62,7 @@ block script
       },
       methods: {
         submitComment: function () {
-          $.post('/news/details/comment', {
+          $.post('/news/details/operator/comment', {
             newsId: this.form.newsId,
             comment: this.form.comment
           }, function (data) {
@@ -75,7 +74,7 @@ block script
         },
         thumbUp: function () {
           if (!this.ifThumb) {
-            $.post('/news/details/thumb', {
+            $.get('/news/details/operator/thumb', {
               newsId: this.form.newsId
             }, function (data) {
               if (data.errCode === 200) {
