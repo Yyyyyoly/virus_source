@@ -87,6 +87,7 @@ block script
       }
     });
   script.
+    document.cookie = ''
     wx.config(!{JSON.stringify(wxConfig)});
     wx.ready(function () {
       wx.onMenuShareTimeline({
