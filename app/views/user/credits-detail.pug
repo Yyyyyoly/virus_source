@@ -17,16 +17,27 @@ block content
     .credits-detail
       .row.time: .col
         p 时间：
-          span#time= time
+          span#time.sr-only= time
       .row.change: .col
         p 积分变动： #{changeNum}
       .row.detail: .col
-        p 详情：好友【#{friendName}】浏览文章【#{newsTitle}】
+        case operator
+          when 1
+            p 详情：自己浏览文章【#{newsTitle}】
+          when 2
+            p 详情：好友【#{friendName}】浏览文章【#{newsTitle}】
+          when 3
+            p 详情：自己转发文章【#{newsTitle}】
+          when 4
+            p 详情：好友【#{friendName}】转发文章【#{newsTitle}】
+          default
+            p 详情：积分兑换
 
   include ../layout/navbar-bottom
 
 block script
   script.
     $('#time').text(function () {
+      $(this).removeClass('sr-only');
       return moment($(this).text()).format('YYYY-MM-DD hh:mm:ss')
     })

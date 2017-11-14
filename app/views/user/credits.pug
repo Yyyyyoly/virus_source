@@ -39,7 +39,7 @@ block content
             tbody
               for log in logLists
                 tr
-                  td(nowrap): a.time(href="/user/bonusPoint/idLog?recordId="+log.recordId)= log.time
+                  td(nowrap): a.time.sr-only(href="/user/bonusPoint/idLog?recordId="+log.recordId)= log.time
                   td: a(href="/user/bonusPoint/idLog?recordId="+log.recordId)= log.changeNum
                   td: a(href="/user/bonusPoint/idLog?recordId="+log.recordId)= operators[log.operator]+(log.operatorResult?'':operatorResults[log.operatorResult])
 
