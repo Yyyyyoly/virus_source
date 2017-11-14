@@ -83,8 +83,11 @@ $green: #01d491;
     }
   }
   .index-tab {
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    background-color: $green;
     .nav {
-      background-color: $green;
+      font-size: 1.2rem;
       justify-content: center;
     }
     .nav-tabs {
@@ -92,7 +95,7 @@ $green: #01d491;
       margin: 0;
       border: none;
       .nav-item {
-        width: 30%;
+        width: 8rem;
         margin: 0;
         .nav-link {
           line-height: 2rem;
@@ -107,10 +110,10 @@ $green: #01d491;
             &:before {
               content: '';
               position: absolute;
-              bottom: .4rem;
+              bottom: 0;
               background-color: #fff;
               height: .3rem;
-              width: 4rem;
+              width: 4.8rem;
               border-radius: .5rem;
             }
           }
