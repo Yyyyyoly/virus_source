@@ -1,0 +1,27 @@
+extends ../layout/base
+
+block attributes
+
+block title
+  title #{title}
+block content
+  .container.index
+    .row.commission
+      .col
+        h5.text-center 我的积分
+        p.text-center
+          span.money= commissionNum.toFixed(2)
+          span.money-text
+          a.btn.btn-sm(href='/user/commission/withdraw') 兑换
+
+    .row.strategy
+      .col
+        h5.text-center 推广攻略
+        p 您只需要把文章分享出去，他人阅读就能收到积分，积分可兑换商品！
+        p 无额外费用，多劳多得，上不封顶！
+    .row.share
+      .col
+        button.btn.btn-block.btn-lg 立刻去分享文章
+
+
+  include ../layout/navbar-bottom

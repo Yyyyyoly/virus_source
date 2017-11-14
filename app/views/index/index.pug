@@ -6,44 +6,154 @@ block title
   title #{title}
 block content
   .container.index
-    .row.commission
-      .col
-        h5.text-center 我的佣金
-        p.text-center
-          span.money= commissionNum.toFixed(2)
-          span.money-text 元
-          a.btn.btn-sm(href='/user/commission/withdraw') 提现
-    .row.main
-      .col.text-center
-        a(href='/home/strategy'): p &emsp;推广攻略？
-        a(href='/home/details/1')
-          i.fa.fa-bar-chart.fa-3x
-          p 每日数据
-    .count.text-center
-      .row: .col-12
-        h3#now_date
-      .row
-        .col.count-block
-          p 浏览文章用户数
-          p= datas.newsView.uvNews
-        .col.count-block
-          p 浏览文章次数
-          p= datas.newsView.pvNews
-      .row
-        .col.count-block
-          p 浏览商品用户数
-          p= datas.productView.uvProducts
-        .col.count-block
-          p 浏览商品次数
-          p= datas.productView.pvProducts
-      .row
-        .col.count-block
-          p 下单用户数
-          p= datas.purchaseRecord.userNum
-        .col.count-block
-          p 下单数
-          p= datas.purchaseRecord.orderNum
+    .row.index-tab
+      ul.nav.nav-tabs.col.text-center
+        li.nav-item
+          a(class="nav-link active" id="credits-tab" data-toggle="tab" href="#credits" role="tab" aria-controls="credits" aria-selected="true") 我的积分
+        li.nav-item
+          a(class="nav-link" id="commission-tab" data-toggle="tab" href="#commission" role="tab" aria-controls="commission" aria-selected="false") 我的佣金
+
+    .tab-content
+      .tab-pane.fade.show.active(id="credits" role="tabpanel" aria-labelledby="credits-tab")
+        .row.commission
+          .col
+            a(href='/home/strategy/point'): p 推广攻略？
+            p.text-center
+              span.money= commissionNum
+              span.money-text
+              a.btn.btn-sm(href='/user/commission/withdraw') 兑换
+            .clearfix
+        .count
+          .row.d-block
+            .chart.text-center
+              p 近一周趋势
+              div#chart1
+              p 浏览文章用户数
+          .row: .col-12
+            hr
+            p
+              span 每日数据&emsp;
+              span.now_date
+          .row
+            .col.count-block
+              p 浏览文章用户数
+              p= datas.newsView.uvNews
+            .col.count-block
+              p 浏览文章次数
+              p= datas.newsView.pvNews
+      .tab-pane.fade(id="commission" role="tabpanel" aria-labelledby="commission-tab")
+        .row.commission
+          .col
+            a(href='/home/strategy/commission'): p 推广攻略？
+            p.text-center
+              span.money= commissionNum.toFixed(2)
+              span.money-text 元
+              a.btn.btn-sm(href='/user/commission/withdraw') 提现
+        .count
+          .row.d-block.text-center
+            .chart.col-12
+              p 近一周趋势
+              div#chart2
+              p 下单数
+          .row: .col-12
+            hr
+            p
+              span 每日数据&emsp;
+              span.now_date
+          .row
+            .col.count-block
+              p 浏览商品用户数
+              p= datas.productView.uvProducts
+            .col.count-block
+              p 浏览商品次数
+              p= datas.productView.pvProducts
+          .row
+            .col.count-block
+              p 下单用户数
+              p= datas.purchaseRecord.userNum
+            .col.count-block
+              p 下单数
+              p= datas.purchaseRecord.orderNum
 
   include ../layout/navbar-bottom
 
 block script
+  script.
+    /* eslint-disable */
+
+    $('#chart1, #chart2').height(150);
+    var option1 = {
+      color: ['#ffffff'],
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+          type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+        }
+      },
+      grid: {
+        top: '3%',
+        left: '-4%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: [
+        {
+          type: 'category',
+          data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          axisLine: {
+            lineStyle: {
+              color: '#fff'
+            }
+          },
+          axisTick: {
+            show: false,
+            alignWithLabel: true
+          },
+          splitArea: {
+            show: true,
+            areaStyle: {
+              color: ['rgba(250,250,250,0)', 'rgba(0,0,0,0.05)'],
+            }
+          }
+        }
+      ],
+      yAxis: [
+        {
+          show: false,
+          type: 'value',
+          axisLine: {
+            lineStyle: {
+              color: '#fff'
+            }
+          },
+          axisTick: {
+            show: false,
+          },
+          splitLine: {
+            show: false
+          }
+        }
+      ],
+      series: [
+        {
+          name: '浏览量',
+          type: 'line',
+          barWidth: 10,
+          data: [10, 52, 200, 334, 390, 330, 220],
+          itemStyle: {
+            normal: {
+              barBorderRadius: [10, 10, 0, 0]
+            }
+          }
+        }
+      ]
+    };
+
+    var myChart1 = echarts.init(document.getElementById('chart1'));
+    myChart1.setOption(option1);
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+      var myChart2 = echarts.init(document.getElementById('chart2'));
+      myChart2.setOption(option1);
+    })
+

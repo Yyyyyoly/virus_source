@@ -15,7 +15,7 @@ $.ajaxSetup({
 
 let now = moment();
 let now_date = moment().format('YYYY-MM-DD');
-$('#now_date').text(now_date);
+$('.now_date').text(now_date);
 
 $("a[href='/user/commission/withdraw'],a[href='/mall'],a[href='/user/advice']").click(function (e) {
   e.preventDefault();

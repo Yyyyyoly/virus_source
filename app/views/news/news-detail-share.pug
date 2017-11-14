@@ -44,8 +44,6 @@ block content
             p.user-id.small= comment.userName
             p.content= comment.comment
 
-  include ../layout/navbar-bottom
-
 block script
 
   script.
@@ -65,7 +63,7 @@ block script
       },
       methods: {
         submitComment: function () {
-          $.post('/news/details/operator/comment', {
+          $.post('/news/details/comment', {
             newsId: this.form.newsId,
             comment: this.form.comment
           }, function (data) {
@@ -77,7 +75,7 @@ block script
         },
         thumbUp: function () {
           if (!this.ifThumb) {
-            $.get('/news/details/operator/thumb', {
+            $.post('/news/details/thumb', {
               newsId: this.form.newsId
             }, function (data) {
               if (data.errCode === 200) {
