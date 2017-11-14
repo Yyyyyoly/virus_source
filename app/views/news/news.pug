@@ -55,7 +55,7 @@ block script
       },
       methods: {
         timeFormat: function (e) {
-          return moment(e).format('YYYY-MM-DD hh:mm')
+          return moment.parseZone(e).format('YYYY-MM-DD hh:mm')
         },
         chooseOrder: function (e) {
           this.active.order = e;

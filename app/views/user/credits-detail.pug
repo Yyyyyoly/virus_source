@@ -39,5 +39,5 @@ block script
   script.
     $('#time').text(function () {
       $(this).removeClass('sr-only');
-      return moment($(this).text()).format('YYYY-MM-DD hh:mm:ss')
+      return moment.parseZone($(this).text()).format('YYYY-MM-DD hh:mm:ss')
     })

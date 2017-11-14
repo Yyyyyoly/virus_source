@@ -68,11 +68,11 @@ block script
       },
       methods: {
         timeFormat: function (e) {
-          return moment(e).format('YYYY-MM-DD')
+          return moment.parseZone(e).format('YYYY-MM-DD')
         },
         selectDate: function () {
           $.get('/user/bonusPoint/dayLog/json', {
-            date: moment(vm.dateSelect).format('YYYYMMDD'),
+            date: moment.parseZone(vm.dateSelect).format('YYYYMMDD'),
             page: 1
           }, function (data) {
             if (data) {
