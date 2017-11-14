@@ -6,7 +6,7 @@ module.exports = {
 
   // mysql config
   mysqlConfig: {
-    host: 'rm-2ze62b8v9ox9m35k7o.mysql.rds.aliyuncs.com',
+    host: 'rm-2ze62b8v9ox9m35k7.mysql.rds.aliyuncs.com',
     port: 3306,
     database: 'virus_source_app',
     username: 'virus_source',

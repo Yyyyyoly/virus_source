@@ -177,7 +177,9 @@ exports.weChatCodeGet = (req, res) => {
           res.end(error);
         }
 
-        req.query.unionId = userInfo.unionid || '';
+        // req.query.unionId = userInfo.unionid || '';
+        // 先把openid代替unionid，正式上线必须换回来！！！！！
+        req.query.unionId = userInfo.openid || '';
         req.query.openId = userInfo.openid || '';
         req.query.userName = userInfo.nickname || '';
         req.query.sex = userInfo.sex || 1;
