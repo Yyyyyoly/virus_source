@@ -11,6 +11,8 @@ router.get('/weChat/code', authController.weChatCodeGet);
 router.get('/weChat/bind', authController.checkSignature);
 // 微信底部菜单增加接口
 router.post('/weChat/menuCreate', authController.menuCreate);
+// 微信底部菜单删除
+router.post('/weChat/menuDelete', authController.menuDelete);
 
 // 获取七牛云上传token的接口
 router.get('/qiNiuToken', authController.isLogin, authController.getQiNiuToken);

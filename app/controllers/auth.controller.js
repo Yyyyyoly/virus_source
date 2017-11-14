@@ -251,7 +251,6 @@ exports.getWeChatJsConfig = req => new Promise(((resolve) => {
       'onMenuShareQZone',
     ],
     url: url.format({
-      port: config.serverPort,
       protocol: req.protocol,
       host: req.hostname,
       pathname: req.originalUrl,
@@ -282,23 +281,34 @@ exports.menuCreate = (req, res) => {
           {
             name: '热文资讯',
             type: 'view',
-            url: `${config.serverHost}:${config.serverPort}/news`,
+            url: `${config.serverHost}/news`,
           },
           {
             name: '健康商城',
             type: 'view',
-            url: `${config.serverHost}:${config.serverPort}/mall`,
+            url: `${config.serverHost}/mall`,
           },
         ],
       },
       {
         name: '个人中心',
         type: 'view',
-        url: `${config.serverHost}:${config.serverPort}/user`,
+        url: `${config.serverHost}/user`,
       },
     ],
   };
   baseApi.createMenu(menu, (err, result) => {
+    if (err || result.errcode) {
+      resUtil.sendJson(constants.HTTP_FAIL, err || result.errmsg);
+    } else {
+      resUtil.sendJson(constants.HTTP_SUCCESS, err || result.errmsg);
+    }
+  });
+};
+
+exports.menuDelete = (req, res) => {
+  const resUtil = new HttpSend(req, res);
+  baseApi.removeMenu((err, result) => {
     if (err || result.errcode) {
       resUtil.sendJson(constants.HTTP_FAIL, err || result.errmsg);
     } else {
