@@ -24,7 +24,7 @@ block content
               th(nowrap) 积分变动
               th(nowrap) 详情
           tbody
-            tr(v-for="log in data.logLists")
+            tr(v-for="log in data.logLists", :key="log.time")
               td(nowrap): a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{timeFormat(log.time)}}
               td: a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{log.changeNum}}
               td: a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{operators[log.operator]+(log.operatorResult?'':operatorResults[log.operatorResult])}}
