@@ -250,11 +250,11 @@ exports.getWeChatJsConfig = req => new Promise(((resolve) => {
       'onMenuShareWeibo',
       'onMenuShareQZone',
     ],
-    url: url.format({
+    url: decodeURIComponent(url.format({
       protocol: req.protocol,
       host: req.hostname,
       pathname: req.originalUrl,
-    }),
+    })),
   };
   baseApi.getJsConfig(wxConfig, (error, result) => {
     if (error || !result) {
