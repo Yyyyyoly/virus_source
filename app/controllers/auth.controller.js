@@ -227,9 +227,6 @@ exports.isLogin = (req, res, next) => {
     host: req.hostname,
     pathname: req.originalUrl,
   });
-  console.log('=====================');
-  console.log(req.session.originalUrl);
-  console.log('=====================');
   req.session.originalUrl = originalUrl;
 
   if (!userInfo || !userInfo.userId) {
