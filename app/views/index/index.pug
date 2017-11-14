@@ -19,7 +19,7 @@ block content
           .col
             a(href='/home/strategy/point'): p 推广攻略？
             p.text-center
-              span.money= commissionNum
+              span.money= pointNum
               span.money-text
               a.btn.btn-sm(href='/user/commission/withdraw') 兑换
             .clearfix
@@ -81,7 +81,7 @@ block script
   script.
     /* eslint-disable */
 
-    $('#chart1, #chart2').height(150);
+    $('#chart1, #chart2').height(100);
     var option1 = {
       color: ['#ffffff'],
       tooltip: {
