@@ -46,5 +46,5 @@ block script
     $('.time').text(function () {
       let a = new Date($(this).text());
       $(this).removeClass('sr-only');
-      return moment.parseZone(a).format('YYYY-MM-DD hh:mm')
+      return moment.parseZone(a).format('YYYY-MM-DD HH:mm')
     })

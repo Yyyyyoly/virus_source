@@ -51,7 +51,7 @@ block script
   script.
     $('.time').text(function () {
       $(this).removeClass('sr-only');
-      return moment.parseZone(new Date($(this).text())).format('YYYY-MM-DD hh:mm')
+      return moment.parseZone(new Date($(this).text())).format('YYYY-MM-DD HH:mm')
     })
 
     var vm = new Vue({
