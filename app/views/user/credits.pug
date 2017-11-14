@@ -39,9 +39,9 @@ block content
             tbody
               for log in logLists
                 tr
-                  td(nowrap): a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId").time= log.time
-                  td: a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId")= log.changeNum
-                  td: a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId")= operators[log.operator]+(log.operatorResult?'':operatorResults[log.operatorResult])
+                  td(nowrap): a(href="/user/bonusPoint/idLog?recordId=#{log.recordId}").time= log.time
+                  td: a(href="/user/bonusPoint/idLog?recordId=#{log.recordId}")= log.changeNum
+                  td: a(href="/user/bonusPoint/idLog?recordId=#{log.recordId}")= operators[log.operator]+(log.operatorResult?'':operatorResults[log.operatorResult])
 
 
   include ../layout/navbar-bottom
@@ -50,7 +50,7 @@ block script
   script.
     $('.time').text(function () {
       $(this).removeClass('sr-only');
-      return moment($(this).text()).format('YYYY-MM-DD')
+      return moment(new Date($(this).text())).format('YYYY-MM-DD')
     })
 
     $('#showAll').attr('href','/user/bonusPoint/dayLog/render?'+'date='+moment().format('YYYYMMDD')+'&page='+'1')
