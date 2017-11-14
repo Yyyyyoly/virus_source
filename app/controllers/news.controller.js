@@ -18,7 +18,7 @@ exports.getPVAndThumpById = async (newsId) => {
   ]);
 
   return {
-    pvNum: pvNum || 0,
+    pvNum: Math.round(pvNum) || 0,
     thumbUpNum: thumbUpNum || 0,
     commentNum: commentNum || 0,
   };
