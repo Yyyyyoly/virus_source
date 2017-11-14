@@ -239,6 +239,7 @@ const bonusPointDetailsByDay = async (userId, date, page, limit) => {
         viewerId: userId,
         createdAt: { $gte: startDate, $lte: endDate },
       },
+      order: [['createdAt', 'DESC']],
       offset: (page - 1) * limit,
       limit,
     });
