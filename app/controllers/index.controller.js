@@ -5,6 +5,20 @@ const constants = require('../../config/constants');
 const moment = require('moment');
 const Model = require('../models/index');
 
+// 处理一下zrange的返回值，改成对象
+const formatZrangeReturn = (list) => {
+  if (list.constructor !== Array || list.length === 0) {
+    return {};
+  }
+
+  const max = list.length;
+  const formatObject = {};
+  for (let i = 0; i < max; i += 2) {
+    formatObject[list[i]] = list[i + 1];
+  }
+  return formatObject;
+};
+
 // 查询每日数据总量统计
 const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
   // 查询指定日期浏览文章的uv\pv
@@ -60,87 +74,6 @@ const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
   return { newsView, productView, purchaseRecord };
 };
 
-// 首页
-exports.index = (req, res, next) => {
-  const userId = req.session.user.userId || '';
-  const httpUtil = new HttpSend(req, res);
-  if (!userId) {
-    const error = new Error('请先登录');
-    next(error);
-    return;
-  }
-
-  const mainFunction = async () => {
-    try {
-      // 查询用户的佣金总额
-      const commissionKey = redisUtil.getRedisPrefix(6);
-      let commissionNum = await redisClient.hgetAsync(commissionKey, userId);
-      commissionNum = parseInt(commissionNum, 0) || 0;
-
-      const datas = await dataStatistics(userId);
-      httpUtil.render('index/index', { title: '首页', commissionNum, datas });
-    } catch (err) {
-      console.log(err);
-      next(err);
-    }
-  };
-
-  mainFunction();
-};
-
-// 首页 策略显示页面
-exports.renderStrategy = (req, res, next) => {
-  const userId = req.session.user ? req.session.user.userId : '';
-  const httpUtil = new HttpSend(req, res);
-
-  if (!userId) {
-    const err = new Error('请先去登录');
-    next(err);
-    return;
-  }
-
-  const mainFunction = async () => {
-    try {
-      // 查询用户的佣金总额
-      const commissionKey = redisUtil.getRedisPrefix(6);
-      let commissionNum = await redisClient.hgetAsync(commissionKey, userId);
-      commissionNum = parseInt(commissionNum, 0) || 0;
-
-      httpUtil.render('index/strategy', { title: '推广攻略', commissionNum });
-    } catch (err) {
-      console.log(err);
-      next(err);
-    }
-  };
-
-  mainFunction();
-};
-
-// 首页 获取每日数据汇总
-exports.getDailyData = (req, res) => {
-  const userId = req.session.user.userId || '';
-  const date = req.query.date || moment().format('YYYYMMDD');
-  const resUtil = new HttpSend(req, res);
-
-  if (!userId) {
-    resUtil.sendJson(constants.HTTP_FAIL, '请先登录');
-    return;
-  }
-
-  const mainFunction = async () => {
-    try {
-      const datas = await dataStatistics(userId, date);
-
-      resUtil.sendJson(constants.HTTP_SUCCESS, '', datas);
-    } catch (err) {
-      console.log(err);
-      resUtil.sendJson(constants.HTTP_FAIL, '系统出错');
-    }
-  };
-
-  mainFunction();
-};
-
 // 获取折线图数据
 const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
   try {
@@ -194,7 +127,7 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
       recordList = await mysqlModel.findAll({
         attributes: [
           [Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%m%d'), 'date'],
-          [Model.sequelize.fn('COUNT', Model.sequelize.col('id')), 'num'],
+          [Model.sequelize.fn('COUNT', 1), 'num'],
         ],
         where: {
           shareId: userId,
@@ -217,47 +150,6 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
   } catch (err) {
     throw err;
   }
-};
-
-// 获取折线图json数据
-exports.getLineChart = (req, res) => {
-  const days = parseInt(req.query.days, 0) || 5;
-  const type = parseInt(req.query.type, 0) || 0;
-  const userId = req.session.user ? req.session.user.userId : '';
-  const resUtil = new HttpSend(req, res);
-
-  if (days <= 0 || !type || !userId) {
-    resUtil.sendJson(constants.HTTP_FAIL, '参数错误');
-    return;
-  }
-
-  const mainFunction = async () => {
-    try {
-      // 获取折线图
-      const dataList = await getLineChartInfoByType(userId, type, days);
-
-      resUtil.sendJson(constants.HTTP_SUCCESS, '', { dataList });
-    } catch (err) {
-      console.log(err);
-      resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
-    }
-  };
-
-  mainFunction();
-};
-
-// 处理一下zrange的返回值，改成对象
-const formatZrangeReturn = (list) => {
-  if (list.constructor !== Array || list.length === 0) {
-    return {};
-  }
-
-  const max = list.length;
-  const formatObject = {};
-  for (let i = 0; i < max; i += 2) {
-    formatObject[list[i]] = list[i + 1];
-  }
-  return formatObject;
 };
 
 // 获排行榜数据
@@ -356,6 +248,156 @@ const getRankListByType = async (type, page, userId) => {
   return mainFunction();
 };
 
+// 首页
+exports.index = (req, res, next) => {
+  const userId = req.session.user.userId || '';
+  const httpUtil = new HttpSend(req, res);
+
+  if (!userId) {
+    const error = new Error('请先登录');
+    next(error);
+    return;
+  }
+
+  const mainFunction = async () => {
+    try {
+      const commissionKey = redisUtil.getRedisPrefix(6);
+      const pointKey = redisUtil.getRedisPrefix(18);
+
+      const [commissionNum, pointNum, datas, lineChartPoint, lineChartCommission] =
+        await Promise.all([
+          redisClient.hgetAsync(commissionKey, userId), // 查询用户的佣金总额
+          redisClient.hgetAsync(pointKey, userId), // 查询用户的佣金总额
+          dataStatistics(userId), // 查询统计数据
+          getLineChartInfoByType(userId, 1, 7), // 查询uv折线图
+          getLineChartInfoByType(userId, 6, 7), // 查询下单数
+        ]);
+
+      httpUtil.render('index/index', {
+        title: '首页',
+        commissionNum: parseInt(commissionNum, 0) || 0,
+        pointNum: parseInt(pointNum, 0) || 0,
+        datas,
+        lineChartPoint,
+        lineChartCommission,
+      });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  };
+
+  mainFunction();
+};
+
+// 首页 积分策略显示页面
+exports.renderStrategyPoint = (req, res, next) => {
+  const userId = req.session.user ? req.session.user.userId : '';
+  const httpUtil = new HttpSend(req, res);
+
+  if (!userId) {
+    const err = new Error('请先去登录');
+    next(err);
+    return;
+  }
+
+  const mainFunction = async () => {
+    try {
+      // 查询用户的佣金总额
+      const bonusKey = redisUtil.getRedisPrefix(18);
+      let pointNum = await redisClient.hgetAsync(bonusKey, userId);
+      pointNum = parseInt(pointNum, 0) || 0;
+
+      httpUtil.render('index/strategy-news', { title: '积分推广攻略', commissionNum: pointNum });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  };
+
+  mainFunction();
+};
+
+// 首页 佣金策略显示页面
+exports.renderStrategyCommission = (req, res, next) => {
+  const userId = req.session.user ? req.session.user.userId : '';
+  const httpUtil = new HttpSend(req, res);
+
+  if (!userId) {
+    const err = new Error('请先去登录');
+    next(err);
+    return;
+  }
+
+  const mainFunction = async () => {
+    try {
+      // 查询用户的佣金总额
+      const commissionKey = redisUtil.getRedisPrefix(6);
+      let commissionNum = await redisClient.hgetAsync(commissionKey, userId);
+      commissionNum = parseInt(commissionNum, 0) || 0;
+
+      httpUtil.render('index/strategy-goods', { title: '佣金推广攻略', commissionNum });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  };
+
+  mainFunction();
+};
+
+// 首页 获取每日数据汇总
+exports.getDailyData = (req, res) => {
+  const userId = req.session.user.userId || '';
+  const date = req.query.date || moment().format('YYYYMMDD');
+  const resUtil = new HttpSend(req, res);
+
+  if (!userId) {
+    resUtil.sendJson(constants.HTTP_FAIL, '请先登录');
+    return;
+  }
+
+  const mainFunction = async () => {
+    try {
+      const datas = await dataStatistics(userId, date);
+
+      resUtil.sendJson(constants.HTTP_SUCCESS, '', datas);
+    } catch (err) {
+      console.log(err);
+      resUtil.sendJson(constants.HTTP_FAIL, '系统出错');
+    }
+  };
+
+  mainFunction();
+};
+
+// 获取折线图json数据
+exports.getLineChart = (req, res) => {
+  const days = parseInt(req.query.days, 0) || 5;
+  const type = parseInt(req.query.type, 0) || 0;
+  const userId = req.session.user ? req.session.user.userId : '';
+  const resUtil = new HttpSend(req, res);
+
+  if (days <= 0 || !type || !userId) {
+    resUtil.sendJson(constants.HTTP_FAIL, '参数错误');
+    return;
+  }
+
+  const mainFunction = async () => {
+    try {
+      // 获取折线图
+      const dataList = await getLineChartInfoByType(userId, type, days);
+
+      resUtil.sendJson(constants.HTTP_SUCCESS, '', { dataList });
+    } catch (err) {
+      console.log(err);
+      resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
+    }
+  };
+
+  mainFunction();
+};
+
 // 获取排行列表数据
 exports.getRankList = (req, res) => {
   const type = parseInt(req.query.type, 0) || 0;
@@ -397,14 +439,13 @@ exports.renderDetails = (req, res, next) => {
   const mainFunction = async () => {
     try {
       // 折现图数据
-      // const lineChart = await getLineChartInfoByType(userId, type, 5);
+      const lineChart = await getLineChartInfoByType(userId, type, 5);
 
       // 排行榜数据
-      // const rankList = await getRankListByType(type, 1, userId);
-
+      const rankList = await getRankListByType(type, 1, userId);
       httpUtil.render('index/count', {
-        // lineChart,
-        // rankList,
+        lineChart,
+        rankList,
       });
     } catch (err) {
       next(err);

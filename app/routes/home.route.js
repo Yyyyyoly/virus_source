@@ -9,7 +9,8 @@ router.get('/details/:type', authController.isLogin, homeController.renderDetail
 router.get('/rankListDetails', authController.isLogin, homeController.getRankList);
 router.get('/lineChartDetails', authController.isLogin, homeController.getLineChart);
 
-router.get('/strategy', authController.isLogin, homeController.renderStrategy);
+router.get('/strategy/point', authController.isLogin, homeController.renderStrategyPoint);
+router.get('/strategy/commission', authController.isLogin, homeController.renderStrategyCommission);
 
 module.exports = function (app) {
   app.use(prefix, router);
