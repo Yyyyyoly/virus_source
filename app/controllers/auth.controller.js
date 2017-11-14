@@ -214,11 +214,11 @@ exports.isLogin = (req, res, next) => {
   const userInfo = req.session.user || {};
 
   // 记载用户的起始url，方便登录/注册后跳转
-  const originalUrl = url.format({
+  const originalUrl = decodeURIComponent(url.format({
     protocol: req.protocol,
     host: req.hostname,
     pathname: req.originalUrl,
-  });
+  }));
   req.session.originalUrl = originalUrl;
 
   if (!userInfo || !userInfo.userId) {
