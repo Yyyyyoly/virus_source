@@ -12,15 +12,16 @@ block attributes
     var operatorResults = {
     0: '（审核中）',
     1: '已完成'
-    }
+    };
 
 block title
   title #{title}
 block content
   .container.user: .credits-page
-    .row.credits
-      .col
+    .credits
+      .row: .col.bg-light
         p.rule-button: a 积分规则?
+      .row: .col.text-light
         h2.num.text-center= pointNum
         p.sub-text.text-center 可用积分
     .credits-list
@@ -34,15 +35,15 @@ block content
             thead
               tr
                 th 时间
-                th 积分变动
-                th 详情
+                th.text-right 积分变动
             tbody
               for log in logLists
                 tr
-                  td(nowrap): a.time.sr-only(href="/user/bonusPoint/idLog?recordId="+log.recordId)= log.time
-                  td: a(href="/user/bonusPoint/idLog?recordId="+log.recordId)= log.changeNum
-                  td: a(href="/user/bonusPoint/idLog?recordId="+log.recordId)= operators[log.operator]+(log.operatorResult?'':operatorResults[log.operatorResult])
-
+                  td(nowrap): a(href="/user/bonusPoint/idLog?recordId=" + log.recordId)= operators[log.operator]+(log.operatorResult?'':operatorResults[log.operatorResult])
+                    small.d-block.time.sr-only= log.time
+                  td.text-right: a(class= log.operator!==5?'add':'sub', href="/user/bonusPoint/idLog?recordId="+log.recordId)= log.changeNum
+      else
+        .no-data 无数据
 
   include ../layout/navbar-bottom
 

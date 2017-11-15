@@ -1,5 +1,6 @@
 extends ../layout/base
 
+block attributes
 block stylesheet
   //link(href="https://cdn.bootcss.com/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker3.min.css", rel="stylesheet")
 
@@ -9,27 +10,30 @@ block title
 block content
   .container.user: .credits-page#credistsList(v-cloak)
     .row.credits-info
-      .col
+      .col-12.bg-light
         p.rule-button 积分规则
           span: label {{dateSelect}}
             input#datePicker.sr-only(type='date', v-model='dateSelect')
-        P.add 当天新增： + {{data.incrSum}}
-        p.withdraw 当天提现： -  {{data.decrSum}}
+      .col-12.text-light
+        P.add 当天新增：
+          span +
+          |{{data.incrSum}}
+        p.withdraw 当天兑换：
+          span -
+          |{{data.decrSum}}
     .credits-list(v-if='data.logLists.length !== 0')
       .row
         table.table
           thead
             tr
               th(nowrap) 时间
-              th(nowrap) 积分变动
-              th(nowrap) 详情
+              th(nowrap).text-right 积分变动
           tbody
             tr(v-for="log in data.logLists", :key="log.time")
-              td(nowrap): a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{timeFormat(log.time)}}
-              td: a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{log.changeNum}}
               td: a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{operators[log.operator]+(log.operatorResult?'':operatorResults[log.operatorResult])}}
-    .no-data(v-else)
-      h1.info 无数据
+                small.d-block {{timeFormat(log.time)}}
+              td.text-right: a(:class="log.operator!==5?'add':'sub'", :href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{log.changeNum}}
+    .no-data(v-else) 无数据
 
   include ../layout/navbar-bottom
 
