@@ -46,33 +46,30 @@ $green: #01d491;
   }
   .commission-page {
     .commission {
-      color: #666666;
-
-      p {
-        margin-bottom: 0;
-        .money {
-          color: #ff6600;
-          font-size: 3rem;
-        }
-        .money-text {
-          position: absolute;
-          bottom: .8rem;
-        }
-        .btn {
-          background-color: $green;
-          color: #fff;
-          position: absolute;
-          bottom: .8rem;
-          right: 15px;
-          padding: 0 10px;
-          border-radius: 30px;
-        }
+      .text-light {
+        padding: .5rem;
+      }
+      .rule-button {
+        margin-top: .7rem;
+        margin-bottom: .7rem;
+      }
+      .money {
+        font-size: 3rem;
+        padding-top: 1rem;
+        margin: 0;
+      }
+      .money-text {
+        font-size: 1rem;
+      }
+      .sub-text {
+        margin: 0;
+        font-size: .8rem;
+        padding-bottom: 1rem;
       }
     }
     .commission-list {
       .row {
         background-color: #fff;
-        margin-bottom: 1px;
         p {
           margin-bottom: .5rem;
           margin-top: .5rem;
@@ -88,6 +85,14 @@ $green: #01d491;
           }
         }
       }
+    }
+    .no-data {
+      color: #999;
+      font-size: 2rem;
+      font-weight: 700;
+      padding-top: 4rem;
+      text-align: center;
+      text-shadow: 0.4rem 0.4rem 0.1rem #fff;
     }
   }
   .strategy {
@@ -214,8 +219,6 @@ $green: #01d491;
             }
           }
         }
-
-
       }
     }
     .no-data {

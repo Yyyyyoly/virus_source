@@ -1,4 +1,5 @@
 $green: #01d491;
+$orange: #f9b900;
 
 html {
   font-size: 14px;
@@ -45,4 +46,25 @@ a, a:visited, a:hover, a:visited {
 
 .bottom-fix {
   height: 60px;
+}
+
+.orange-text {
+  color: $orange!important;
+}
+.orange-bg {
+  background-color: $orange!important;
+}
+.orange-active {
+  .active {
+    color: $orange!important;
+    &:before {
+      background-color: $orange!important;
+    }
+  }
+}
+.green-text {
+  color: $green!important;
+}
+.green-bg {
+  background-color: $green!important;
 }

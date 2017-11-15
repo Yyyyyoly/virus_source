@@ -17,27 +17,28 @@ block attributes
 block title
   title #{title}
 block content
-  .container.user
-    .commission-page
-      .row.commission
-        .col
-          h5.text-center 我的佣金
-          p.text-center
-            span.money= commissionNum.toFixed(2)
-            span.money-text 元
-            a.btn.btn-sm(href='/user/commission/withdraw') 提现
-      .row.strategy
-        .col.text-center
-          a(href='/home/strategy/commission'): p &emsp;推广攻略？
+  .container.user: .commission-page
+      .commission
+        .row: .col.bg-light
+          p.rule-button: a.orange-text 佣金规则?
+        .row: .col.text-light.text-center.orange-bg
+            h2.money= commissionNum.toFixed(2)
+              small.money-text 元
+            p.sub-text.text-center 可用佣金
+            //a.btn.btn-sm.orange-text(href='/user/commission/withdraw') 提现
       .commission-list
         .row: .col
           p 收支明细
-        for list in logLists
-          .row: .col
-            p.article= operators[list.operator]
-              span.time.sr-only= list.time
-            p 余额： #{list.totalNum}
-              span= list.changeNum
+            //span: a#showAll 查看全部
+        if logLists.length == 0
+          for list in logLists
+            .row: .col
+              p.article= operators[list.operator]
+                span.time.sr-only= list.time
+              p 余额： #{list.totalNum}
+                span= list.changeNum
+        else
+          .no-data 无数据
 
   include ../layout/navbar-bottom
 

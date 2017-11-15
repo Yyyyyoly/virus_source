@@ -10,27 +10,27 @@ block content
       ul.nav.nav-tabs.col.text-center
         li.nav-item
           a(class="nav-link active" id="credits-tab" data-toggle="tab" href="#credits" role="tab" aria-controls="credits" aria-selected="true") 我的积分
-        li.nav-item
+        li.nav-item.orange-active
           a(class="nav-link" id="commission-tab" data-toggle="tab" href="#commission" role="tab" aria-controls="commission" aria-selected="false") 我的佣金
 
     .tab-content
       .tab-pane.fade.show.active(id="credits" role="tabpanel" aria-labelledby="credits-tab")
         .row.commission
           .col
-            a(href='/home/strategy/point'): p 推广攻略？
+            a.green-text(href='/home/strategy/point'): p 推广攻略？
             p.text-center
               a.btn.btn-sm(href='/user/commission/withdraw') 兑换
               span.money= pointNum
               span.money-text
             p.text-center: small.sub-text 可用积分
             .clearfix
-        .count
+        .count.text-center
           .row.d-block
-            .chart.text-center
+            .chart
               p 近一周趋势
               div#chart1
               p 浏览文章用户数
-          .row.text-center
+          .row
             .col-12.count-title
               p.text-center
                 span 每日数据&emsp;
@@ -44,15 +44,15 @@ block content
       .tab-pane.fade(id="commission" role="tabpanel" aria-labelledby="commission-tab")
         .row.commission
           .col
-            a(href='/home/strategy/commission'): p 推广攻略？
+            a.orange-text(href='/home/strategy/commission'): p 推广攻略？
             p.text-center
               span.money= commissionNum.toFixed(2)
               span.money-text 元
-              a.btn.btn-sm(href='/user/commission/withdraw') 提现
+              a.btn.btn-sm.orange-bg(href='/user/commission/withdraw') 提现
             p.text-center: small.sub-text 可用佣金
-        .count
-          .row.d-block.text-center
-            .chart.col-12
+        .count.text-center
+          .row.d-block
+            .chart.col-12.orange-bg
               p 近一周趋势
               div#chart2
               p 下单数
