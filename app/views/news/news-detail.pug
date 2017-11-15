@@ -50,7 +50,7 @@ block script
     var vm = new Vue({
       el: '#newsDetailPage',
       data: {
-        pageInfo: !{JSON.stringify(pageInfo)},
+        pageInfo: !{JSON.parse(JSON.stringify(pageInfo))},
         form: {
           newsId: this.pageInfo.newsId,
           comment: ''
