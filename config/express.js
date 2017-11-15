@@ -38,12 +38,12 @@ module.exports = function () {
     secret: config.sessionSecret,
     store: new RedisStore(config.redisConfig), // 利用redis存储session
   }));
-  // app.use(csurf({ cookie: true }));
-  //
-  // // csrf
-  // require('../app/routes/csrf.route')(app);
-  // // flash
-  // require('../app/routes/flash.route')(app);
+  app.use(csurf({ cookie: true }));
+
+  // csrf
+  require('../app/routes/csrf.route')(app);
+  // flash
+  require('../app/routes/flash.route')(app);
 
   // always last, but before user middleware.
   app.use(express.static(path.join(__dirname, '../public/')));

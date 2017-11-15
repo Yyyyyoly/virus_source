@@ -1,16 +1,16 @@
 module.exports = {
   // production configuration options
   serverPort: 9000,
-  serverHost: 'http://localhost',
+  serverHost: 'http://share.medsci-tech.com',
   sessionSecret: 'xsm_production_secret',
 
   // mysql config
   mysqlConfig: {
     host: 'rm-2ze62b8v9ox9m35k7.mysql.rds.aliyuncs.com',
     port: 3306,
-    database: 'virus_source_app',
-    username: 'virus_source',
-    password: 'virus_source_123$%^',
+    database: 't_virus_source',
+    username: 't_virus_source',
+    password: 'test_123',
   },
 
   // redis config
