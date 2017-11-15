@@ -272,7 +272,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     /** *****************************如果第一次浏览该新闻，增加浏览者积分日志************************************* */
     if (userPvNum === 1 && pointNum > 0) {
       const bonusKey = redisUtil.getRedisPrefix(18);
-      const totalPoint = globalClient.hincrbyAsync(bonusKey, viewerInfo.userId, pointNum);
+      const totalPoint = await globalClient.hincrbyAsync(bonusKey, viewerInfo.userId, pointNum);
       await Model.PointRecord.create({
         viewerId: viewerInfo.userId,
         shareId: shareInfo.shareId || null,
@@ -288,8 +288,8 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     if (shareInfo.shareId && shareUserId !== viewerInfo.userId &&
       userNewPVNum === 1 && otherPointNum > 0
     ) {
-      const bonusKey = redisUtil.getRedisPrefix(18);
-      const totalPoint = globalClient.hincrbyAsync(bonusKey, shareInfo.shareId, otherPointNum);
+      const key = redisUtil.getRedisPrefix(18);
+      const totalPoint = await globalClient.hincrbyAsync(key, shareInfo.shareId, otherPointNum);
       await Model.PointRecord.create({
         viewerId: shareInfo.shareId,
         shareId: viewerInfo.userId,
@@ -461,7 +461,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     /** *****************************如果第一次转发该文章，增加该转发者积分日志************************************* */
     if (userTransmitNum === 1 && pointNum > 0) {
       const bonusKey = redisUtil.getRedisPrefix(18);
-      const totalPoint = globalClient.hincrbyAsync(bonusKey, viewerInfo.userId, pointNum);
+      const totalPoint = await globalClient.hincrbyAsync(bonusKey, viewerInfo.userId, pointNum);
       await Model.PointRecord.create({
         viewerId: viewerInfo.userId,
         shareId: shareInfo.shareId,
@@ -477,8 +477,8 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     if (shareInfo.shareId && shareUserId !== viewerInfo.userId &&
       userNewTransmitNum === 1 && otherPointNum > 0
     ) {
-      const bonusKey = redisUtil.getRedisPrefix(18);
-      const totalPoint = globalClient.hincrbyAsync(bonusKey, shareInfo.shareId, otherPointNum);
+      const key = redisUtil.getRedisPrefix(18);
+      const totalPoint = await globalClient.hincrbyAsync(key, shareInfo.shareId, otherPointNum);
       await Model.PointRecord.create({
         viewerId: shareInfo.shareId,
         shareId: viewerInfo.userId,

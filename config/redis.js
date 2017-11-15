@@ -16,7 +16,7 @@ module.exports = function (type) {
     redisConfig.db = 2;
   } else if (parseInt(type, 0) === 3) {
     redisConfig.db = 3;
-  }else {
+  } else {
     redisConfig.db = 0;
   }
 
