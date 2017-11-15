@@ -192,16 +192,18 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
     sharePhone: '',
   };
   if (shareInfo.shareId) {
-    const data = await Model.User.findOne({ where: { userId: shareUserId } });
-    if (!data || !data.dataValues) {
-      shareInfo.shareId = '';
+    if (shareInfo.shareId === viewerInfo.userId) {
+      shareInfo.shareName = viewerInfo.userName;
+      shareInfo.shareOpenId = viewerInfo.openId;
     } else {
-      shareInfo.shareName = data.dataValues.userName;
-      shareInfo.shareOpenId = data.dataValues.openId;
+      const data = await Model.User.findOne({ where: { userId: shareInfo.shareId } });
+      if (!data || !data.dataValues) {
+        shareInfo.shareId = '';
+      } else {
+        shareInfo.shareName = data.dataValues.userName;
+        shareInfo.shareOpenId = data.dataValues.openId;
+      }
     }
-  } else if (shareUserId === viewerInfo.userId) {
-    shareInfo.shareName = viewerInfo.userName;
-    shareInfo.shareOpenId = viewerInfo.openId;
   }
 
   Model.sequelize.transaction(async (transaction) => {

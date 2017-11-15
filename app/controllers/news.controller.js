@@ -171,20 +171,22 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     sharePhone: '',
   };
   if (shareInfo.shareId) {
-    const data = await Model.User.findOne({ where: { userId: shareUserId } });
-    if (!data || !data.dataValues) {
-      shareInfo.shareId = '';
+    if (shareInfo.shareId === viewerInfo.userId) {
+      shareInfo.shareName = viewerInfo.userName;
+      shareInfo.shareOpenId = viewerInfo.openId;
     } else {
-      shareInfo.shareName = data.dataValues.userName;
-      shareInfo.shareOpenId = data.dataValues.openId;
+      const data = await Model.User.findOne({ where: { userId: shareInfo.shareId } });
+      if (!data || !data.dataValues) {
+        shareInfo.shareId = '';
+      } else {
+        shareInfo.shareName = data.dataValues.userName;
+        shareInfo.shareOpenId = data.dataValues.openId;
+      }
     }
-  } else if (shareUserId === viewerInfo.userId) {
-    shareInfo.shareName = viewerInfo.userName;
-    shareInfo.shareOpenId = viewerInfo.openId;
   }
 
   // 查询操作对应的积分数量
-  const operateType = shareInfo.shareId ? 2 : 1;
+  const operateType = shareInfo.shareId && shareInfo.shareId !== viewerInfo.userId ? 2 : 1;
   const pointInfo = await Model.BonusPoint.findOne({ where: { id: operateType } });
   const pointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.pointNum : 0;
 
@@ -382,20 +384,22 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   };
 
   if (shareInfo.shareId) {
-    const data = await Model.User.findOne({ where: { userId: shareUserId } });
-    if (!data || !data.dataValues) {
-      shareInfo.shareId = '';
+    if (shareInfo.shareId === viewerInfo.userId) {
+      shareInfo.shareName = viewerInfo.userName;
+      shareInfo.shareOpenId = viewerInfo.openId;
     } else {
-      shareInfo.shareName = data.dataValues.userName;
-      shareInfo.shareOpenId = data.dataValues.openId;
+      const data = await Model.User.findOne({ where: { userId: shareInfo.shareId } });
+      if (!data || !data.dataValues) {
+        shareInfo.shareId = '';
+      } else {
+        shareInfo.shareName = data.dataValues.userName;
+        shareInfo.shareOpenId = data.dataValues.openId;
+      }
     }
-  } else if (shareUserId === viewerInfo.userId) {
-    shareInfo.shareName = viewerInfo.userName;
-    shareInfo.shareOpenId = viewerInfo.openId;
   }
 
   // 查询操作对应的积分数量
-  const operateType = shareInfo.shareId ? 4 : 3;
+  const operateType = shareInfo.shareId && shareInfo.shareId !== viewerInfo.userId ? 4 : 3;
   const pointInfo = await Model.BonusPoint.findOne({ where: { id: operateType } });
   const pointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.pointNum : 0;
 
