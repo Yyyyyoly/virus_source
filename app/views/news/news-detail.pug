@@ -36,7 +36,7 @@ block content
       .row: .col
         hr(style='margin-top: 0')
 
-      .row.discuss-block(v-for="comment in pageInfo.commentList")
+      .row.discuss-block(v-for="comment in JSON.parse(pageInfo.commentList)")
         .icon: img.img-fluid(:src='comment.headImgUrl')
         .col
           p.user-id.small {{comment.userName}}
@@ -54,7 +54,7 @@ block script
         form: {
           newsId: '#{pageInfo.newsId}',
           comment: ''
-        },
+        }
       },
       methods: {
         timeFormat: function (e) {
@@ -67,7 +67,7 @@ block script
           }, function (data) {
             if (data.errCode === 200) {
               alert('提交成功！');
-              vm.pageInfo.commentList.unshift(data.params.commentInfo)
+              vm.pageInfo.commentList = JSON.parse(data.params.commentList)
             }
           }, 'json')
         },
