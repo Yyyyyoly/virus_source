@@ -400,6 +400,6 @@ exports.giveAdvice = (req, res) => {
     resUtils.sendJson(constants.HTTP_SUCCESS);
   }).catch((err) => {
     console.log(err);
-    resUtils.sendJson(constants.HTTP_FAIL, '参数错误系统错误');
+    resUtils.sendJson(constants.HTTP_FAIL, '系统错误');
   });
 };

@@ -263,6 +263,21 @@ exports.getWeChatJsConfig = req => new Promise(((resolve) => {
   });
 }));
 
+
+// 分享好友，生成二维码
+exports.getQrCodePage = (req, res, next) => {
+  const httpUtil = new HttpSend(req, res);
+  baseApi.createTmpQRCode(1, 86400, (err, data) => {
+    if (err) {
+      console.log(err);
+      next(err);
+    } else {
+      httpUtil.render('index', { title: '分享给好友', qrCode: data });
+    }
+  });
+};
+
+
 // 微信 增加底部菜单
 exports.menuCreate = (req, res) => {
   const resUtil = new HttpSend(req, res);
