@@ -50,7 +50,7 @@ block script
   script.
     $('.time').text(function () {
       $(this).removeClass('sr-only');
-      return moment.parseZone(new Date($(this).text())).format('YYYY-MM-DD')
+      return moment.parseZone(new Date($(this).text())).format('YYYY-MM-DD HH:mm')
     })
 
     $('#showAll').attr('href','/user/bonusPoint/dayLog/render?'+'date='+moment.parseZone().format('YYYYMMDD')+'&page='+'1')

@@ -7,14 +7,14 @@ block content
   .container.news#newsDetailPage(v-cloak)
     .row.news-detail: .col
       p.info
-        span.time.sr-only= pageInfo.createdAt
+        span {{timeFormat(pageInfo.createdAt)}}
         span 迈德科技
-      .d-block!= pageInfo.context
+      .d-block {{{pageInfo.context}}}
       p.info
-        span 浏览数：#{pageInfo.pv}
-        button(class=pageInfo.ifThumb ? 'thumb' : '', @click= 'thumbUp')
+        span 浏览数：{{pageInfo.pv}}
+        button(:class="pageInfo.ifThumb ? 'thumb' : ''", @click= 'thumbUp')
           i.fa.fa-thumbs-o-up
-          span &ensp;点赞数：#{pageInfo.thumbUp}
+          span &ensp;点赞数：{{pageInfo.thumbUp}}
     .row.news-share: .col.text-center
       //p: button.btn 分享
       p
@@ -25,45 +25,41 @@ block content
       .row#commentArea.collapse
         form.col
           .form-group.sr-only
-            label(for= newsId)
-            input.form-control(v-model= 'form.newsId', id= newsId, value= pageInfo.newsId)
+            label
+            input.form-control(v-model= 'form.newsId', :value='pageInfo.newsId')
           .form-group
-            label.sr-only(for= comment )
-            textarea.form-control(v-model= 'form.comment', id= comment, rows= 3)
+            label.sr-only
+            textarea.form-control(v-model= 'form.comment', rows= 3)
           button.btn.btn-outline-secondary.btn-sm.float-right(@click= 'submitComment', type= 'button', style='margin-bottom:1rem') 提交
           .clearfix
 
       .row: .col
         hr(style='margin-top: 0')
 
-      for comment in pageInfo.commentList
-        - comment = JSON.parse(comment);
-        .row.discuss-block
-          .icon: img.img-fluid(src= comment.headImgUrl)
-          .col
-            p.user-id.small= comment.userName
-            p.content= comment.comment
+      .row.discuss-block(v-for="comment in pageInfo.commentList")
+        .icon: img.img-fluid(:src='comment.headImgUrl')
+        .col
+          p.user-id.small {{comment.userName}}
+          p.content {{comment.comment}}
 
   include ../layout/navbar-bottom
 
 block script
 
   script.
-    $('.time').text(function () {
-      $(this).removeClass('sr-only');
-      return moment.parseZone(new Date($(this).text())).format('YYYY-MM-DD HH:mm')
-    })
-
     var vm = new Vue({
       el: '#newsDetailPage',
       data: {
+        pageInfo: !{JSON.stringify(pageInfo)},
         form: {
-          newsId: #{pageInfo.newsId},
+          newsId: this.pageInfo.newsId,
           comment: ''
         },
-        ifThumb: #{pageInfo.ifThumb}
       },
       methods: {
+        timeFormat: function (e) {
+          return moment.parseZone(e).format('YYYY-MM-DD HH:mm')
+        },
         submitComment: function () {
           $.post('/news/details/operator/comment', {
             newsId: this.form.newsId,
@@ -71,7 +67,7 @@ block script
           }, function (data) {
             if (data.errCode === 200) {
               alert('提交成功！');
-              window.history.go(0);
+              vm.pageInfo.commentList.unshift(data.params.commentInfo)
             }
           }, 'json')
         },
@@ -81,7 +77,8 @@ block script
               newsId: this.form.newsId
             }, function (data) {
               if (data.errCode === 200) {
-                window.history.go(0);
+                vm.pageInfo.ifThumb = true;
+                vm.pageInfo.thumbUp = data.params.newThumbUpNum;
               }
             }, 'json')
           }
@@ -100,7 +97,7 @@ block script
           $.post('/news/share/#{pageInfo.newsId}', {
             shareId: '#{shareUid}'
           }, function (data) {
-            if(data && data.errCode === 200){
+            if (data && data.errCode === 200) {
               alert('分享成功!')
             }
           }, 'json')
@@ -120,7 +117,7 @@ block script
           // 用户确认分享后执行的回调函数
           $.post('/news/share/#{pageInfo.newsId}', {
             shareId: '#{shareUid}'
-          },function (data) {
+          }, function (data) {
             if (data && data.errCode === 200) {
               alert('分享成功!')
             }
