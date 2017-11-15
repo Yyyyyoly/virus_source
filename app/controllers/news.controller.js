@@ -339,7 +339,12 @@ exports.getNewsDetailById = (req, res, next) => {
 
       // 查询评论列表
       const commentListKey = redisUtil.getRedisPrefix(14, newsId);
-      const commentList = await redisClient.lrangeAsync(commentListKey, 0, -1);
+      const commentInfos = await redisClient.lrangeAsync(commentListKey, 0, -1);
+      const commentLength = commentInfos.length;
+      const commentList = [];
+      for (let i = 0; i < commentLength; i += 1) {
+        commentList.push(JSON.parse(commentInfos[i]));
+      }
 
       const pageInfo = {
         newsId: newsInfo.dataValues.newsId,
@@ -578,7 +583,12 @@ exports.commentNewsById = (req, res) => {
         .execAsync();
 
       // 查询评论列表
-      const commentList = await redisClient.lrangeAsync(rangeKey, 0, -1);
+      const commentInfos = await redisClient.lrangeAsync(rangeKey, 0, -1);
+      const commentLength = commentInfos.length;
+      const commentList = [];
+      for (let i = 0; i < commentLength; i += 1) {
+        commentList.push(JSON.parse(commentInfos[i]));
+      }
       resUtil.sendJson(constants.HTTP_SUCCESS, '', { commentList });
     } catch (err) {
       console.log(err);
