@@ -50,11 +50,7 @@ block script
     var vm = new Vue({
       el: '#newsDetailPage',
       data: {
-        pageInfo: function(){
-          let pageInfo = !{JSON.stringify(pageInfo)};
-          pageInfo.commentList = JSON.parse(pageInfo.commentList);
-          return pageInfo;
-        },
+        pageInfo: !{JSON.stringify(pageInfo)},
         form: {
           newsId: '#{pageInfo.newsId}',
           comment: ''
@@ -71,7 +67,7 @@ block script
           }, function (data) {
             if (data.errCode === 200) {
               alert('提交成功！');
-              vm.pageInfo.commentList = JSON.parse(data.params.commentList)
+              vm.pageInfo.commentList = data.params.commentList
             }
           }, 'json')
         },
