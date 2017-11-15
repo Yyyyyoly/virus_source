@@ -81,6 +81,9 @@ exports.getRedisPrefix = (type, id = '') => {
       break;
 
 
+    case 996:
+      redisKey = `${constants.REDIS_PREFIX}|weChat|qrcode_ticket`; // wechat全局存储用户生成临时二维码的ticket
+      break;
     case 997:
       redisKey = `${constants.REDIS_PREFIX}|weChat|basic_token`; // wechat全局存储获得基础信息token
       break;

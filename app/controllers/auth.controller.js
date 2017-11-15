@@ -266,15 +266,29 @@ exports.getWeChatJsConfig = req => new Promise(((resolve) => {
 
 // 分享好友，生成二维码
 exports.getQrCodePage = (req, res, next) => {
+  const userId = req.session.user.userId || '';
   const httpUtil = new HttpSend(req, res);
-  baseApi.createTmpQRCode(1, 86400, (err, data) => {
-    if (err) {
-      console.log(err);
-      next(err);
+
+  const mainFunction = async () => {
+    const ticketKey = redisUtil.getRedisPrefix(996);
+    const ticket = await tokenRedis.hgetAsync(ticketKey, userId);
+    if (!ticket) {
+      baseApi.createTmpQRCode(1, 86400, (err, data) => {
+        if (err) {
+          console.log(err);
+          next(err);
+        } else {
+          tokenRedis.hsetAsync(ticketKey, userId, data.ticket);
+          const qrCodeUrl = baseApi.showQRCodeURL(data.ticket);
+          httpUtil.render('index', { title: '分享给好友', qrCodeUrl });
+        }
+      });
     } else {
-      httpUtil.render('index', { title: '分享给好友', qrCode: data });
+      const qrCodeUrl = baseApi.showQRCodeURL(ticket);
+      httpUtil.render('index', { title: '分享给好友', qrCodeUrl });
     }
-  });
+  };
+  mainFunction();
 };
 
 

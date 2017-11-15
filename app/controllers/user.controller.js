@@ -3,7 +3,7 @@ const verifyCon = require('./verify.controller');
 const HttpSend = require('../utils/http.util');
 const Model = require('../models/index');
 const redisClient = require('../../config/redis')(1);
-const globalClient = require('../../config/redis')(1);
+const globalClient = require('../../config/redis')(3);
 const redisUtil = require('../utils/redis.util');
 const moment = require('moment');
 
