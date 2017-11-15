@@ -1,24 +1,23 @@
 module.exports = {
   // development configuration options
   serverPort: 3000,
-  serverHost: 'http://share.medsci-tech.com',
-  // serverHost: 'http://localhost',
+  serverHost: 'http://localhost',
   sessionSecret: 'xsm_development_secret',
 
   // mysql config
   mysqlConfig: {
-    host: 'rm-2ze62b8v9ox9m35k7.mysql.rds.aliyuncs.com',
+    host: '127.0.0.1',
     port: 3306,
-    database: 't_virus_source',
-    username: 't_virus_source',
-    password: 'test_123',
+    database: 'virus_source_app',
+    username: 'root',
+    password: 'root',
   },
 
   // redis config
   redisConfig: {
-    host: 'r-2zebafe77a6fd114.redis.rds.aliyuncs.com',
+    host: '127.0.0.1',
     port: '6379',
-    password: 'xuLU5900',
+    password: 'root',
     ttl: 1800,
     logErrors: true,
   },
