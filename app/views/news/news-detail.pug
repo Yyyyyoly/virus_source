@@ -36,7 +36,7 @@ block content
       .row: .col
         hr(style='margin-top: 0')
 
-      .row.discuss-block(v-for="comment in JSON.parse(pageInfo.commentList)")
+      .row.discuss-block(v-for="comment in pageInfo.commentList")
         .icon: img.img-fluid(:src='comment.headImgUrl')
         .col
           p.user-id.small {{comment.userName}}
@@ -50,7 +50,11 @@ block script
     var vm = new Vue({
       el: '#newsDetailPage',
       data: {
-        pageInfo: !{JSON.stringify(pageInfo)},
+        pageInfo: function(){
+          let pageInfo = !{JSON.stringify(pageInfo)};
+          pageInfo.commentList = JSON.parse(pageInfo.commentList);
+          return pageInfo;
+        },
         form: {
           newsId: '#{pageInfo.newsId}',
           comment: ''
