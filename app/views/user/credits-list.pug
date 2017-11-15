@@ -11,7 +11,7 @@ block content
   .container.user: .credits-page#credistsList(v-cloak)
     .row.credits-info
       .col-12.bg-light
-        p.rule-button 积分规则
+        p.rule-button: a 积分规则?
           span: label {{dateSelect}}
             input#datePicker.sr-only(type='date', v-model='dateSelect')
       .col-12.text-light

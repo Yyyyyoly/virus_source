@@ -105,6 +105,7 @@ $green: #01d491;
       .rule-button {
         color: $green;
         margin-top: .7rem;
+        margin-bottom: .7rem;
       }
       .num {
         font-size: 3rem;
@@ -122,7 +123,7 @@ $green: #01d491;
         background: $green;
       }
       .rule-button {
-        font-size: 1rem;
+        color: $green;
         margin-top: .7rem;
         margin-bottom: .7rem;
         span {
