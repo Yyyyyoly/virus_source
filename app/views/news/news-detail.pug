@@ -9,7 +9,7 @@ block content
       p.info
         span {{timeFormat(pageInfo.createdAt)}}
         span 迈德科技
-      .d-block {{{pageInfo.context}}}
+      .d-block(v-html='pageInfo.context')
       p.info
         span 浏览数：{{pageInfo.pv}}
         button(:class="pageInfo.ifThumb ? 'thumb' : ''", @click= 'thumbUp')
