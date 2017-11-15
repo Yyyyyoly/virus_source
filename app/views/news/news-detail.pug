@@ -78,7 +78,7 @@ block script
             }, function (data) {
               if (data.errCode === 200) {
                 vm.pageInfo.ifThumb = true;
-                vm.pageInfo.thumbUp = data.params.newThumbUpNum;
+                vm.pageInfo.thumbUp = JSON.parse(data.params.newThumbUpNum);
               }
             }, 'json')
           }
