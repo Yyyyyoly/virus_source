@@ -3,6 +3,7 @@ const verifyCon = require('./verify.controller');
 const HttpSend = require('../utils/http.util');
 const Model = require('../models/index');
 const redisClient = require('../../config/redis')(1);
+const globalClient = require('../../config/redis')(1);
 const redisUtil = require('../utils/redis.util');
 const moment = require('moment');
 
@@ -67,7 +68,7 @@ exports.commissionDetails = (req, res, next) => {
     try {
       // 查询佣金总额
       const commissionKey = redisUtil.getRedisPrefix(6);
-      const commissionNum = await redisClient.hgetAsync(commissionKey, userId) || 0;
+      const commissionNum = await globalClient.hgetAsync(commissionKey, userId) || 0;
 
       // 查询佣金明细日志
       const logInfos = await Model.Commission.findAll({ where: { shareId: userId } });
@@ -104,7 +105,7 @@ exports.withdrawPage = (req, res, next) => {
   }
 
   const commissionKey = redisUtil.getRedisPrefix(6);
-  redisClient.hget(commissionKey, userId).then((commissionNum) => {
+  globalClient.hget(commissionKey, userId).then((commissionNum) => {
     httpUtil.render('user/withdraw', { commissionNum });
   });
 };
@@ -134,7 +135,7 @@ exports.withdraw = (req, res) => {
     try {
       // 查询佣金总额
       const commissionKey = redisUtil.getRedisPrefix(6);
-      const commissionNum = await redisClient.hgetAsync(commissionKey, userId);
+      const commissionNum = await globalClient.hgetAsync(commissionKey, userId);
 
       if (changeNum <= 0 || changeNum > commissionNum) {
         resUtil.sendJson(constants.HTTP_FAIL, '提现金额不正确，请重新输入');
@@ -194,7 +195,7 @@ exports.bonusPointDetails = (req, res, next) => {
     try {
       // 查询积分总额
       const pointKey = redisUtil.getRedisPrefix(18);
-      const pointNum = await redisClient.hgetAsync(pointKey, userId);
+      const pointNum = await globalClient.hgetAsync(pointKey, userId);
 
       // 查询积分明细日志
       const logInfos = await Model.PointRecord.findAll({

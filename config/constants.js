@@ -1,4 +1,7 @@
 const constants = {
+  // redis key前缀，更换项目时修改，保证不要和之前的重复
+  REDIS_PREFIX: 'med',
+
   // api const
   HTTP_FAIL: 500,
   HTTP_SUCCESS: 200,

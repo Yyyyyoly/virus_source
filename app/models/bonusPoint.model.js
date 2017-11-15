@@ -7,8 +7,10 @@ module.exports = function (sequelize, DataTypes) {
     // 操作说明 ：
     // 1.自己浏览 2.下级浏览 3.自己转发 4.下级转发
     operator: { type: DataTypes.STRING, allowNull: false },
-    // 操作对应积分
-    pointNum: { type: DataTypes.FLOAT, allowNull: false },
+    // 操作人对应增加积分
+    pointNum: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    // 分享人对应增加积分
+    otherPointNum: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
   }, {
     timestamps: false,
     paranoid: false,

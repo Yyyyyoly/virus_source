@@ -1,10 +1,12 @@
 const constants = require('../../config/constants');
 const redisClient = require('../../config/redis')(1);
+const globalClient = require('../../config/redis')(3);
 const redisUtil = require('../utils/redis.util');
 const Model = require('../models/index');
 const HttpSend = require('../utils/http.util');
 const moment = require('moment');
 const config = require('../../config/config');
+const globalController = require('./global.controller');
 
 // 根据资讯id  查询点赞总数、浏览总数、评论总数
 exports.getPVAndThumpById = async (newsId) => {
@@ -189,6 +191,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   const operateType = shareInfo.shareId && shareInfo.shareId !== viewerInfo.userId ? 2 : 1;
   const pointInfo = await Model.BonusPoint.findOne({ where: { id: operateType } });
   const pointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.pointNum : 0;
+  const otherPointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.otherPointNum : 0;
 
   Model.sequelize.transaction(async (transaction) => {
     /** *****************************记录资讯浏览日志**************************************** */
@@ -268,8 +271,8 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
 
     /** *****************************如果第一次浏览该新闻，增加浏览者积分日志************************************* */
     if (userPvNum === 1 && pointNum > 0) {
-      const bonusPointKey = redisUtil.getRedisPrefix(18);
-      const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, viewerInfo.userId, pointNum);
+      const bonusKey = redisUtil.getRedisPrefix(18);
+      const totalPoint = globalClient.hincrbyAsync(bonusKey, viewerInfo.userId, pointNum);
       await Model.PointRecord.create({
         viewerId: viewerInfo.userId,
         shareId: shareInfo.shareId || null,
@@ -283,10 +286,10 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
 
     /** ******************如果有分享者(且非自己)，且被分享人第一次点入该链接，增加分享者积分日志******************** */
     if (shareInfo.shareId && shareUserId !== viewerInfo.userId &&
-      userNewPVNum === 1 && pointNum > 0
+      userNewPVNum === 1 && otherPointNum > 0
     ) {
-      const bonusPointKey = redisUtil.getRedisPrefix(18);
-      const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, shareInfo.shareId, pointNum);
+      const bonusKey = redisUtil.getRedisPrefix(18);
+      const totalPoint = globalClient.hincrbyAsync(bonusKey, shareInfo.shareId, otherPointNum);
       await Model.PointRecord.create({
         viewerId: shareInfo.shareId,
         shareId: viewerInfo.userId,
@@ -296,6 +299,13 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         newsId: newsInfo.newsId,
         proofId: pvNewsInfo.dataValues.id,
       }, { transaction });
+    }
+  }).then(() => {
+    if (pointNum > 0) {
+      globalController.addGlobalPoint(viewerInfo.userId, pointNum);
+    }
+    if (otherPointNum > 0) {
+      globalController.addGlobalPoint(shareUserId, otherPointNum);
     }
   }).catch((err) => {
     // Rolled back
@@ -342,7 +352,7 @@ exports.getNewsDetailById = (req, res, next) => {
       const commentInfos = await redisClient.lrangeAsync(commentListKey, 0, -1);
       const commentLength = commentInfos.length;
       const commentList = [];
-      for (let i = 0; i < commentLength; i += 1) {
+      for (let i = (commentLength - 1); i >= 0; i -= 1) {
         commentList.push(JSON.parse(commentInfos[i]));
       }
 
@@ -407,6 +417,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   const operateType = shareInfo.shareId && shareInfo.shareId !== viewerInfo.userId ? 4 : 3;
   const pointInfo = await Model.BonusPoint.findOne({ where: { id: operateType } });
   const pointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.pointNum : 0;
+  const otherPointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.otherPointNum : 0;
 
   Model.sequelize.transaction(async (transaction) => {
     /** *****************************记录资讯转发日志**************************************** */
@@ -449,8 +460,8 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
 
     /** *****************************如果第一次转发该文章，增加该转发者积分日志************************************* */
     if (userTransmitNum === 1 && pointNum > 0) {
-      const bonusPointKey = redisUtil.getRedisPrefix(18);
-      const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, viewerInfo.userId, pointNum);
+      const bonusKey = redisUtil.getRedisPrefix(18);
+      const totalPoint = globalClient.hincrbyAsync(bonusKey, viewerInfo.userId, pointNum);
       await Model.PointRecord.create({
         viewerId: viewerInfo.userId,
         shareId: shareInfo.shareId,
@@ -464,10 +475,10 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
 
     /** ****************如果有分享者(且不为本人)，且被分享人第一次转发该链接，增加分享者积分日志****************** */
     if (shareInfo.shareId && shareUserId !== viewerInfo.userId &&
-      userNewTransmitNum === 1 && pointNum > 0
+      userNewTransmitNum === 1 && otherPointNum > 0
     ) {
-      const bonusPointKey = redisUtil.getRedisPrefix(18);
-      const totalPoint = await redisClient.hincrbyAsync(bonusPointKey, shareInfo.shareId, pointNum);
+      const bonusKey = redisUtil.getRedisPrefix(18);
+      const totalPoint = globalClient.hincrbyAsync(bonusKey, shareInfo.shareId, otherPointNum);
       await Model.PointRecord.create({
         viewerId: shareInfo.shareId,
         shareId: viewerInfo.userId,
@@ -477,6 +488,14 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         newsId: newsInfo.newsId,
         proofId: transmitInfo.dataValues.id,
       }, { transaction });
+    }
+  }).then(() => {
+    // commit
+    if (pointNum > 0) {
+      globalController.addGlobalPoint(viewerInfo.userId, pointNum);
+    }
+    if (otherPointNum > 0) {
+      globalController.addGlobalPoint(shareUserId, otherPointNum);
     }
   }).catch((err) => {
     // Rolled back
@@ -586,7 +605,7 @@ exports.commentNewsById = (req, res) => {
       const commentInfos = await redisClient.lrangeAsync(rangeKey, 0, -1);
       const commentLength = commentInfos.length;
       const commentList = [];
-      for (let i = 0; i < commentLength; i += 1) {
+      for (let i = (commentLength - 1); i >= 0; i -= 1) {
         commentList.push(JSON.parse(commentInfos[i]));
       }
       resUtil.sendJson(constants.HTTP_SUCCESS, '', { commentList });

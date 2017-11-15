@@ -2,6 +2,7 @@ const request = require('request-promise');
 const config = require('../../config/config');
 const HttpSend = require('../utils/http.util');
 const redisClient = require('../../config/redis')(1);
+const globalClient = require('../../config/redis')(3);
 const constants = require('../../config/constants');
 const Model = require('../models/index');
 const redisUtil = require('../utils/redis.util');
@@ -353,15 +354,17 @@ exports.addPurchaseRecord = (req, res) => {
     try {
       Model.sequelize.transaction(async (transaction) => {
         // redis记录总佣金数、下单数、下单用户数
+        const commissionKey = redisUtil.getRedisPrefix(6);
+        const updateRedis = await globalClient.hincrbyAsync(commissionKey, shareUserId, totalPrice);
+        if (!updateRedis) {
+          throw new Error('更新佣金失败');
+        }
+
         const date = moment().format('YYYYMMDD');
         const orderRecordKey = redisUtil.getRedisPrefix(10, `${shareUserId}:date_${date}`);
-        const commissionKey = redisUtil.getRedisPrefix(6);
-        const updateRedis = await redisClient.multi()
-          .hincrby(commissionKey, shareUserId, totalPrice)
-          .hincrby(orderRecordKey, userId, 1)
-          .execAsync();
-        if (!updateRedis.length) {
-          throw new Error('更新失败');
+        const result = await redisClient.hincrbyAsync(orderRecordKey, userId, 1);
+        if (!result) {
+          throw new Error('更新订单记录失败');
         }
 
         // 增加佣金流水记录

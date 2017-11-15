@@ -1,4 +1,5 @@
 const redisClient = require('../../config/redis')(1);
+const globalClient = require('../../config/redis')(3);
 const redisUtil = require('../utils/redis.util');
 const HttpSend = require('../utils/http.util');
 const constants = require('../../config/constants');
@@ -266,8 +267,8 @@ exports.index = (req, res, next) => {
 
       const [commissionNum, pointNum, datas, lineChartPoint, lineChartCommission] =
         await Promise.all([
-          redisClient.hgetAsync(commissionKey, userId), // 查询用户的佣金总额
-          redisClient.hgetAsync(pointKey, userId), // 查询用户的佣金总额
+          globalClient.hgetAsync(commissionKey, userId), // 查询用户的佣金总额
+          globalClient.hgetAsync(pointKey, userId), // 查询用户的积分数量
           dataStatistics(userId), // 查询统计数据
           getLineChartInfoByType(userId, 1, 7), // 查询uv折线图
           getLineChartInfoByType(userId, 6, 7), // 查询下单数
@@ -305,7 +306,7 @@ exports.renderStrategyPoint = (req, res, next) => {
     try {
       // 查询用户的佣金总额
       const bonusKey = redisUtil.getRedisPrefix(18);
-      let pointNum = await redisClient.hgetAsync(bonusKey, userId);
+      let pointNum = await globalClient.hgetAsync(bonusKey, userId);
       pointNum = parseInt(pointNum, 0) || 0;
 
       httpUtil.render('index/strategy-news', { title: '积分推广攻略', commissionNum: pointNum });
@@ -333,7 +334,7 @@ exports.renderStrategyCommission = (req, res, next) => {
     try {
       // 查询用户的佣金总额
       const commissionKey = redisUtil.getRedisPrefix(6);
-      let commissionNum = await redisClient.hgetAsync(commissionKey, userId);
+      let commissionNum = await globalClient.hgetAsync(commissionKey, userId);
       commissionNum = parseInt(commissionNum, 0) || 0;
 
       httpUtil.render('index/strategy-goods', { title: '佣金推广攻略', commissionNum });
