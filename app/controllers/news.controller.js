@@ -577,7 +577,9 @@ exports.commentNewsById = (req, res) => {
         .zincrby(commentRankKey, 1, newsId)
         .execAsync();
 
-      resUtil.sendJson(constants.HTTP_SUCCESS, '', { commentInfo: JSON.stringify(commentInfo) });
+      // 查询评论列表
+      const commentList = await redisClient.lrangeAsync(rangeKey, 0, -1);
+      resUtil.sendJson(constants.HTTP_SUCCESS, '', { commentList });
     } catch (err) {
       console.log(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
