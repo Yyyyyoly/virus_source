@@ -30,7 +30,7 @@ block content
           .form-group
             label.sr-only
             textarea.form-control(v-model= 'form.comment', rows= 3)
-          button.btn.btn-outline-secondary.btn-sm.float-right(@click= 'submitComment', type= 'button', style='margin-bottom:1rem') 提交
+          button.btn.btn-outline-success.btn-sm.float-right(@click= 'submitComment', type= 'button', style='margin-bottom:1rem') 提交
           .clearfix
 
       .row: .col
@@ -67,7 +67,9 @@ block script
           }, function (data) {
             if (data.errCode === 200) {
               alert('提交成功！');
-              vm.pageInfo.commentList = data.params.commentList
+              vm.pageInfo.commentList = data.params.commentList;
+              vm.form.comment = '';
+              $('#commentArea').collapse('hide');
             }
           }, 'json')
         },
