@@ -195,7 +195,7 @@ exports.bonusPointDetails = (req, res, next) => {
     try {
       // 查询积分总额
       const pointKey = redisUtil.getRedisPrefix(18);
-      const pointNum = await globalClient.hgetAsync(pointKey, userId);
+      const pointNum = await globalClient.hgetAsync(pointKey, userId) || 0;
 
       // 查询积分明细日志
       const logInfos = await Model.PointRecord.findAll({
@@ -243,7 +243,7 @@ const bonusPointDetailsByDay = async (userId, date, page, limit) => {
       order: [['createdAt', 'DESC']],
       offset: (page - 1) * limit,
       limit,
-    });
+    }) || [];
 
     // 总页数
     const totalPage = Math.ceil(logInfos.count / limit);
