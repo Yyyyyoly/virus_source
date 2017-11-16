@@ -24,6 +24,12 @@ exports.getRedisPrefix = (type, id = '') => {
     case 8:
       redisKey = `${constants.REDIS_PREFIX}|rank|user|uv_products`; // 用户分享出的商品 浏览uv总排行 rank|user|uv_products:userId {productId:uv_num}
       break;
+    case 23:
+      redisKey = `${constants.REDIS_PREFIX}|rank|user|share_products`; // 用户分享的商品，分类购买排行 rank|user|share_products:uid_20171116:type {productId:num}
+      break;
+    case 24:
+      redisKey = `${constants.REDIS_PREFIX}|rank|user|share_type`; // 用户分享的商品，类别排行 rank|user|share_type:uid_20171116 {type:num}
+      break;
 
 
     case 5:
@@ -33,7 +39,7 @@ exports.getRedisPrefix = (type, id = '') => {
       redisKey = `${constants.REDIS_PREFIX}|data|user|pv_products`; // 用户分享所有商品日 uv、pv记录 data|user|pv_products:20171020 {viewerId:pv_num}
       break;
     case 10:
-      redisKey = `${constants.REDIS_PREFIX}|data|user|purchase_record`; // 用户分享商品后，日购买记录
+      redisKey = `${constants.REDIS_PREFIX}|data|user|purchase_record`; // 用户分享商品后，日购买记录 data|user|purchase_record:uid_20171116 {userId:buy_times}
       break;
 
 

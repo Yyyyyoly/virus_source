@@ -23,7 +23,7 @@ module.exports = function (sequelize, DataTypes) {
   }, {
     timestamps: true,
     freezeTableName: true,
-    tableName: 'pv_news',
+    tableName: 'pv_news_log',
     charset: 'utf8',
     collate: 'utf8_general_ci',
   });

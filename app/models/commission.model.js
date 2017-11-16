@@ -19,10 +19,6 @@ module.exports = function (sequelize, DataTypes) {
     viewerId: { type: DataTypes.STRING },
     // 成交订单编号
     orderId: { type: DataTypes.STRING, unique: true },
-    // 分享商品id
-    productId: { type: DataTypes.INTEGER },
-    // 分享商品名称
-    productName: { type: DataTypes.STRING },
 
     // 手机号(仅提现时有用)
     phone: { type: DataTypes.STRING(11), validate: { len: 11, is: /^1[3578]\d{9}$/ } },

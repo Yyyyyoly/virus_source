@@ -313,8 +313,8 @@ exports.redirectToShopServer = (req, res, next) => {
 
 // 记录购买链接
 exports.addPurchaseRecord = (req, res) => {
-  const productId = req.body.productId || 0;
-  const productName = req.body.productName || 0;
+  const productInfos = req.body.productList || '';
+  const productList = JSON.parse(productInfos);
   const orderId = req.body.orderId || '';
   const shareUserId = req.body.shareId || '';
   const userId = req.body.userId || '';
@@ -326,8 +326,7 @@ exports.addPurchaseRecord = (req, res) => {
 
   // 计算签名 检验参数是否来自合法源
   const signatureInfo = signatureUtil.genSignature({
-    productId,
-    productName,
+    productList,
     orderId,
     shareUserId,
     userId,
@@ -360,20 +359,55 @@ exports.addPurchaseRecord = (req, res) => {
           throw new Error('更新佣金失败');
         }
 
+        // redis记录当日购买用户排行  （目前不需要 暂时注释掉）
+        // const date = moment().format('YYYYMMDD');
+        // const orderRecordKey = redisUtil.getRedisPrefix(10, `${shareUserId}:date_${date}`);
+        // const result = await redisClient.hincrbyAsync(orderRecordKey, userId, 1);
+        // if (!result) {
+        //   throw new Error('更新订单记录失败');
+        // }
+
+        // 根据商品的不同分类，加入到不同的排行榜中
+        const bulkData = []; // 批量插入mysql
+
         const date = moment().format('YYYYMMDD');
-        const orderRecordKey = redisUtil.getRedisPrefix(10, `${shareUserId}:date_${date}`);
-        const result = await redisClient.hincrbyAsync(orderRecordKey, userId, 1);
-        if (!result) {
-          throw new Error('更新订单记录失败');
+        const productRankKey = redisUtil.getRedisPrefix(23, `${shareUserId}:date_${date}`);
+        const typeRankKey = redisUtil.getRedisPrefix(24, `${shareUserId}:date_${date}`);
+        const briefKey = redisUtil.getRedisPrefix(12);
+        for (let i = 0; i < productList.length; i += 1) {
+          const type = productList[i].type || 0;
+          const productId = productList[i].productId || 0;
+          const productName = productList[i].productName || '';
+          const num = parseInt(productList[i].num, 0) || 0;
+          const price = parseFloat(productList[i].price) || 0;
+          const commission = parseFloat(productList[i].commission) || 0;
+          bulkData.push({
+            shareId: shareUserId,
+            viewerId: userId,
+            orderId,
+            productId,
+            type,
+            productName,
+            num,
+            price,
+            commission,
+          });
+          redisClient.multi()
+            .zincrby(`${productRankKey}:all`, num, productId)
+            .zincrby(`${productRankKey}:${type}`, num, productId)
+            .zincrby(typeRankKey, num, type)
+            .hset(briefKey, JSON.stringify({ productName, price }))
+            .execAsync();
         }
+
+        // 增加多条商品分类记录
+        await Model.ProductPurchase.bulkCreate(bulkData, { transaction });
 
         // 增加佣金流水记录
         await Model.Commission.create({
           shareId: shareUserId,
           viewerId: userId,
           orderId,
-          productId,
-          productName,
           operator: 1,
           operatorResult: 1,
           changeNum: totalPrice,

@@ -27,7 +27,7 @@ module.exports = function (sequelize, DataTypes) {
     timestamps: true,
     paranoid: true,
     freezeTableName: true,
-    tableName: 'point_record',
+    tableName: 'point_record_log',
     charset: 'utf8',
     collate: 'utf8_general_ci',
   });

@@ -24,7 +24,7 @@ module.exports = function (sequelize, DataTypes) {
   }, {
     timestamps: true,
     freezeTableName: true,
-    tableName: 'pv_products',
+    tableName: 'pv_products_log',
     charset: 'utf8',
     collate: 'utf8_general_ci',
   });
