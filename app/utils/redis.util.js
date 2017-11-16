@@ -16,18 +16,12 @@ exports.getRedisPrefix = (type, id = '') => {
       redisKey = `${constants.REDIS_PREFIX}|rank|user|pv_news`; // 用户分享出的文章 浏览pv总排行 rank|user|pv_news:userId {newsId:pv_num}
       break;
     case 4:
-      redisKey = `${constants.REDIS_PREFIX}|rank|user|uv_news`; // 用户分享出的文章 浏览uv总排行 rank|user|uv_news:userId {newsId:uv_num}
-      break;
-    case 7:
       redisKey = `${constants.REDIS_PREFIX}|rank|user|pv_products`; // 用户分享出的商品 浏览pv总排行  rank|user|pv_products:userId {productId:pv_num}
       break;
-    case 8:
-      redisKey = `${constants.REDIS_PREFIX}|rank|user|uv_products`; // 用户分享出的商品 浏览uv总排行 rank|user|uv_products:userId {productId:uv_num}
-      break;
-    case 23:
+    case 7:
       redisKey = `${constants.REDIS_PREFIX}|rank|user|share_products`; // 用户分享的商品，分类购买排行 rank|user|share_products:uid_20171116:type {productId:num}
       break;
-    case 24:
+    case 8:
       redisKey = `${constants.REDIS_PREFIX}|rank|user|share_type`; // 用户分享的商品，类别排行 rank|user|share_type:uid_20171116 {type:num}
       break;
 

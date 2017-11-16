@@ -219,11 +219,6 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     // 用户 传播浏览所有记录
     const newsUvKey = redisUtil.getRedisPrefix(5, `${shareInfo.shareId}:date_${today}`);
 
-    // 更新 分享者热门文章PV日榜、总榜
-    const pvUserKey = redisUtil.getRedisPrefix(3, shareInfo.shareId);
-    const pvUserKeyToday = redisUtil.getRedisPrefix(3, `${shareInfo.shareId}:date_${today}`);
-    const newsTitleKey = redisUtil.getRedisPrefix(11);
-
     // 指定文章所有浏览人记录
     const pvNewsLogKey = redisUtil.getRedisPrefix(15, newsInfo.newsId);
     // 用户转发指定文章后的浏览人记录
@@ -239,17 +234,14 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       updateRedis = await redisClient.multi()
         .zincrby(pvTotalKey, 1, newsInfo.newsId)
         .zincrby(pvContextKey, 1, newsInfo.newsId)
-        .zincrby(pvUserKey, 1, newsInfo.newsId)
-        .zincrby(pvUserKeyToday, 1, newsInfo.newsId)
-        .hset(newsTitleKey, newsInfo.newsId, newsInfo.title)
         .hincrby(pvNewsLogKey, viewerInfo.userId, 1)
         .hincrby(pvUserNewsLogKey, viewerInfo.userId, 1)
         .hincrby(pvUserNewsLogKeyToday, viewerInfo.userId, 1)
         .hincrby(newsUvKey, viewerInfo.userId, 1)
         .execAsync();
-      userPvNum = parseInt(updateRedis[5], 0);
-      userNewPVNum = parseInt(updateRedis[6], 0);
-      userNewPVTodayNum = parseInt(updateRedis[7], 0);
+      userPvNum = parseInt(updateRedis[2], 0);
+      userNewPVNum = parseInt(updateRedis[3], 0);
+      userNewPVTodayNum = parseInt(updateRedis[4], 0);
     } else {
       updateRedis = await redisClient.multi()
         .zincrby(pvTotalKey, 1, newsInfo.newsId)
@@ -257,16 +249,6 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         .hincrby(pvNewsLogKey, viewerInfo.userId, 1)
         .execAsync();
       userPvNum = parseInt(updateRedis[2], 0);
-    }
-
-    /** *********************如果有分享者，且被分享人第一次点入，计入分享者热门文章UV日榜、总榜******************* */
-    if (shareInfo.shareId && userNewPVNum === 1) {
-      const uvUserKey = redisUtil.getRedisPrefix(4, shareInfo.shareId);
-      await redisClient.zincrbyAsync(uvUserKey, 1, newsInfo.newsId);
-    }
-    if (shareInfo.shareId && userNewPVTodayNum === 1) {
-      const uvUserKeyToday = redisUtil.getRedisPrefix(4, `${shareInfo.shareId}:date_${today}`);
-      await redisClient.zincrbyAsync(uvUserKeyToday, 1, newsInfo.newsId);
     }
 
     /** *****************************如果第一次浏览该新闻，增加浏览者积分日志************************************* */

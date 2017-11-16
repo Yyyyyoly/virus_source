@@ -6,20 +6,6 @@ const constants = require('../../config/constants');
 const moment = require('moment');
 const Model = require('../models/index');
 
-// 处理一下zrange的返回值，改成对象
-const formatZrangeReturn = (list) => {
-  if (list.constructor !== Array || list.length === 0) {
-    return {};
-  }
-
-  const max = list.length;
-  const formatObject = {};
-  for (let i = 0; i < max; i += 2) {
-    formatObject[list[i]] = list[i + 1];
-  }
-  return formatObject;
-};
-
 // 查询每日数据总量统计
 const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
   // 查询指定日期浏览文章的uv\pv
@@ -52,16 +38,19 @@ const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
     return { uvProducts, pvProducts };
   };
 
-  // 查询指定日期下单用户数和下单数
+  // 查询指定日期下单用户数和下单商品总数
   const getPurchaseRecord = async () => {
     const purchaseKey = redisUtil.getRedisPrefix(10, `${userId}:date_${date}`);
-    const recordList = await redisClient.hgetallAsync(purchaseKey);
+    const productKey = redisUtil.getRedisPrefix(8);
+    const [purchaseList, typeList] = await Promise.all([
+      redisClient.hgetallAsync(purchaseKey),
+      redisClient.zrangeAsync(productKey, 0, -1, 'WITHSCORES'),
+    ]);
 
-    let userNum = 0;
-    let orderNum = 0;
-    for (const key in recordList) {
-      userNum += 1;
-      orderNum += parseInt(recordList[key], 0);
+    const userNum = purchaseList.length || 0;
+    let orderNum = 0; // 今日下单商品总数
+    for (let i = 0; i < typeList.length; i += 2) {
+      orderNum += parseInt(typeList[i + 1], 0);
     }
 
     return { userNum, orderNum };
@@ -93,8 +82,11 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
       case 4:
         mysqlModel = Model.PVProducts;
         break;
-      default:
+      case 5:
         mysqlModel = Model.Commission;
+        break;
+      default:
+        mysqlModel = Model.ProductPurchase;
     }
 
     // 文章UV  商品UV  下单用户数
@@ -124,11 +116,12 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
         });
       }
     } else if (type === 2 || type === 4 || type === 6) {
-      // 文章PV  商品PV  下单数
+      // 文章PV  商品PV  下单商品总数
+      const selectCol = type === 6 ? Model.sequelize.fn('SUM', 'num') : Model.sequelize.fn('COUNT', 1);
       recordList = await mysqlModel.findAll({
         attributes: [
           [Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%m%d'), 'date'],
-          [Model.sequelize.fn('COUNT', 1), 'num'],
+          [selectCol, 'num'],
         ],
         where: {
           shareId: userId,
@@ -153,102 +146,6 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
   }
 };
 
-// 获排行榜数据
-const getRankListByType = async (type, page, userId) => {
-  const limit = 10;
-  const hotList = [];
-  let totalPage = 1;
-  const startIndex = (page - 1) * limit;
-  const endIndex = (page * limit) - 1;
-  const today = moment().format('YYYYMMDD');
-
-  // 根据type查找对应的redisKey
-  const getRedisKeyByType = () => {
-    let viewKeyToday = '';
-    let viewKeyTotal = '';
-    let logKey = '';
-    switch (type) {
-      case 1:
-      case 2:
-        // 文章uv
-        viewKeyToday = redisUtil.getRedisPrefix(4, `${userId}:date_${today}`);
-        viewKeyTotal = redisUtil.getRedisPrefix(4, userId);
-        logKey = redisUtil.getRedisPrefix(11);
-        break;
-      case 3:
-      case 4:
-        // 文章pv
-        viewKeyToday = redisUtil.getRedisPrefix(3, `${userId}:date_${today}`);
-        viewKeyTotal = redisUtil.getRedisPrefix(3, userId);
-        logKey = redisUtil.getRedisPrefix(11);
-        break;
-      case 5:
-      case 6:
-        // 商品uv
-        viewKeyToday = redisUtil.getRedisPrefix(8, `${userId}:date_${today}`);
-        viewKeyTotal = redisUtil.getRedisPrefix(8, userId);
-        logKey = redisUtil.getRedisPrefix(12);
-        break;
-      case 7:
-      case 8:
-        // 商品pv
-        viewKeyToday = redisUtil.getRedisPrefix(7, `${userId}:date_${today}`);
-        viewKeyTotal = redisUtil.getRedisPrefix(7, userId);
-        logKey = redisUtil.getRedisPrefix(12);
-        break;
-      default:
-        break;
-    }
-    return { viewKeyToday, viewKeyTotal, logKey };
-  };
-
-  const mainFunction = async () => {
-    try {
-      const keys = getRedisKeyByType();
-      let formatSubTotal = [];
-      let viewMainList = [];
-      let viewSubList = [];
-      let info = [];
-      let totalPageNum = 0;
-      // 当日热门榜
-      if (type === 1 || type === 3 || type === 5 || type === 7) {
-        [viewMainList, viewSubList, info, totalPageNum] = await Promise.all([
-          redisClient.zrevrangeAsync(keys.viewKeyToday, startIndex, endIndex, 'WITHSCORES'),
-          redisClient.zrevrangeAsync(keys.viewKeyTotal, 0, -1, 'WITHSCORES'),
-          redisClient.hgetallAsync(keys.logKey),
-          redisClient.zcardAsync(keys.viewKeyToday),
-        ]);
-        formatSubTotal = formatZrangeReturn(viewSubList);
-      } else if (type === 2 || type === 4 || type === 6 || type === 8) {
-        // 累计热门榜
-        [viewMainList, viewSubList, info, totalPageNum] = await Promise.all([
-          redisClient.zrevrangeAsync(keys.viewKeyTotal, startIndex, endIndex, 'WITHSCORES'),
-          redisClient.zrevrangeAsync(keys.viewKeyToday, 0, -1, 'WITHSCORES'),
-          redisClient.hgetallAsync(keys.logKey),
-          redisClient.zcardAsync(keys.viewKeyTotal),
-        ]);
-        formatSubTotal = formatZrangeReturn(viewMainList);
-      }
-
-      totalPage = Math.ceil(totalPageNum / limit);
-      for (let i = 0; i < viewMainList.length; i += 2) {
-        hotList.push({
-          id: viewMainList[i],
-          info: info[viewMainList[i]],
-          currentViewNum: viewMainList[i + 1],
-          totalViewNum: formatSubTotal[viewMainList[i]],
-        });
-      }
-
-      return { totalPage, page, hotList };
-    } catch (err) {
-      console.log(err);
-      return {};
-    }
-  };
-  return mainFunction();
-};
-
 // 首页
 exports.index = (req, res, next) => {
   const userId = req.session.user.userId || '';
@@ -271,7 +168,7 @@ exports.index = (req, res, next) => {
           globalClient.hgetAsync(pointKey, userId), // 查询用户的积分数量
           dataStatistics(userId), // 查询统计数据
           getLineChartInfoByType(userId, 1, 7), // 查询uv折线图
-          getLineChartInfoByType(userId, 6, 7), // 查询下单数
+          getLineChartInfoByType(userId, 6, 7), // 查询下单商品数
         ]);
 
       httpUtil.render('index/index', {
@@ -399,56 +296,118 @@ exports.getLineChart = (req, res) => {
   mainFunction();
 };
 
-// 获取排行列表数据
-exports.getRankList = (req, res) => {
-  const type = parseInt(req.query.type, 0) || 0;
-  const page = parseInt(req.query.page, 0) || 1;
+
+// 获取统计详情列表页面
+exports.getListDetails = (req, res, next) => {
+  const type = parseInt(req.params.type, 0) || 0;
+  const date = req.query.date || moment().format('YYYYMMDD');
   const userId = req.session.user ? req.session.user.userId : '';
   const resUtil = new HttpSend(req, res);
 
-  if (page < 1 || (type <= 1 && type >= 8)) {
-    resUtil.sendJson(constants.HTTP_FAIL, '参数有误');
+  if (!type || !userId || !date) {
+    next(new Error('参数错误'));
     return;
   }
 
   const mainFunction = async () => {
     try {
-      const data = await getRankListByType(type, page, userId);
+      let sqlModel = '';
+      switch (type) {
+        case 1:
+          sqlModel = Model.PVNews;
+          break;
+        case 2:
+          sqlModel = Model.PVProducts;
+          break;
+        default:
+          sqlModel = Model.Commission;
+      }
 
-      resUtil.sendJson(constants.HTTP_SUCCESS, '', data);
+      const startDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 00:00:00');
+      const endDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 23:59:59');
+      const resultList = await sqlModel.findAll({
+        where: {
+          shareId: userId,
+          createdAt: { $gte: startDate, $lte: endDate },
+        },
+        include: { model: Model.User },
+      }) || { dataValues: [] };
+
+      // 去重，多次访问只显示第一次的时间
+      const ifExist = {};
+      const list = [];
+      for (let i = 0; i < resultList.length; i += 1) {
+        if (!ifExist[resultList[i].dataValues.viewerId]) {
+          ifExist[resultList[i].dataValues.viewerId] = true;
+          list.push({
+            time: resultList[i].dataValues.createdAt,
+            userName: resultList[i].User.dataValues.userName,
+          });
+        }
+      }
+
+      resUtil.render('index', { total: list.length, list });
     } catch (err) {
       console.log(err);
-      resUtil.sendJson(constants.HTTP_FAIL, '系统出错');
+      next(err);
     }
   };
 
   mainFunction();
 };
 
-// 首页 进入折现图+排行榜详情显示页面
-exports.renderDetails = (req, res, next) => {
+// 获取统计详情饼状图页面
+exports.getPieDetails = (req, res, next) => {
   const type = parseInt(req.params.type, 0) || 0;
+  const date = req.query.date || moment().format('YYYYMMDD');
   const userId = req.session.user ? req.session.user.userId : '';
-  const httpUtil = new HttpSend(req, res);
+  const resUtil = new HttpSend(req, res);
 
-  if (!type || !userId) {
-    const err = new Error('参数错误');
-    next(err);
+  if (!type || !userId || !date) {
+    next(new Error('参数错误'));
     return;
   }
 
   const mainFunction = async () => {
     try {
-      // 折现图数据
-      const lineChart = await getLineChartInfoByType(userId, type, 5);
+      let sqlModel = '';
+      switch (type) {
+        case 1:
+          sqlModel = Model.PVNews;
+          break;
+        case 2:
+          sqlModel = Model.PVProducts;
+          break;
+        default:
+          sqlModel = Model.Commission;
+      }
 
-      // 排行榜数据
-      const rankList = await getRankListByType(type, 1, userId);
-      httpUtil.render('index/count', {
-        lineChart,
-        rankList,
-      });
+      const startDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 00:00:00');
+      const endDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 23:59:59');
+      const resultList = await sqlModel.findAll({
+        where: {
+          shareId: userId,
+          createdAt: { $gte: startDate, $lte: endDate },
+        },
+        include: { model: Model.User },
+      }) || { dataValues: [] };
+
+      // 去重，多次访问只显示第一次的时间
+      const ifExist = {};
+      const list = [];
+      for (let i = 0; i < resultList.length; i += 1) {
+        if (!ifExist[resultList[i].dataValues.viewerId]) {
+          ifExist[resultList[i].dataValues.viewerId] = true;
+          list.push({
+            time: resultList[i].dataValues.createdAt,
+            userName: resultList[i].User.dataValues.userName,
+          });
+        }
+      }
+
+      resUtil.render('index', { total: list.length, list });
     } catch (err) {
+      console.log(err);
       next(err);
     }
   };
