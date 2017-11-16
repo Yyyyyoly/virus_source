@@ -188,6 +188,9 @@ $green: #01d491;
           margin-bottom: 0;
           td, th {
             padding: .5rem 1rem;
+            a {
+              display: block;
+            }
           }
           thead {
             color: #999;
