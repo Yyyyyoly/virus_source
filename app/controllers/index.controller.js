@@ -336,7 +336,7 @@ exports.getListDetails = (req, res, next) => {
       // 查询用户缩略信息
       const idList = await resultList.map(value => value.dataValues.viewerId);
       const userBriefKey = redisUtil.getRedisPrefix(25);
-      const userInfoList = JSON.stringify(await redisClient.hmgetAsync(userBriefKey, idList));
+      const userInfoList = idList.length ? await redisClient.hmgetAsync(userBriefKey, idList) : [];
 
       // 去重，多次访问只显示第一次的时间
       const ifExist = {};
@@ -346,12 +346,12 @@ exports.getListDetails = (req, res, next) => {
           ifExist[resultList[i].dataValues.viewerId] = true;
           list.push({
             time: resultList[i].dataValues.createdAt,
-            userName: userInfoList[resultList[i].dataValues.viewerId].userName,
+            userName: JSON.parse(userInfoList[i]).userName,
           });
         }
       }
 
-      resUtil.render('index', { total: list.length, list });
+      resUtil.render('index/user-list', { total: list.length, list });
     } catch (err) {
       console.log(err);
       next(err);
@@ -380,18 +380,18 @@ exports.getPieDetails = (req, res, next) => {
       let briefKey = '';
       switch (type) {
         case 1:
-          typeKey = redisUtil.getRedisPrefix(4);
-          rankKeyByType = redisUtil.getRedisPrefix(3);
+          typeKey = redisUtil.getRedisPrefix(4, `${userId}:${date}`);
+          rankKeyByType = redisUtil.getRedisPrefix(3, `${userId}:${date}`);
           briefKey = redisUtil.getRedisPrefix(11);
           break;
         case 2:
-          typeKey = redisUtil.getRedisPrefix(24);
-          rankKeyByType = redisUtil.getRedisPrefix(23);
+          typeKey = redisUtil.getRedisPrefix(24, `${userId}:${date}`);
+          rankKeyByType = redisUtil.getRedisPrefix(23, `${userId}:${date}`);
           briefKey = redisUtil.getRedisPrefix(12);
           break;
         default:
-          typeKey = redisUtil.getRedisPrefix(8);
-          rankKeyByType = redisUtil.getRedisPrefix(7);
+          typeKey = redisUtil.getRedisPrefix(8, `${userId}:${date}`);
+          rankKeyByType = redisUtil.getRedisPrefix(7, `${userId}:${date}`);
           briefKey = redisUtil.getRedisPrefix(12);
       }
 
@@ -400,12 +400,12 @@ exports.getPieDetails = (req, res, next) => {
       // 饼图的分类列表
       const typeList = await redisClient.zrangeAsync(typeKey, 0, -1, 'WITHSCORES') || [];
       // 所有商品/资讯的简介
-      const ids = list.filter((item, index) => (index / 2 === 0));
-      const briefIntroduction = await redisClient.hmgetAsync(briefKey, ids) || [];
+      const ids = list.filter((item, index) => (index % 2 === 0));
+      const briefIntroduction = ids.length ? await redisClient.hmgetAsync(briefKey, ids) : [];
 
       const formatList = [];
       for (let i = 0; i < list.length; i += 2) {
-        const briefInfo = JSON.parse(briefIntroduction[i / 2]);
+        const briefInfo = JSON.parse(briefIntroduction[(i / 2)]);
         formatList.push({
           id: list[i],
           name: briefInfo.name,
@@ -415,7 +415,7 @@ exports.getPieDetails = (req, res, next) => {
         });
       }
 
-      resUtil.render('index', { typePie: typeList, rank: formatList });
+      resUtil.render('index/count', { typePie: typeList, rank: formatList });
     } catch (err) {
       console.log(err);
       next(err);
