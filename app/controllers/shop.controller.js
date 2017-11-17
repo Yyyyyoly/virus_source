@@ -195,14 +195,14 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
   if (shareInfo.shareId) {
     if (shareInfo.shareId === viewerInfo.userId) {
       shareInfo.shareName = viewerInfo.userName;
-      shareInfo.shareOpenId = viewerInfo.openId;
+      shareInfo.shareHeadImg = viewerInfo.headImgUrl;
     } else {
       const data = await Model.User.findOne({ where: { userId: shareInfo.shareId } });
       if (!data || !data.dataValues) {
         shareInfo.shareId = '';
       } else {
         shareInfo.shareName = data.dataValues.userName;
-        shareInfo.shareOpenId = data.dataValues.openId;
+        shareInfo.shareHeadImg = data.dataValues.headImgUrl;
       }
     }
   }
@@ -217,10 +217,10 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
       soldCount: productInfo.soldCount,
       viewerId: viewerInfo.userId,
       viewerName: viewerInfo.userName,
-      viewerOpenId: viewerInfo.openId,
+      viewerHeadImg: viewerInfo.headImgUrl,
       shareId: shareInfo.shareId,
       shareName: shareInfo.shareName,
-      shareOpenId: shareInfo.shareOpenId,
+      shareHeadImg: shareInfo.shareHeadImg,
     }, { transaction });
 
     /** ************************************更新浏览记录相关redis数据************************************* */
@@ -249,6 +249,7 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
         //  目前前端根据标签自己排序，所以这里暂时注释
         .hset(
           productBriefKey,
+          productInfo.productId,
           JSON.stringify({
             name: productInfo.name,
             price: productInfo.price,
@@ -384,7 +385,7 @@ exports.addPurchaseRecord = (req, res) => {
             .zincrby(`${productRankKey}:all`, num, productId)
             .zincrby(`${productRankKey}:${type}`, num, productId)
             .zincrby(typeRankKey, num, type)
-            .hset(briefKey, JSON.stringify({ name: productName, price, cat: type }))
+            .hset(briefKey, productId, JSON.stringify({ name: productName, price, cat: type }))
             .execAsync();
         }
 

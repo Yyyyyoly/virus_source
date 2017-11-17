@@ -2,6 +2,8 @@ const redis = require('redis');
 const bluebird = require('bluebird');
 const config = require('./config');
 
+global.redisClient = {};
+
 // 目前:
 // redis-session存在0库  这个主要存储session
 // 业务数据记录在1库
@@ -20,15 +22,17 @@ module.exports = function (type) {
     redisConfig.db = 0;
   }
 
-  const client = redis.createClient(redisConfig);
+  if (!global.redisClient.type) {
+    const client = redis.createClient(redisConfig);
+    bluebird.promisifyAll(redis.RedisClient.prototype);
 
-  bluebird.promisifyAll(redis.RedisClient.prototype);
+    bluebird.promisifyAll(redis.Multi.prototype);
 
-  bluebird.promisifyAll(redis.Multi.prototype);
+    client.on('error', (err) => {
+      console.log(`Error: ${err}`);
+    });
+    global.redisClient.type = client;
+  }
 
-  client.on('error', (err) => {
-    console.log(`Error: ${err}`);
-  });
-
-  return client;
+  return global.redisClient.type;
 };

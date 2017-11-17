@@ -189,19 +189,19 @@ exports.weChatCodeGet = (req, res) => {
 
 // 中间件：判断是否已经登录
 exports.isLogin = (req, res, next) => {
-  // req.session.user = {
-  //   userId: 'o82p90mawNIGJ6lmo0vDDN9YSTtU',
-  //   openId: 'od25_00ewsBeY-MbFC788-9DJh1s',
-  //   userName: '新君同学',
-  //   sex: 1,
-  //   province: 'Hubei',
-  //   city: 'Wuhan',
-  //   country: 'China',
-  //   headImgUrl: 'http://wx.qlogo.cn/mmhead/DYAIOgq83eoU7Zpe8yvbIMGLwy5s610uJpE1YAD3eGI6lzZpoiaLZ6A/0',
-  // };
+  req.session.user = {
+    userId: 'o82p90mawNIGJ6lmo0vDDN9YSTtU',
+    openId: 'oDCXE0kspqJuLMT7JacQIhoxih6I',
+    userName: '新君同学',
+    sex: 1,
+    province: 'Hubei',
+    city: 'Wuhan',
+    country: 'China',
+    headImgUrl: 'http://wx.qlogo.cn/mmhead/DYAIOgq83eoU7Zpe8yvbIMGLwy5s610uJpE1YAD3eGI6lzZpoiaLZ6A/0',
+  };
   // req.session.user = {
   //   userId: 'o82p90sZgb-aPqbUC7ejWUitE_Fg',
-  //   openId: 'od25_03YZ8710e3Qja7CD1TCdTa4',
+  //   openId: 'oDCXE0nnqjKT02Gt5GA_zAwejGLQ',
   //   userName: '叫我女王大人',
   //   sex: 2,
   //   province: 'Hubei',

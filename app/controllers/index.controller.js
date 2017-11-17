@@ -331,7 +331,6 @@ exports.getListDetails = (req, res, next) => {
           shareId: userId,
           createdAt: { $gte: startDate, $lte: endDate },
         },
-        include: { model: Model.User },
       }) || { dataValues: [] };
 
       // 去重，多次访问只显示第一次的时间
@@ -342,7 +341,7 @@ exports.getListDetails = (req, res, next) => {
           ifExist[resultList[i].dataValues.viewerId] = true;
           list.push({
             time: resultList[i].dataValues.createdAt,
-            userName: resultList[i].User.dataValues.userName,
+            userName: resultList[i].dataValues.viewerName,
           });
         }
       }
