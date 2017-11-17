@@ -57,6 +57,9 @@ exports.getRedisPrefix = (type, id = '') => {
     case 12:
       redisKey = `${constants.REDIS_PREFIX}|brief_rank_info|products`; // 一些排行中需要显示的精简product信息
       break;
+    case 25:
+      redisKey = `${constants.REDIS_PREFIX}|brief_rank_info|users`; // 一些排行中需要显示的精简user信息
+      break;
 
 
     case 14:

@@ -6,6 +6,7 @@ const WeChatAPI = require('wechat-api');
 const WeChatAuth = require('wechat-oauth');
 const url = require('url');
 const tokenRedis = require('../../config/redis')(2);
+const dataRedis = require('../../config/redis')(1);
 const redisUtil = require('../utils/redis.util');
 const qiniu = require('qiniu');
 
@@ -129,6 +130,17 @@ const autoLoginAndRegister = (req, res) => {
         headImgUrl: userInfo.dataValues.headImgUrl,
       };
 
+      // 异步记录一下用户的昵称和头像缩略信息，
+      // 以免某些排行榜需要显示下级头像、昵称之类
+      const briefUserKey = redisUtil.getRedisPrefix(25);
+      dataRedis.hsetAsync(
+        briefUserKey,
+        userInfo.dataValues.userId,
+        JSON.stringify({
+          userName: userInfo.dataValues.userName,
+          headImgUrl: userInfo.dataValues.headImgUrl,
+        }),
+      );
       // 如果有跳转前页面，先进入
       const originalUrl = req.session.originalUrl || `${config.serverHost}:${config.serverPort}/`;
 

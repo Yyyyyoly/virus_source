@@ -333,6 +333,11 @@ exports.getListDetails = (req, res, next) => {
         },
       }) || { dataValues: [] };
 
+      // 查询用户缩略信息
+      const idList = await resultList.map(value => value.dataValues.viewerId);
+      const userBriefKey = redisUtil.getRedisPrefix(25);
+      const userInfoList = JSON.stringify(await redisClient.hmgetAsync(userBriefKey, idList));
+
       // 去重，多次访问只显示第一次的时间
       const ifExist = {};
       const list = [];
@@ -341,7 +346,7 @@ exports.getListDetails = (req, res, next) => {
           ifExist[resultList[i].dataValues.viewerId] = true;
           list.push({
             time: resultList[i].dataValues.createdAt,
-            userName: resultList[i].dataValues.viewerName,
+            userName: userInfoList[resultList[i].dataValues.viewerId].userName,
           });
         }
       }
