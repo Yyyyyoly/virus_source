@@ -211,37 +211,42 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
 
     /** ************************************更新浏览记录相关redis数据************************************* */
     const today = moment().format('YYYYMMDD');
-    // 更新 所有文章 浏览总榜
+    // 所有文章 浏览总榜（决定热门显示顺序）
     const pvTotalKey = redisUtil.getRedisPrefix(2);
-    // 更新 所有文章 分类浏览总榜
+    // 所有文章 分类浏览总榜（决定热门显示顺序）
     const pvContextKey = redisUtil.getRedisPrefix(2, newsInfo.newsClass);
 
-    // 用户 传播浏览所有记录
-    const newsUvKey = redisUtil.getRedisPrefix(5, `${shareInfo.shareId}:date_${today}`);
+    // 某文章当日所有浏览人 记录（日志记录）
+    const newsUvKey = redisUtil.getRedisPrefix(5, `${shareInfo.shareId}:${today}`);
 
-    // 指定文章所有浏览人记录
+    // 指定文章所有浏览人记录（积分统计时使用，仅在第一次浏览加积分）
     const pvNewsLogKey = redisUtil.getRedisPrefix(15, newsInfo.newsId);
-    // 用户转发指定文章后的浏览人记录
-    const pvUserNewsLogKey = redisUtil.getRedisPrefix(16, `${newsInfo.newsId}:uid_${shareInfo.shareId}`);
-    const pvUserNewsLogKeyToday = redisUtil.getRedisPrefix(16, `${newsInfo.newsId}:uid_${shareInfo.shareId}:date_${today}`);
+    // 用户分享某文章后的浏览人记录(积分统计时使用，仅在分享后第一次浏览加积分）
+    const pvUserNewsLogKey = redisUtil.getRedisPrefix(16, `${newsInfo.newsId}:${shareInfo.shareId}`);
+
+    // 该分享人的热门文章当日排行 (饼状图排行榜使用)
+    const shareUserTypeKey = redisUtil.getRedisPrefix(4, `${shareInfo.shareId}:${today}`);
+    const shareUserKey = redisUtil.getRedisPrefix(3, `${shareInfo.shareId}:${today}`);
+    const newsBriefKey = redisUtil.getRedisPrefix(11);
 
     // 鉴于multi并不会产生回滚，所以一旦exec出错  还是有错误数据会+1
     let updateRedis = [];
     let userPvNum = 0;
     let userNewPVNum = 0;
-    let userNewPVTodayNum = 0;
     if (shareInfo.shareId) {
       updateRedis = await redisClient.multi()
         .zincrby(pvTotalKey, 1, newsInfo.newsId)
         .zincrby(pvContextKey, 1, newsInfo.newsId)
         .hincrby(pvNewsLogKey, viewerInfo.userId, 1)
         .hincrby(pvUserNewsLogKey, viewerInfo.userId, 1)
-        .hincrby(pvUserNewsLogKeyToday, viewerInfo.userId, 1)
         .hincrby(newsUvKey, viewerInfo.userId, 1)
+        .zincrby(shareUserTypeKey, 1, newsInfo.newsClass)
+        .zincrby(`${shareUserKey}:all`, 1, newsInfo.newsId)
+        .zincrby(`${shareUserKey}:${newsInfo.newsClass}`, 1, newsInfo.newsId)
+        .hset(newsBriefKey, newsInfo.title)
         .execAsync();
       userPvNum = parseInt(updateRedis[2], 0);
       userNewPVNum = parseInt(updateRedis[3], 0);
-      userNewPVTodayNum = parseInt(updateRedis[4], 0);
     } else {
       updateRedis = await redisClient.multi()
         .zincrby(pvTotalKey, 1, newsInfo.newsId)
@@ -421,7 +426,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     // 指定文章所有转发人记录
     const transmitNewsLogKey = redisUtil.getRedisPrefix(21, newsInfo.newsId);
     // 下级的二次转发记录
-    const transmitUserNewsLogKey = redisUtil.getRedisPrefix(22, `${newsInfo.newsId}:uid_${shareInfo.shareId}`);
+    const transmitUserNewsLogKey = redisUtil.getRedisPrefix(22, `${newsInfo.newsId}:${shareInfo.shareId}`);
 
     let updateRedis = [];
     let userTransmitNum = 0;

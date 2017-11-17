@@ -10,7 +10,7 @@ const Model = require('../models/index');
 const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
   // 查询指定日期浏览文章的uv\pv
   const getNews = async () => {
-    const newsUvKey = redisUtil.getRedisPrefix(5, `${userId}:date_${date}`);
+    const newsUvKey = redisUtil.getRedisPrefix(5, `${userId}:${date}`);
     const newsList = await redisClient.hgetallAsync(newsUvKey);
 
     let uvNews = 0;
@@ -25,7 +25,7 @@ const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
 
   // 查询指定日期浏览商品的uv\pv
   const getProducts = async () => {
-    const productsUvKey = redisUtil.getRedisPrefix(9, `${userId}:date_${date}`);
+    const productsUvKey = redisUtil.getRedisPrefix(9, `${userId}:${date}`);
     const productList = await redisClient.hgetallAsync(productsUvKey);
 
     let uvProducts = 0;
@@ -40,16 +40,17 @@ const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
 
   // 查询指定日期下单用户数和下单商品总数
   const getPurchaseRecord = async () => {
-    const purchaseKey = redisUtil.getRedisPrefix(10, `${userId}:date_${date}`);
-    const productKey = redisUtil.getRedisPrefix(8);
+    const purchaseKey = redisUtil.getRedisPrefix(10, `${userId}:${date}`);
+    const productKey = redisUtil.getRedisPrefix(8, `${userId}:${date}`);
     const [purchaseList, typeList] = await Promise.all([
       redisClient.hgetallAsync(purchaseKey),
       redisClient.zrangeAsync(productKey, 0, -1, 'WITHSCORES'),
     ]);
 
-    const userNum = purchaseList.length || 0;
+    const userNum = purchaseList ? purchaseList.length : 0;
+    const typeLength = typeList ? typeList.length : 0;
     let orderNum = 0; // 今日下单商品总数
-    for (let i = 0; i < typeList.length; i += 2) {
+    for (let i = 0; i < typeLength; i += 2) {
       orderNum += parseInt(typeList[i + 1], 0);
     }
 
