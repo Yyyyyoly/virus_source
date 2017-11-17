@@ -57,7 +57,7 @@ block script
       },
       methods: {
         timeFormat: function (e) {
-          return moment.parseZone(e).format('YYYY-MM-DD HH:mm')
+          return moment(e).format('YYYY-MM-DD HH:mm')
         },
         submitComment: function () {
           $.post('/news/details/operator/comment', {
