@@ -33,7 +33,7 @@ block content
               td: a(:href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{operators[log.operator]+(log.operatorResult?'':operatorResults[log.operatorResult])}}
                 small.d-block {{timeFormat(log.time)}}
               td.text-right: a(:class="log.operator!==5?'add':'sub'", :href="'/user/bonusPoint/idLog?recordId='+log.recordId") {{log.changeNum}}
-    .no-data(v-else) 无数据
+    .no-data(v-show='data.logLists.length === 0') 无数据
 
   include ../layout/navbar-bottom
 
