@@ -21,7 +21,7 @@ block content
         p.withdraw 当天兑换：
           span -
           |{{data.decrSum}}
-    .credits-list(v-if='data.logLists.length !== 0')
+    .credits-list(v-show='data.logLists.length !== 0')
       .row
         table.table
           thead
