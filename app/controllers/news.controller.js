@@ -227,6 +227,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     // 该分享人的热门文章当日排行 (饼状图排行榜使用)
     const shareUserTypeKey = redisUtil.getRedisPrefix(4, `${shareInfo.shareId}:${today}`);
     const shareUserKey = redisUtil.getRedisPrefix(3, `${shareInfo.shareId}:${today}`);
+    const briefKey = redisUtil.getRedisPrefix(11);
 
     // 鉴于multi并不会产生回滚，所以一旦exec出错  还是有错误数据会+1
     let updateRedis = [];
@@ -242,6 +243,11 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         .zincrby(shareUserTypeKey, 1, newsInfo.newsClass)
         .zincrby(`${shareUserKey}:all`, 1, newsInfo.newsId)
         // .zincrby(`${shareUserKey}:${newsInfo.newsClass}`, 1, newsInfo.newsId) 目前前端根据标签自己排序
+        .hset(
+          briefKey,
+          newsInfo.dataValues.newsId,
+          JSON.stringify({ name: newsInfo.title, cat: newsInfo.newsClass }),
+        )
         .execAsync();
       userPvNum = parseInt(updateRedis[2], 0);
       userNewPVNum = parseInt(updateRedis[3], 0);
