@@ -245,10 +245,15 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
         .hincrby(productUvKey, viewerInfo.userId, 1)
         .zincrby(shareTypeKey, 1, productInfo.categoryId)
         .zincrby(`${sharePdtKey}:all`, 1, productInfo.productId)
-        .zincrby(`${sharePdtKey}:${productInfo.categoryId}`, 1, productInfo.productId)
+        // .zincrby(`${sharePdtKey}:${productInfo.categoryId}`, 1, productInfo.productId)
+        //  目前前端根据标签自己排序，所以这里暂时注释
         .hset(
           productBriefKey,
-          JSON.stringify({ productName: productInfo.name, price: productInfo.price }),
+          JSON.stringify({
+            name: productInfo.name,
+            price: productInfo.price,
+            cat: productInfo.categoryId,
+          }),
         )
         .execAsync();
     } else {
@@ -379,7 +384,7 @@ exports.addPurchaseRecord = (req, res) => {
             .zincrby(`${productRankKey}:all`, num, productId)
             .zincrby(`${productRankKey}:${type}`, num, productId)
             .zincrby(typeRankKey, num, type)
-            .hset(briefKey, JSON.stringify({ productName, price }))
+            .hset(briefKey, JSON.stringify({ name: productName, price, cat: type }))
             .execAsync();
         }
 

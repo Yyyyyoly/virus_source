@@ -359,7 +359,7 @@ exports.getListDetails = (req, res, next) => {
 
 // 获取统计详情饼状图页面
 exports.getPieDetails = (req, res, next) => {
-  const type = parseInt(req.params.type, 0) || 0;
+  const type = parseInt(req.params.type, 0) || 1;
   const date = req.query.date || moment().format('YYYYMMDD');
   const userId = req.session.user ? req.session.user.userId : '';
   const resUtil = new HttpSend(req, res);
@@ -371,42 +371,47 @@ exports.getPieDetails = (req, res, next) => {
 
   const mainFunction = async () => {
     try {
-      let sqlModel = '';
+      let typeKey = '';
+      let rankKeyByType = '';
+      let briefKey = '';
       switch (type) {
         case 1:
-          sqlModel = Model.PVNews;
+          typeKey = redisUtil.getRedisPrefix(4);
+          rankKeyByType = redisUtil.getRedisPrefix(3);
+          briefKey = redisUtil.getRedisPrefix(11);
           break;
         case 2:
-          sqlModel = Model.PVProducts;
+          typeKey = redisUtil.getRedisPrefix(24);
+          rankKeyByType = redisUtil.getRedisPrefix(23);
+          briefKey = redisUtil.getRedisPrefix(12);
           break;
         default:
-          sqlModel = Model.Commission;
+          typeKey = redisUtil.getRedisPrefix(8);
+          rankKeyByType = redisUtil.getRedisPrefix(7);
+          briefKey = redisUtil.getRedisPrefix(12);
       }
 
-      const startDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 00:00:00');
-      const endDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 23:59:59');
-      const resultList = await sqlModel.findAll({
-        where: {
-          shareId: userId,
-          createdAt: { $gte: startDate, $lte: endDate },
-        },
-        include: { model: Model.User },
-      }) || { dataValues: [] };
+      // 全部排行列表
+      const list = await redisClient.zrangeAsync(`${rankKeyByType}:all`, 0, -1, 'WITHSCORES') || [];
+      // 饼图的分类列表
+      const typeList = await redisClient.zrangeAsync(typeKey, 0, -1, 'WITHSCORES') || [];
+      // 所有商品/资讯的简介
+      const ids = list.filter((item, index) => (index / 2 === 0));
+      const briefIntroduction = await redisClient.hmgetAsync(briefKey, ids) || [];
 
-      // 去重，多次访问只显示第一次的时间
-      const ifExist = {};
-      const list = [];
-      for (let i = 0; i < resultList.length; i += 1) {
-        if (!ifExist[resultList[i].dataValues.viewerId]) {
-          ifExist[resultList[i].dataValues.viewerId] = true;
-          list.push({
-            time: resultList[i].dataValues.createdAt,
-            userName: resultList[i].User.dataValues.userName,
-          });
-        }
+      const formatList = [];
+      for (let i = 0; i < list.length; i += 2) {
+        const briefInfo = JSON.parse(briefIntroduction[i / 2]);
+        formatList.push({
+          id: list[i],
+          name: briefInfo.name,
+          num: parseInt(list[i + 1], 0),
+          cat: briefInfo.cat,
+          price: briefInfo.price || 0, // 查询资讯浏览人次时这个字段没用
+        });
       }
 
-      resUtil.render('index', { total: list.length, list });
+      resUtil.render('index', { typePie: typeList, rank: formatList });
     } catch (err) {
       console.log(err);
       next(err);
