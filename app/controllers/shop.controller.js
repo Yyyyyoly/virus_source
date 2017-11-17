@@ -195,14 +195,14 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
   if (shareInfo.shareId) {
     if (shareInfo.shareId === viewerInfo.userId) {
       shareInfo.shareName = viewerInfo.userName;
-      shareInfo.shareOpenId = viewerInfo.openId;
+      shareInfo.shareHeadImg = viewerInfo.headImgUrl;
     } else {
       const data = await Model.User.findOne({ where: { userId: shareInfo.shareId } });
       if (!data || !data.dataValues) {
         shareInfo.shareId = '';
       } else {
         shareInfo.shareName = data.dataValues.userName;
-        shareInfo.shareOpenId = data.dataValues.openId;
+        shareInfo.shareHeadImg = data.dataValues.headImgUrl;
       }
     }
   }
@@ -217,58 +217,48 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
       soldCount: productInfo.soldCount,
       viewerId: viewerInfo.userId,
       viewerName: viewerInfo.userName,
-      viewerOpenId: viewerInfo.openId,
+      viewerHeadImg: viewerInfo.headImgUrl,
       shareId: shareInfo.shareId,
       shareName: shareInfo.shareName,
-      shareOpenId: shareInfo.shareOpenId,
+      shareHeadImg: shareInfo.shareHeadImg,
     }, { transaction });
 
     /** ************************************更新浏览记录相关redis数据************************************* */
     const today = moment().format('YYYYMMDD');
-    // 用户 传播浏览所有记录
-    const productUvKey = redisUtil.getRedisPrefix(9, `${shareInfo.shareId}:date_${today}`);
+    // 用户当日分享所有商品的浏览人记录（首页统计pv uv使用）
+    const productUvKey = redisUtil.getRedisPrefix(9, `${shareInfo.shareId}:${today}`);
 
-    // 更新 分享者热门商品PV日榜、总榜
-    const pvProductKey = redisUtil.getRedisPrefix(7, shareInfo.shareId);
-    const pvProductKeyToday = redisUtil.getRedisPrefix(7, `${shareInfo.shareId}:date_${today}`);
-    const productInfoKey = redisUtil.getRedisPrefix(12);
-    const productBrief = { productName: productInfo.name, price: productInfo.price };
+    const shareTypeKey = redisUtil.getRedisPrefix(24, `${shareInfo.shareId}:${today}`);
+    const sharePdtKey = redisUtil.getRedisPrefix(23, `${shareInfo.shareId}:${today}`);
+    const productBriefKey = redisUtil.getRedisPrefix(12);
 
-    // 指定商品所有浏览人记录
-    const pvProductsLogKey = redisUtil.getRedisPrefix(19, productInfo.id);
-    // 用户转发指定商品后的浏览人记录
-    const pvUserProductLogKey = redisUtil.getRedisPrefix(20, `${productInfo.id}:uid_${shareInfo.shareId}`);
-    const pvUserProductLogKeyToday = redisUtil.getRedisPrefix(20, `${productInfo.id}:uid_${shareInfo.shareId}:date_${today}`);
+    // 指定商品所有浏览人记录（后期如果加积分，仅在第一次浏览时增加）
+    // const pvProductsLogKey = redisUtil.getRedisPrefix(19, productInfo.id);
+    // 用户分享指定商品后的浏览人记录 （后期如果加积分，仅在分享后第一次浏览时增加）
+    // const pvUserProductLogKey = redisUtil.getRedisPrefix(20, `${productInfo.id}:${shareInfo.shareId}`);
 
-    // 鉴于multi并不会产生回滚，所以一旦exec出错  还是有错误数据会+1
-    let updateRedis = [];
-    let userProductPVNum = 0;
-    let userProductPVTodayNum = 0;
+
     if (shareInfo.shareId) {
-      updateRedis = await redisClient.multi()
-        .zincrby(pvProductKey, 1, productInfo.id)
-        .zincrby(pvProductKeyToday, 1, productInfo.id)
-        .hset(productInfoKey, 1, JSON.stringify(productBrief))
-        .hincrby(pvProductsLogKey, viewerInfo.userId, 1)
-        .hincrby(pvUserProductLogKey, viewerInfo.userId, 1)
-        .hincrby(pvUserProductLogKeyToday, viewerInfo.userId, 1)
+      await redisClient.multi()
+        // .hincrby(pvProductsLogKey, viewerInfo.userId, 1)
+        // .hincrby(pvUserProductLogKey, viewerInfo.userId, 1)
         .hincrby(productUvKey, viewerInfo.userId, 1)
+        .zincrby(shareTypeKey, 1, productInfo.categoryId)
+        .zincrby(`${sharePdtKey}:all`, 1, productInfo.productId)
+        // .zincrby(`${sharePdtKey}:${productInfo.categoryId}`, 1, productInfo.productId)
+        //  目前前端根据标签自己排序，所以这里暂时注释
+        .hset(
+          productBriefKey,
+          productInfo.productId,
+          JSON.stringify({
+            name: productInfo.name,
+            price: productInfo.price,
+            cat: productInfo.categoryId,
+          }),
+        )
         .execAsync();
-      userProductPVNum = parseInt(updateRedis[4], 0);
-      userProductPVTodayNum = parseInt(updateRedis[5], 0);
     } else {
-      await redisClient.multi().hincrby(pvProductsLogKey, viewerInfo.userId, 1).execAsync();
-    }
-
-
-    /** *********************如果有分享者，且被分享人第一次点入，计入分享者热门商品UV日榜、总榜******************* */
-    if (shareInfo.shareId && userProductPVNum === 1) {
-      const uvUserKey = redisUtil.getRedisPrefix(8, shareInfo.shareId);
-      await redisClient.zincrbyAsync(uvUserKey, 1, productInfo.id);
-    }
-    if (shareInfo.shareId && userProductPVTodayNum === 1) {
-      const uvUserKeyToday = redisUtil.getRedisPrefix(8, `${shareInfo.shareId}:date_${today}`);
-      await redisClient.zincrbyAsync(uvUserKeyToday, 1, productInfo.id);
+      // await redisClient.multi().hincrby(pvProductsLogKey, viewerInfo.userId, 1).execAsync();
     }
   }).catch((err) => {
     // Rolled back
@@ -313,8 +303,8 @@ exports.redirectToShopServer = (req, res, next) => {
 
 // 记录购买链接
 exports.addPurchaseRecord = (req, res) => {
-  const productId = req.body.productId || 0;
-  const productName = req.body.productName || 0;
+  const productInfos = req.body.productList || '';
+  const productList = JSON.parse(productInfos);
   const orderId = req.body.orderId || '';
   const shareUserId = req.body.shareId || '';
   const userId = req.body.userId || '';
@@ -326,8 +316,7 @@ exports.addPurchaseRecord = (req, res) => {
 
   // 计算签名 检验参数是否来自合法源
   const signatureInfo = signatureUtil.genSignature({
-    productId,
-    productName,
+    productList,
     orderId,
     shareUserId,
     userId,
@@ -360,20 +349,54 @@ exports.addPurchaseRecord = (req, res) => {
           throw new Error('更新佣金失败');
         }
 
+        // redis记录当日购买用户排行
         const date = moment().format('YYYYMMDD');
-        const orderRecordKey = redisUtil.getRedisPrefix(10, `${shareUserId}:date_${date}`);
+        const orderRecordKey = redisUtil.getRedisPrefix(10, `${shareUserId}:${date}`);
         const result = await redisClient.hincrbyAsync(orderRecordKey, userId, 1);
         if (!result) {
           throw new Error('更新订单记录失败');
         }
+
+        // 根据商品的不同分类，加入到不同的排行榜中
+        const bulkData = []; // 批量插入mysql
+
+        const productRankKey = redisUtil.getRedisPrefix(7, `${shareUserId}:${date}`);
+        const typeRankKey = redisUtil.getRedisPrefix(8, `${shareUserId}:${date}`);
+        const briefKey = redisUtil.getRedisPrefix(12);
+        for (let i = 0; i < productList.length; i += 1) {
+          const type = productList[i].type || 0;
+          const productId = productList[i].productId || 0;
+          const productName = productList[i].productName || '';
+          const num = parseInt(productList[i].num, 0) || 0;
+          const price = parseFloat(productList[i].price) || 0;
+          const commission = parseFloat(productList[i].commission) || 0;
+          bulkData.push({
+            shareId: shareUserId,
+            viewerId: userId,
+            orderId,
+            productId,
+            type,
+            productName,
+            num,
+            price,
+            commission,
+          });
+          redisClient.multi()
+            .zincrby(`${productRankKey}:all`, num, productId)
+            .zincrby(`${productRankKey}:${type}`, num, productId)
+            .zincrby(typeRankKey, num, type)
+            .hset(briefKey, productId, JSON.stringify({ name: productName, price, cat: type }))
+            .execAsync();
+        }
+
+        // 增加多条商品分类记录
+        await Model.ProductPurchase.bulkCreate(bulkData, { transaction });
 
         // 增加佣金流水记录
         await Model.Commission.create({
           shareId: shareUserId,
           viewerId: userId,
           orderId,
-          productId,
-          productName,
           operator: 1,
           operatorResult: 1,
           changeNum: totalPrice,

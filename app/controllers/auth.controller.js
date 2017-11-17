@@ -6,6 +6,7 @@ const WeChatAPI = require('wechat-api');
 const WeChatAuth = require('wechat-oauth');
 const url = require('url');
 const tokenRedis = require('../../config/redis')(2);
+const dataRedis = require('../../config/redis')(1);
 const redisUtil = require('../utils/redis.util');
 const qiniu = require('qiniu');
 
@@ -89,9 +90,12 @@ const autoLoginAndRegister = (req, res) => {
   const mainFunction = async () => {
     try {
       let userInfo = await Model.User.findOne({ where: { userId: unionId } });
+      // 是否需要更新redis中存储的用户缩略信息，只在新注册或发生关键信息变化时更新
+      let updateRedisBrief = false;
 
       // 不存在则自动注册
       if (!userInfo || !userInfo.dataValues) {
+        updateRedisBrief = true;
         userInfo = await Model.User.create({
           userId: unionId,
           openId,
@@ -106,6 +110,10 @@ const autoLoginAndRegister = (req, res) => {
         province !== userInfo.dataValues.province || city !== userInfo.dataValues.city ||
         country !== userInfo.dataValues.country || headImgUrl !== userInfo.dataValues.headImgUrl
       ) {
+        if (userName !== userInfo.dataValues.userName ||
+          headImgUrl !== userInfo.dataValues.headImgUrl) {
+          updateRedisBrief = true;
+        }
         // 如果存在但是发生了信息变更，更新信息
         await Model.User.update({
           userName,
@@ -128,6 +136,20 @@ const autoLoginAndRegister = (req, res) => {
         country: userInfo.dataValues.country,
         headImgUrl: userInfo.dataValues.headImgUrl,
       };
+
+      if (updateRedisBrief) {
+        // 异步记录一下用户的昵称和头像缩略信息，
+        // 以免某些排行榜需要显示下级头像、昵称之类
+        const briefUserKey = redisUtil.getRedisPrefix(25);
+        dataRedis.hsetAsync(
+          briefUserKey,
+          userInfo.dataValues.userId,
+          JSON.stringify({
+            userName: userInfo.dataValues.userName,
+            headImgUrl: userInfo.dataValues.headImgUrl,
+          }),
+        );
+      }
 
       // 如果有跳转前页面，先进入
       const originalUrl = req.session.originalUrl || `${config.serverHost}:${config.serverPort}/`;
@@ -191,7 +213,7 @@ exports.weChatCodeGet = (req, res) => {
 exports.isLogin = (req, res, next) => {
   // req.session.user = {
   //   userId: 'o82p90mawNIGJ6lmo0vDDN9YSTtU',
-  //   openId: 'od25_00ewsBeY-MbFC788-9DJh1s',
+  //   openId: 'oDCXE0kspqJuLMT7JacQIhoxih6I',
   //   userName: '新君同学',
   //   sex: 1,
   //   province: 'Hubei',
@@ -201,7 +223,7 @@ exports.isLogin = (req, res, next) => {
   // };
   // req.session.user = {
   //   userId: 'o82p90sZgb-aPqbUC7ejWUitE_Fg',
-  //   openId: 'od25_03YZ8710e3Qja7CD1TCdTa4',
+  //   openId: 'oDCXE0nnqjKT02Gt5GA_zAwejGLQ',
   //   userName: '叫我女王大人',
   //   sex: 2,
   //   province: 'Hubei',
@@ -209,6 +231,15 @@ exports.isLogin = (req, res, next) => {
   //   country: 'China',
   //   headImgUrl: 'http://wx.qlogo.cn/mmhead/Q3auHgzwzM61WMU23LmA22f7BZPc8TJpNbmaUEDjYeKZcianIHUeNiaw/0',
   // };
+  // const briefUserKey = redisUtil.getRedisPrefix(25);
+  // dataRedis.hsetAsync(
+  //   briefUserKey,
+  //   req.session.user.userId,
+  //   JSON.stringify({
+  //     userName: req.session.user.userName,
+  //     headImgUrl: req.session.user.headImgUrl,
+  //   }),
+  // );
   const userInfo = req.session.user || {};
 
   // 记载用户的起始url，方便登录/注册后跳转
