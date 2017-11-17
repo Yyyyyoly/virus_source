@@ -245,7 +245,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         // .zincrby(`${shareUserKey}:${newsInfo.newsClass}`, 1, newsInfo.newsId) 目前前端根据标签自己排序
         .hset(
           briefKey,
-          newsInfo.dataValues.newsId,
+          newsInfo.newsId,
           JSON.stringify({ name: newsInfo.title, cat: newsInfo.newsClass }),
         )
         .execAsync();
