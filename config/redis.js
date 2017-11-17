@@ -14,17 +14,17 @@ module.exports = function (type) {
   const redisConfig = config.redisConfig || { host: '127.0.0.1', port: '6379' };
   const clientType = type ? parseInt(type, 0) : 0;
 
-  if (clientType === 1) {
-    redisConfig.db = 1;
-  } else if (clientType === 2) {
-    redisConfig.db = 2;
-  } else if (clientType === 3) {
-    redisConfig.db = 3;
-  } else {
-    redisConfig.db = 0;
-  }
+  if (!global.globalRedisClient[clientType]) {
+    if (clientType === 1) {
+      redisConfig.db = 1;
+    } else if (clientType === 2) {
+      redisConfig.db = 2;
+    } else if (clientType === 3) {
+      redisConfig.db = 3;
+    } else {
+      redisConfig.db = 0;
+    }
 
-  if (!global.globalRedisClient.clientType) {
     const client = redis.createClient(redisConfig);
     bluebird.promisifyAll(redis.RedisClient.prototype);
 
@@ -33,8 +33,8 @@ module.exports = function (type) {
     client.on('error', (err) => {
       console.log(`Error: ${err}`);
     });
-    global.globalRedisClient.clientType = client;
+    global.globalRedisClient[clientType] = client;
   }
 
-  return global.globalRedisClient.clientType;
+  return global.globalRedisClient[clientType];
 };
