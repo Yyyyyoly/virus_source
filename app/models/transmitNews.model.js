@@ -14,7 +14,7 @@ module.exports = function (sequelize, DataTypes) {
     // 资讯转发人详细信息
     viewerId: { type: DataTypes.STRING, allowNull: false },
     viewerName: { type: DataTypes.STRING },
-    viewerOpenId: { type: DataTypes.STRING, allowNull: false },
+    viewerHeadImg: { type: DataTypes.STRING, allowNull: false },
 
     // 分享人详细信息 如果有
     shareId: { type: DataTypes.STRING },
