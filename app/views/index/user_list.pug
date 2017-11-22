@@ -24,7 +24,7 @@ block content
               td 时间
               td.text-center 昵称
           tbody
-            - list = JSON.stringify(list)
+            - list = JSON.parse(list)
             for item in list
               tr.bg-white
                 td(nowrap).time.sr-only= item.time
