@@ -22,7 +22,7 @@ block content
             //  tr.bg-white
             //    td(nowrap).time.sr-only= item.time
             //    td.text-center= item.userName
-      pre.sr-only= JSON.stringify(list)
+      pre.sr-only!= JSON.stringify(list)
     else
       .no-data 今日无数据
 
