@@ -36,11 +36,13 @@ block content
                 span 每日数据&emsp;
                 span.now_date
             .col.count-block
-              p 浏览文章用户数
-              p= datas.newsView.uvNews
+              a(href="/home/details/list/1")
+                p 浏览文章用户数
+                p= datas.newsView.uvNews
             .col.count-block
-              p 浏览文章次数
-              p= datas.newsView.pvNews
+              a(href="/home/details/pie/1")
+                p 浏览文章次数
+                p= datas.newsView.pvNews
       .tab-pane.fade(id="commission" role="tabpanel" aria-labelledby="commission-tab")
         .row.commission
           .col
@@ -62,11 +64,13 @@ block content
                 span 每日数据&emsp;
                 span.now_date
             .col.count-block
-              p 浏览商品用户数
-              p= datas.productView.uvProducts
+              a
+                p 浏览商品用户数
+                p= datas.productView.uvProducts
             .col.count-block
-              p 浏览商品次数
-              p= datas.productView.pvProducts
+              a
+                p 浏览商品次数
+                p= datas.productView.pvProducts
           .row
             .col.count-block
               p 下单用户数

@@ -1,45 +1,100 @@
 extends ../layout/base
 
 block attributes
-  - title = '文章浏览用户数'
 
 block title
   title #{title}
 block content
-  .container.index
-    .row.chart: .col
-      .dropdown.text-center
-        button.btn 近一周趋势
-        //button.btn.dropdown-toggle(type="button", id="date", data-toggle="dropdown") 近一周
-        //.dropdown-menu
-          a.dropdown-item 近一月
-          a.dropdown-item 近一年
+  .container.index#count-page
+    .row.bg-white: .col.p-3
       #chart
-    .row.article-title
-      .col.text-center
-        p 平台热门文章排行
-        button.btn 当日
-        button.btn.non-active 累计
+        .no-data.pt-5.pb-5 没有数据
+    .row.type-block
+      .col.text-center.p-2
+        p.text-secondary.mb-0 #{title}
+        button.btn.m-2(@click="chooseType(-1)", :class="show_type === -1?'active':''") 全部
+        button.btn.m-2(v-for="item in typePie", @click="chooseType(item.cat_id)", :class="show_type === item.cat_id?'active':''") {{item.cat_name}}
 
-    .row.article-block
-      div.num 1
+    .row.article-block(v-for="(item, index) in show_rank")
+      div.num {{index+1}}
       .col
-        p.title 糖尿病自测小方法自测小方法自测小方法
-        p.info
-          //span.price ￥60
-          span.daily 当日：100人
-          span.count 累计：100人&emsp;
-    .row.article-block
-      div.num 2
-      .col
-        p.title 糖尿病自测小方法自测小方法自测小方法
-        p.info
-          //span.price ￥60
-          span.daily 当日：100人
-          span.count 累计：100人&emsp;
-
+        p.title {{item.name}}
+        p.info.mb-2
+          span.price ￥{{item.price}}
+          //span.daily 当日：#{item.num}人
+          span.count 累计：{{item.num}}人&emsp;
 
   include ../layout/navbar-bottom
 
 block script
-  script(src=asset['indexCount.js'])
+  script.
+    var vm = new Vue({
+      el: '#count-page',
+      data: {
+        typePie: !{JSON.stringify(typePie)},
+        rank: !{JSON.stringify(rank)},
+        show_rank: !{JSON.stringify(rank)},
+        show_type: -1
+      },
+      computed: {
+        count_type: function () {
+          return this.typePie.map(function (e) {
+            return e.cat_name
+          })
+        },
+        count_data: function () {
+          return this.typePie.map(function (e) {
+            return { name: e.cat_name, value: e.num }
+          })
+        }
+      },
+      methods: {
+        chooseType: function (e) {
+          if (e === -1) {
+            this.show_rank = this.rank;
+          } else {
+            this.show_rank = this.rank.filter(function (val) {
+              return val.cat_id === e;
+            })
+          }
+          this.show_type = e;
+        }
+      }
+    });
+
+    if (vm.typePie.length !== 0) {
+      $('#chart').height(300);
+      var option = {
+        title: {
+          text: ' ',
+          subtext: ' ',
+          x: 'center'
+        },
+        tooltip: {
+          trigger: 'item',
+          formatter: "{a} <br/>{b} : {c} ({d}%)"
+        },
+        legend: {
+          bottom: 'bottom',
+          data: vm.count_type
+        },
+        series: [
+          {
+            name: '数据 ',
+            type: 'pie',
+            radius: '55%',
+            center: ['50%', '40%'],
+            data: vm.count_data,
+            itemStyle: {
+              emphasis: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              }
+            }
+          }
+        ]
+      }
+      var myChart = echarts.init(document.getElementById('chart'));
+      myChart.setOption(option);
+    }

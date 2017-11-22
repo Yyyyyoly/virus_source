@@ -1,0 +1,35 @@
+extends ../layout/base
+
+block attributes
+
+block title
+  title #{title}
+block content
+  .container.index
+    .row.bg-white: .col
+      p.mt-2.mb-2 #{title}
+        span.float-right 共 #{total} 人
+
+    if total !== 0
+      .row.user-list
+        table.table
+          thead.text-secondary
+            tr
+              td 时间
+              td.text-center 昵称
+          tbody
+            for item in List
+              tr.bg-white
+                td(nowrap).time.sr-only= item.time
+                td.text-center= item.userName
+    else
+      .no-data 今日无数据
+
+  include ../layout/navbar-bottom
+
+block script
+  script.
+    $('.time').text(function () {
+      $(this).removeClass('sr-only');
+      return moment(new Date($(this).text())).format('YYYY-MM-DD HH:mm')
+    })

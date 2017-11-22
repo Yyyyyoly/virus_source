@@ -192,4 +192,25 @@ $green: #01d491;
       }
     }
   }
+  .type-block {
+    button {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+      border-radius: 2rem;
+      background-color: #e2e2e2;
+      color: #666;
+      &.active {
+         background-color: $green;
+         color: #fff;
+      }
+    }
+  }
+  .no-data {
+      color: #999;
+      font-size: 2rem;
+      font-weight: 700;
+      padding-top: 4rem;
+      text-align: center;
+      text-shadow: 0.4rem 0.4rem 0.1rem #fff;
+    }
 }

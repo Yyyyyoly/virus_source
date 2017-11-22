@@ -10,6 +10,9 @@ router.get('/count', (req, res) => {
 router.get('/strategy', (req, res) => {
   res.render('index/strategy');
 });
+router.get('/user-list', (req, res) => {
+  res.render('index/user_list');
+});
 router.get('/news', (req, res) => {
   res.render('news/news');
 });
@@ -33,6 +36,9 @@ router.get('/credits-list', (req, res) => {
 });
 router.get('/withdraw', (req, res) => {
   res.render('user/withdraw');
+});
+router.get('/share', (req, res) => {
+  res.render('user/share');
 });
 
 module.exports = function (app) {
