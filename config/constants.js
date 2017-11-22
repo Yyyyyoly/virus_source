@@ -25,13 +25,16 @@ const constants = {
 
   // 资讯内容类型 全部
   CONTEXT_TOTAL: 1,
-  // 资讯内容类型 痛风专栏
-  CONTEXT_GOUT: 2,
 
   // 资讯类型 普通新闻
   TYPE_NEWS: 1,
   // 资讯类型 自测题
   TYPE_ESTIMATE: 2,
+
+  // 资讯分类id对应列表   目前写死
+  NEWS_CLASS_LIST: {
+    0: '全部', 1: '痛风', 2: '糖尿病', 3: '甲状腺',
+  },
 };
 
 module.exports = constants;

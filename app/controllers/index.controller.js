@@ -47,7 +47,7 @@ const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
       redisClient.zrangeAsync(productKey, 0, -1, 'WITHSCORES'),
     ]);
 
-    const userNum = purchaseList ? purchaseList.length : 0;
+    const userNum = purchaseList ? Object.keys(purchaseList).length : 0;
     const typeLength = typeList ? typeList.length : 0;
     let orderNum = 0; // 今日下单商品总数
     for (let i = 0; i < typeLength; i += 2) {
@@ -378,6 +378,7 @@ exports.getPieDetails = (req, res, next) => {
       let typeKey = '';
       let rankKeyByType = '';
       let briefKey = '';
+      let briefClassKey = '';
       switch (type) {
         case 1:
           typeKey = redisUtil.getRedisPrefix(4, `${userId}:${date}`);
@@ -388,11 +389,13 @@ exports.getPieDetails = (req, res, next) => {
           typeKey = redisUtil.getRedisPrefix(24, `${userId}:${date}`);
           rankKeyByType = redisUtil.getRedisPrefix(23, `${userId}:${date}`);
           briefKey = redisUtil.getRedisPrefix(12);
+          briefClassKey = redisUtil.getRedisPrefix(26);
           break;
         default:
           typeKey = redisUtil.getRedisPrefix(8, `${userId}:${date}`);
           rankKeyByType = redisUtil.getRedisPrefix(7, `${userId}:${date}`);
           briefKey = redisUtil.getRedisPrefix(12);
+          briefClassKey = redisUtil.getRedisPrefix(26);
       }
 
       // 全部排行列表
@@ -402,6 +405,17 @@ exports.getPieDetails = (req, res, next) => {
       // 所有商品/资讯的简介
       const ids = list.filter((item, index) => (index % 2 === 0));
       const briefIntroduction = ids.length ? await redisClient.hmgetAsync(briefKey, ids) : [];
+      // 所有商品/资讯的类别
+      const briefClassInfos = briefClassKey === '' ? constants.NEWS_CLASS_LIST : await redisClient.hgetallAsync(briefClassKey);
+
+      const pieList = [];
+      for (let j = 0; j < typeList.length; j += 2) {
+        pieList.push({
+          cat_id: typeList[j],
+          cat_name: briefClassInfos[typeList[j]],
+          num: typeList[j + 1],
+        });
+      }
 
       const formatList = [];
       for (let i = 0; i < list.length; i += 2) {
@@ -410,12 +424,13 @@ exports.getPieDetails = (req, res, next) => {
           id: list[i],
           name: briefInfo.name,
           num: parseInt(list[i + 1], 0),
-          cat: briefInfo.cat,
+          cat_name: briefClassInfos[briefInfo.cat],
+          cat_id: briefInfo.cat,
           price: briefInfo.price || 0, // 查询资讯浏览人次时这个字段没用
         });
       }
-
-      resUtil.render('index/count', { typePie: typeList, rank: formatList });
+console.log({ typePie: pieList, rank: formatList });
+      resUtil.render('index/count', { typePie: pieList, rank: formatList });
     } catch (err) {
       console.log(err);
       next(err);

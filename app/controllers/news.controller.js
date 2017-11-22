@@ -134,7 +134,11 @@ exports.index = (req, res, next) => {
   const mainFunction = async () => {
     try {
       const rtn = await getNewsList(orderType, contextType, page);
-      httpUtil.render('news/news', { title: '热文资讯', newLists: rtn.newLists, totalPage: rtn.totalPage });
+
+      const newsClass = constants.NEWS_CLASS_LIST;
+      httpUtil.render('news/news', {
+        title: '热文资讯', newLists: rtn.newLists, totalPage: rtn.totalPage, newsClass,
+      });
     } catch (err) {
       next(err);
     }

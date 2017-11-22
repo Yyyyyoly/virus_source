@@ -25,6 +25,13 @@ exports.index = (req, res, next) => {
       if (repos.success !== true) {
         throw new Error('商城数据获取失败！');
       } else {
+        // 记录商品类别信息，供后续显示使用
+        const briefClassKey = redisUtil.getRedisPrefix(26);
+        let setString = '';
+        for (let j = 0; j < repos.data.length; j += 1) {
+          setString += `${repos.data[j].id} ${repos.data[j].name} `;
+        }
+        redisClient.hmsetAsync(briefClassKey, setString);
         return repos.data;
       }
     } catch (err) {
