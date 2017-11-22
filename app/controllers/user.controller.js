@@ -292,7 +292,13 @@ exports.renderBonusPointDetailsByDay = (req, res, next) => {
 
   const mainFunction = async () => {
     try {
-      const data = await bonusPointDetailsByDay(userId, date, page, limit);
+      const today = moment().format('YYYYMMDD');
+      let data = {
+        date, totalPage: 1, page, decrSum: 0, incrSum: 0, logLists: [],
+      };
+      if (parseInt(date, 0) <= parseInt(today, 0)) {
+        data = await bonusPointDetailsByDay(userId, date, page, limit);
+      }
 
       httpUtil.render('user/credits-list', data);
     } catch (err) {
@@ -318,7 +324,13 @@ exports.jsonBonusPointDetailsByDay = (req, res) => {
 
   const mainFunction = async () => {
     try {
-      const data = await bonusPointDetailsByDay(userId, date, page, limit);
+      const today = moment().format('YYYYMMDD');
+      let data = {
+        date, totalPage: 1, page, decrSum: 0, incrSum: 0, logLists: [],
+      };
+      if (parseInt(date, 0) <= parseInt(today, 0)) {
+        data = await bonusPointDetailsByDay(userId, date, page, limit);
+      }
 
       httpUtil.sendJson(constants.HTTP_SUCCESS, '', data);
     } catch (err) {

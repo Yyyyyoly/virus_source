@@ -193,6 +193,9 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   const pointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.pointNum : 0;
   const otherPointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.otherPointNum : 0;
 
+  // 浏览者和分享者（如果有）的最新积分，非负数时有效，更新至积分商城
+  let viewerNewTotalPoint = -1;
+  let shareNewTotalPoint = -1;
   Model.sequelize.transaction(async (transaction) => {
     /** *****************************记录资讯浏览日志**************************************** */
     const pvNewsInfo = await Model.PVNews.create({
@@ -273,6 +276,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         newsId: newsInfo.newsId,
         proofId: pvNewsInfo.dataValues.id,
       }, { transaction });
+      viewerNewTotalPoint = totalPoint;
     }
 
     /** ******************如果有分享者(且非自己)，且被分享人第一次点入该链接，增加分享者积分日志******************** */
@@ -290,13 +294,14 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         newsId: newsInfo.newsId,
         proofId: pvNewsInfo.dataValues.id,
       }, { transaction });
+      shareNewTotalPoint = totalPoint;
     }
   }).then(() => {
-    if (pointNum > 0) {
-      globalController.addGlobalPoint(viewerInfo.userId, pointNum);
+    if (viewerNewTotalPoint >= 0) {
+      globalController.addGlobalPoint(viewerInfo.userId, viewerNewTotalPoint);
     }
-    if (otherPointNum > 0) {
-      globalController.addGlobalPoint(shareUserId, otherPointNum);
+    if (shareNewTotalPoint >= 0) {
+      globalController.addGlobalPoint(shareUserId, shareNewTotalPoint);
     }
   }).catch((err) => {
     // Rolled back
@@ -410,6 +415,9 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   const pointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.pointNum : 0;
   const otherPointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.otherPointNum : 0;
 
+  // 分享者（如果有）和浏览者的最新总积分，>=0时更新
+  let viewerNewTotalPoint = -1;
+  let shareNewTotalPoint = -1;
   Model.sequelize.transaction(async (transaction) => {
     /** *****************************记录资讯转发日志**************************************** */
     const transmitInfo = await Model.TransmitNews.create({
@@ -462,6 +470,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         newsId: newsInfo.newsId,
         proofId: transmitInfo.dataValues.id,
       }, { transaction });
+      viewerNewTotalPoint = totalPoint;
     }
 
     /** ****************如果有分享者(且不为本人)，且被分享人第一次转发该链接，增加分享者积分日志****************** */
@@ -479,14 +488,15 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         newsId: newsInfo.newsId,
         proofId: transmitInfo.dataValues.id,
       }, { transaction });
+      shareNewTotalPoint = totalPoint;
     }
   }).then(() => {
     // commit
-    if (pointNum > 0) {
-      globalController.addGlobalPoint(viewerInfo.userId, pointNum);
+    if (viewerNewTotalPoint >= 0) {
+      globalController.addGlobalPoint(viewerInfo.userId, viewerNewTotalPoint);
     }
-    if (otherPointNum > 0) {
-      globalController.addGlobalPoint(shareUserId, otherPointNum);
+    if (shareNewTotalPoint >= 0) {
+      globalController.addGlobalPoint(shareUserId, shareNewTotalPoint);
     }
   }).catch((err) => {
     // Rolled back

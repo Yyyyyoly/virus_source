@@ -5,12 +5,12 @@ const fs = require('fs');
 const moment = require('moment');
 
 // 积分推送至汇总key里，以便于积分商城的查询
-exports.addGlobalPoint = async (userId, changeNum) => {
+exports.addGlobalPoint = async (userId, newTotalNum) => {
   const redisKey = redisUtil.getRedisPrefix(1111, userId);
-  const result = await globalRedis.hincrbyAsync(redisKey, constants.REDIS_PREFIX, changeNum);
+  const result = await globalRedis.hsetAsync(redisKey, constants.REDIS_PREFIX, newTotalNum);
   if (!result) {
     const date = moment().format('YYYY-MM-DD HH:mm:ss');
-    const record = `${date}  userId:${userId}  changeNum:${changeNum} \n`;
+    const record = `${date}  userId:${userId}  newTotalNum:${newTotalNum} \n`;
     fs.writeFile(`${__dirname}/../../logs/global_point.txt`, record, { flag: 'a' }, (err) => {
       if (err) {
         console.log(err);
