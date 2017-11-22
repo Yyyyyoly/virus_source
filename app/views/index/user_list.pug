@@ -25,7 +25,7 @@ block content
               td.text-center 昵称
           tbody
             for item in list
-              - item = JSON.parse(item)
+              - item = JSON.stringify(item)
               tr.bg-white
                 td(nowrap).time.sr-only= item.time
                 td.text-center= item.userName
