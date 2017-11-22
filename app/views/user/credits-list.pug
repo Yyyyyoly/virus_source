@@ -72,7 +72,7 @@ block script
       },
       methods: {
         timeFormat: function (e) {
-          return moment().format('YYYY-MM-DD HH:mm')
+          return moment(e).format('YYYY-MM-DD HH:mm')
         },
         selectDate: function () {
           $.get('/user/bonusPoint/dayLog/json', {
