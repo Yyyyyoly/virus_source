@@ -311,13 +311,11 @@ exports.getQrCodePage = (req, res, next) => {
         } else {
           tokenRedis.hsetAsync(ticketKey, userId, data.ticket);
           const qrCodeUrl = baseApi.showQRCodeURL(data.ticket);
-          console.log({ title: '分享给好友', qrCodeUrl });
           httpUtil.render('user/share', { title: '分享给好友', qrCodeUrl });
         }
       });
     } else {
       const qrCodeUrl = baseApi.showQRCodeURL(ticket);
-      console.log({ title: '分享给好友', qrCodeUrl });
       httpUtil.render('user/share', { title: '分享给好友', qrCodeUrl });
     }
   };
