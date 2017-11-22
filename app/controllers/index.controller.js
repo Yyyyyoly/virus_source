@@ -351,7 +351,8 @@ exports.getListDetails = (req, res, next) => {
         }
       }
 
-      resUtil.render('index/user-list', { total: list.length, list });
+      const titles = { 1: '浏览文章用户数', 2: '浏览商品用户数', 3: '下单用户数' };
+      resUtil.render('index/user-list', { total: list.length, list, title: titles[type] });
     } catch (err) {
       console.log(err);
       next(err);
@@ -430,7 +431,8 @@ exports.getPieDetails = (req, res, next) => {
         });
       }
 
-      resUtil.render('index/count', { typePie: pieList, rank: formatList });
+      const titles = { 1: '浏览文章次数', 2: '浏览商品次数', 3: '下单商品数' };
+      resUtil.render('index/count', { typePie: pieList, rank: formatList, title: titles[type] });
     } catch (err) {
       console.log(err);
       next(err);
