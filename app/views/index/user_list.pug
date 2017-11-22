@@ -24,7 +24,11 @@ block content
               td 时间
               td.text-center 昵称
           tbody
-
+            for item in list
+              - item = JSON.parse(item)
+              tr.bg-white
+                td(nowrap).time.sr-only= item.time
+                td.text-center= item.userName
     else
       .no-data 今日无数据
 
