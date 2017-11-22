@@ -429,7 +429,7 @@ exports.getPieDetails = (req, res, next) => {
           price: briefInfo.price || 0, // 查询资讯浏览人次时这个字段没用
         });
       }
-console.log({ typePie: pieList, rank: formatList });
+
       resUtil.render('index/count', { typePie: pieList, rank: formatList });
     } catch (err) {
       console.log(err);
