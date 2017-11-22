@@ -1,12 +1,6 @@
 extends ../layout/base
 
 block attributes
-  -
-    var title = 123;
-    var total = 0;
-    var list =  [
-      { time: "2017-11-17T07:35:52.000Z", userName: '新君同学' }
-    ];
 
 block title
   title #{title}
@@ -24,11 +18,11 @@ block content
               td 时间
               td.text-center 昵称
           tbody
-            - list = JSON.parse(list)
-            for item in list
-              tr.bg-white
-                td(nowrap).time.sr-only= item.time
-                td.text-center= item.userName
+            //for item in list
+            //  tr.bg-white
+            //    td(nowrap).time.sr-only= item.time
+            //    td.text-center= item.userName
+      pre= JSON.parse(list)
     else
       .no-data 今日无数据
 
