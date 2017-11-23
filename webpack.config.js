@@ -10,6 +10,7 @@ module.exports = {
   entry: {
     common: './asset/webpack/base.js',
     auth: './asset/webpack/auth.js',
+    newsShare: './asset/webpack/newsShare.js',
     indexCount: './asset/webpack/indexCount.js',
     // vendor: ['jquery'],
   },

@@ -38,10 +38,10 @@ block script
       el: '#newsPage',
       data: {
         newsClasses: {
-          1: '全部',
-          2: '痛风',
-          3: '糖尿病',
-          4: '甲状腺'
+          0: '全部',
+          1: '痛风',
+          2: '糖尿病',
+          3: '甲状腺'
         },
         orders: {
           1: '热门',
@@ -62,7 +62,7 @@ block script
           $.get('/news/list', {
             order: vm.active.order,
             context: vm.active.newsClass,
-            page: 1
+            page: 0
           }, function (data) {
             if (data.errCode === 200) {
               vm.newLists = data.params.newLists;

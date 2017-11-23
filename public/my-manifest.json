@@ -2,5 +2,7 @@
   "auth.js": "/js/auth.js",
   "common.css": "/css/common.css",
   "common.js": "/js/common.js",
-  "indexCount.js": "/js/indexCount.js"
+  "indexCount.js": "/js/indexCount.js",
+  "newsShare.css": "/css/newsShare.css",
+  "newsShare.js": "/js/newsShare.js"
 }
