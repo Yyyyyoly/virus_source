@@ -10,7 +10,7 @@ module.exports = function (sequelize, DataTypes) {
     // 资讯类型 自测题/文章
     type: { type: DataTypes.INTEGER, allowNull: false, defaultValue: constants.TYPE_NEWS },
     // 资讯所属类别 (eg. 糖尿病、痛风等)
-    newsClass: { type: DataTypes.INTEGER, allowNull: false, defaultValue: constants.CONTEXT_TOTAL },
+    newsClass: { type: DataTypes.INTEGER, allowNull: false },
     // 资讯标题
     title: { type: DataTypes.STRING },
     // 资讯简介
