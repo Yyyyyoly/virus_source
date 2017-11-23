@@ -50,11 +50,11 @@ block script
       },
       methods: {
         chooseType: function (e) {
-          if (e === -1) {
+          if (e == -1) {
             this.show_rank = this.rank;
           } else {
             this.show_rank = this.rank.filter(function (val) {
-              return val.cat_id === e;
+              return val.cat_id == e;
             })
           }
           this.show_type = e;
