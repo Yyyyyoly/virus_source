@@ -6,6 +6,8 @@ const redisClient = require('../../config/redis')(1);
 const globalClient = require('../../config/redis')(3);
 const redisUtil = require('../utils/redis.util');
 const moment = require('moment');
+const signatureUtil = require('../utils/signature.util');
+const config = require('../../config/config');
 
 // 渲染绑定手机号页面
 exports.renderBindPage = (req, res) => {
@@ -176,7 +178,6 @@ exports.withdraw = (req, res) => {
 
   mainFunction();
 };
-
 
 // 积分日志详情页
 exports.bonusPointDetails = (req, res, next) => {
@@ -414,4 +415,68 @@ exports.giveAdvice = (req, res) => {
     console.log(err);
     resUtils.sendJson(constants.HTTP_FAIL, '系统错误');
   });
+};
+
+// 积分商城调用   兑换积分
+exports.exchangePoints = (req, res) => {
+  const userId = req.body.userId || '';
+  const point = parseInt(req.body.point, 0) || 0;
+  const timestamp = req.body.timestamp || 0;
+  const signature = req.body.signature || '';
+  const now = Date.now();
+  const resUtil = new HttpSend(req, res);
+
+  // 计算签名 检验参数是否来自合法源
+  const signatureInfo = signatureUtil.genSignature({
+    userId,
+    point,
+    timestamp,
+  }, config.pointMallConfig.privateKey);
+
+  if (signature !== signatureInfo.signature) {
+    resUtil.sendJson(104, '签名错误');
+    return;
+  }
+
+  if (timestamp < now - (5 * 60 * 1000) || timestamp > now) {
+    resUtil.sendJson(408, '请求已经超时');
+    return;
+  }
+
+  if (point <= 0) {
+    resUtil.sendJson(constants.HTTP_FAIL, '扣积分不能为负');
+    return;
+  }
+
+  const mainFunction = async () => {
+    try {
+      const bonusKey = redisUtil.getRedisPrefix(18);
+      const globalBonusKey = redisUtil.getRedisPrefix(1111, userId);
+      const result = await globalClient.multi()
+        .hincrby(bonusKey, userId, (0 - point))
+        .hincrby(globalBonusKey, constants.REDIS_PREFIX, (0 - point))
+        .exec();
+
+      if (result.length === 2) {
+        const data = await Model.PointRecord.create({
+          viewerId: userId,
+          operator: 5,
+          changeNum: point,
+          totalPoint: result[0],
+        });
+        if (data) {
+          resUtil.sendJson(constants.HTTP_SUCCESS);
+        } else {
+          resUtil.sendJson(constants.HTTP_FAIL, '数据库日志增加错误');
+        }
+      } else {
+        resUtil.sendJson(constants.HTTP_FAIL, 'redis扣除错误');
+      }
+    } catch (err) {
+      console.log(err);
+      resUtil.sendJson(constants.HTTP_FAIL, '系统出错');
+    }
+  };
+
+  mainFunction();
 };

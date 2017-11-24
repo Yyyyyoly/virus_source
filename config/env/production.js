@@ -45,6 +45,11 @@ module.exports = {
     privateKey: 'xsm_development_secret',
   },
 
+  // point mall config
+  pointMallConfig: {
+    privateKey: 'medsci-tech-share',
+  },
+
   // qiniu config
   qiNiuConfig: {
     accessKey: 'mrFUPeTjAbXn6eYl-K8ydEUW4EBV10Rc4DojZXbA',
