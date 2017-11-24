@@ -15,12 +15,12 @@ block content
         table.table
           thead.text-secondary
             tr
-              td.pl-3 时间
+              td.text-center.pl-3 时间
               td.text-center.pr-3 昵称
           tbody
             for item in list
               tr.bg-white
-                td(nowrap).time.sr-only.pl-3= item.time
+                td.text-center(nowrap).time.sr-only.pl-3= item.time
                 td.text-center.pr-3= item.userName
     else
       .no-data 今日无数据
