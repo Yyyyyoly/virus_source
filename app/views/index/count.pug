@@ -35,9 +35,41 @@ block script
     var vm = new Vue({
       el: '#count-page',
       data: {
-        typePie: !{JSON.stringify(typePie)},
-        rank: !{JSON.stringify(rank)},
-        show_rank: !{JSON.stringify(rank)},
+        typePie: [{ "cat_id": "1", "cat_name": "痛风", "num": "1" }, {
+          "cat_id": "3",
+          "cat_name": "甲状腺",
+          "num": "7"
+        }, { "cat_id": "2", "cat_name": "糖尿病", "num": "9" }],
+        rank: [{
+          "id": "1",
+          "name": "中国慢性病研究及防治实践的历史与现状",
+          "num": 1,
+          "cat_name": "痛风",
+          "cat_id": 1,
+          "price": 0
+        }, { "id": "6", "name": "为何早上空腹血糖总是居高不下？", "num": 7, "cat_name": "甲状腺", "cat_id": 3, "price": 0 }, {
+          "id": "9",
+          "name": "学会这么做，你也可以成为维密天使！",
+          "num": 9,
+          "cat_name": "糖尿病",
+          "cat_id": 2,
+          "price": 0
+        }],
+        show_rank: [{
+          "id": "1",
+          "name": "中国慢性病研究及防治实践的历史与现状",
+          "num": 1,
+          "cat_name": "痛风",
+          "cat_id": 1,
+          "price": 0
+        }, { "id": "6", "name": "为何早上空腹血糖总是居高不下？", "num": 7, "cat_name": "甲状腺", "cat_id": 3, "price": 0 }, {
+          "id": "9",
+          "name": "学会这么做，你也可以成为维密天使！",
+          "num": 9,
+          "cat_name": "糖尿病",
+          "cat_id": 2,
+          "price": 0
+        }],
         show_type: '全部'
       },
       computed: {
@@ -67,18 +99,20 @@ block script
           myChart.dispatchAction({
             type: 'downplay',
             seriesName: '浏览次数'
+          });
+          myChart.dispatchAction({
+            type: 'hideTip',
+            seriesIndex: 0
+          })
+          myChart.dispatchAction({
+            type: 'showTip',
+            seriesIndex: 0,
+            name: name
           })
           myChart.dispatchAction({
             type: 'highlight',
             name: name
-          })
-          myChart.dispatchAction({
-            type: 'hideTip'
-          })
-          myChart.dispatchAction({
-            type: 'showTip',
-            name: name
-          })
+          });
         }
       }
     });
@@ -98,6 +132,7 @@ block script
           x: 'center'
         },
         tooltip: {
+          confine: true,
           trigger: 'item',
           formatter: "{b} : {c} ({d}%)"
         },
@@ -131,11 +166,7 @@ block script
       }
       var myChart = echarts.init(document.getElementById('chart'));
       myChart.setOption(option);
-      myChart.on('pieselectchanged', function (params) {
-        if (params.selected[params.name]) {
-          vm.chooseType(params.name);
-        } else {
-          vm.chooseType('全部');
-        }
+      myChart.on('click', function (params) {
+        vm.chooseType(params.name);
       })
     }
