@@ -66,12 +66,13 @@ block script
         chooseChart: function (name) {
           myChart.dispatchAction({
             type: 'downplay',
-            seriesName: '浏览次数'
-          });
-          myChart.dispatchAction({
-            type: 'hideTip',
             seriesIndex: 0
-          })
+          });
+          if ( name == '全部' ) {
+            myChart.dispatchAction({
+              type: 'hideTip'
+            })
+          }
           myChart.dispatchAction({
             type: 'showTip',
             seriesIndex: 0,
