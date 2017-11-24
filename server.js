@@ -9,8 +9,8 @@ const https = require('https');
 const fs = require('fs');
 
 const credentials = {
-  key: fs.readFileSync('./pem/214354661570662.key'),
-  cert: fs.readFileSync('./pem/214354661570662.pem'),
+  key: fs.readFileSync(`${__dirname}/pem/214354661570662.key`),
+  cert: fs.readFileSync(`${__dirname}/pem/214354661570662.pem`),
 };
 const httpsServer = https.createServer(credentials, app);
 
