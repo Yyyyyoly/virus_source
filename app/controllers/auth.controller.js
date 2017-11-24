@@ -301,15 +301,15 @@ exports.getQrCodePage = (req, res, next) => {
   const httpUtil = new HttpSend(req, res);
 
   const mainFunction = async () => {
-    const ticketKey = redisUtil.getRedisPrefix(996);
-    const ticket = await tokenRedis.hgetAsync(ticketKey, userId);
+    const ticketKey = redisUtil.getRedisPrefix(996, userId);
+    const ticket = await tokenRedis.getAsync(ticketKey);
     if (!ticket) {
       baseApi.createTmpQRCode(1, 86400, (err, data) => {
         if (err) {
           console.log(err);
           next(err);
         } else {
-          tokenRedis.hsetAsync(ticketKey, userId, data.ticket);
+          tokenRedis.setAsync(ticketKey, data.ticket, 'EX 86400');
           const qrCodeUrl = baseApi.showQRCodeURL(data.ticket);
           httpUtil.render('user/share', { title: '分享给好友', qrCodeUrl });
         }
