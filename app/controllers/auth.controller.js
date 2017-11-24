@@ -309,7 +309,7 @@ exports.getQrCodePage = (req, res, next) => {
           console.log(err);
           next(err);
         } else {
-          tokenRedis.setAsync(ticketKey, data.ticket, 'EX 86400');
+          tokenRedis.setAsync(ticketKey, data.ticket, 'EX', 86400);
           const qrCodeUrl = baseApi.showQRCodeURL(data.ticket);
           httpUtil.render('user/share', { title: '分享给好友', qrCodeUrl });
         }
