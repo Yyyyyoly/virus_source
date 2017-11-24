@@ -68,20 +68,21 @@ block script
             type: 'downplay',
             seriesIndex: 0
           });
-          if ( name == '全部' ) {
+          if (name == '全部') {
             myChart.dispatchAction({
               type: 'hideTip'
             })
+          } else {
+            myChart.dispatchAction({
+              type: 'showTip',
+              seriesIndex: 0,
+              name: name
+            })
+            myChart.dispatchAction({
+              type: 'highlight',
+              name: name
+            });
           }
-          myChart.dispatchAction({
-            type: 'showTip',
-            seriesIndex: 0,
-            name: name
-          })
-          myChart.dispatchAction({
-            type: 'highlight',
-            name: name
-          });
         }
       }
     });
