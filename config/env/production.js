@@ -1,7 +1,7 @@
 module.exports = {
   // production configuration options
   serverPort: 9000,
-  serverHost: 'http://share.medsci-tech.com',
+  serverHost: 'https://share.medsci-tech.com',
   sessionSecret: 'xsm_production_secret',
 
   // mysql config
