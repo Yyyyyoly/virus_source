@@ -9,7 +9,11 @@ block content
     .row.bg-white: .col.p-3
       #chart
         .no-data.pt-5.pb-5 没有数据
-    .row.type-block
+    .mt-3(v-if="show_rank.length == 0")
+      .row.share
+        .col
+          a.btn.btn-block.btn-lg.text-white.green-bg(href="/news") 立刻去分享文章
+    .row.type-block(v-if="show_rank.length != 0")
       .col.text-center.p-2
         p.text-secondary.mb-0 #{title}
         button.btn.m-2(@click="chooseType('全部')", :class="show_type === '全部'?'active':''") 全部

@@ -23,13 +23,17 @@ block content
       .row.detail: .col
         case operator
           when 1
-            p 详情：自己&emsp;浏览文章【#{newsTitle}】
+            p 详情：自己浏览
+            p 文章：《#{newsTitle}》
           when 2
-            p 详情：好友【#{friendName}】&emsp;浏览文章【#{newsTitle}】
+            p 详情：好友【#{friendName}】浏览
+            p 文章：《#{newsTitle}》
           when 3
-            p 详情：自己&emsp;转发文章【#{newsTitle}】
+            p 详情：自己转发
+            p 文章：《#{newsTitle}》
           when 4
-            p 详情：好友【#{friendName}】&emsp;转发文章【#{newsTitle}】
+            p 详情：好友【#{friendName}】转发
+            p 文章：《#{newsTitle}》
           default
             p 详情：积分兑换
 
