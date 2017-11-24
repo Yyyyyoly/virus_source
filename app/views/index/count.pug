@@ -66,17 +66,17 @@ block script
         chooseChart: function (name) {
           myChart.dispatchAction({
             type: 'downplay',
-            // 可选，系列名称，可以是一个数组指定多个系列
             seriesName: '浏览次数'
           })
           myChart.dispatchAction({
             type: 'highlight',
-            // 可选，数据名称，在有 dataIndex 的时候忽略
             name: name
           })
           myChart.dispatchAction({
+            type: 'hideTip'
+          })
+          myChart.dispatchAction({
             type: 'showTip',
-            // 可选，数据名称，在有 dataIndex 的时候忽略
             name: name
           })
         }
