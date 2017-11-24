@@ -444,13 +444,21 @@ exports.exchangePoints = (req, res) => {
   }
 
   if (point <= 0) {
-    resUtil.sendJson(constants.HTTP_FAIL, '扣积分不能为负');
+    resUtil.sendJson(constants.HTTP_FAIL, '扣积分为非负数');
     return;
   }
 
   const mainFunction = async () => {
     try {
+      // 检查积分是否超出扣除上限
       const bonusKey = redisUtil.getRedisPrefix(18);
+      const myPoint = await globalClient.hgetAsync(bonusKey, userId);
+      if (myPoint < point) {
+        resUtil.sendJson(constants.HTTP_FAIL, '积分超过最大兑换上限');
+        return;
+      }
+
+
       const globalBonusKey = redisUtil.getRedisPrefix(1111, userId);
       const result = await globalClient.multi()
         .hincrby(bonusKey, userId, (0 - point))
