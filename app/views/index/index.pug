@@ -70,7 +70,7 @@ block content
             .col.count-block
               a
                 p 浏览商品次数
-                p= datas.productView.pvProducts
+                p= datas.productView.pvProducts0
           .row
             .col.count-block
               p 下单用户数
@@ -84,7 +84,10 @@ block content
 block script
   script.
     /* eslint-disable */
-
+    var chartData= {
+      credits: !{JSON.stringify(lineChartPoint)},
+      commision: !{JSON.stringify(lineChartCommission)}
+    }
     $('#chart1, #chart2').height(120);
     var option1 = {
       color: ['#ffffff'],
@@ -104,7 +107,9 @@ block script
       xAxis: [
         {
           type: 'category',
-          data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          data: credits.map(function(e){
+            return e.date.replace('/(.{2})/g','$1\-')
+          }),
           axisLine: {
             lineStyle: {
               color: '#fff'
@@ -144,7 +149,9 @@ block script
           name: '浏览量',
           type: 'line',
           barWidth: 10,
-          data: [110, 252, 280, 334, 390, 330, 220],
+          data: credits.map(function (e) {
+            return e.num
+          }),
           itemStyle: {
             normal: {
               barBorderRadius: [10, 10, 0, 0]
@@ -171,7 +178,9 @@ block script
       xAxis: [
         {
           type: 'category',
-          data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          data: commission.map(function (e) {
+            return e.date.replace('/(.{2})/g', '$1\-')
+          }),
           axisLine: {
             lineStyle: {
               color: '#fff'
@@ -211,7 +220,9 @@ block script
           name: '浏览量',
           type: 'line',
           barWidth: 10,
-          data: [100, 52, 200, 330, 220, 334, 390],
+          data: commission.map(function (e) {
+            return e.num
+          }),
           itemStyle: {
             normal: {
               barBorderRadius: [10, 10, 0, 0]

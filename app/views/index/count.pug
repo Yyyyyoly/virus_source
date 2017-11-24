@@ -12,15 +12,15 @@ block content
     .row.type-block
       .col.text-center.p-2
         p.text-secondary.mb-0 #{title}
-        button.btn.m-2(@click="chooseType(-1)", :class="show_type === -1?'active':''") 全部
-        button.btn.m-2(v-for="item in typePie", @click="chooseType(item.cat_id)", :class="show_type === item.cat_id?'active':''") {{item.cat_name}}
+        button.btn.m-2(@click="chooseType('全部')", :class="show_type === '全部'?'active':''") 全部
+        button.btn.m-2(v-for="item in typePie", @click="()=>{chooseType(item.cat_name); chooseChart(item.cat_name)}", :class="show_type === item.cat_name?'active':''") {{item.cat_name}}
 
     .row.article-block(v-for="(item, index) in show_rank")
       div.num {{index+1}}
       a(:href="'/news/details/'+item.id").col
         p.title {{item.name}}
         p.info.mb-2
-          span.price ￥{{item.price}}
+          span.price(v-show="item.price != 0") ￥{{item.price}}
           //span.daily 当日：#{item.num}人
           span.count 累计：{{item.num}}人&emsp;
 
@@ -49,15 +49,22 @@ block script
         }
       },
       methods: {
-        chooseType: function (e) {
-          if (e == -1) {
+        chooseType: function (name) {
+          if (name == '全部') {
             this.show_rank = this.rank;
           } else {
             this.show_rank = this.rank.filter(function (val) {
-              return val.cat_id == e;
+              return val.cat_name == name;
             })
           }
-          this.show_type = e;
+          this.show_type = name;
+        },
+        chooseChart: function (name) {
+          myChart.dispatchAction({
+            type: 'pieSelect',
+            // 可选，数据名称，在有 dataIndex 的时候忽略
+            name: name
+          })
         }
       }
     });
@@ -65,6 +72,12 @@ block script
     if (vm.typePie.length !== 0) {
       $('#chart').height(300);
       var option = {
+        color: [
+          '#19d4ae', '#5ab1ef', '#fa6e86',
+          '#ffb980', '#0067a6', '#c4b4e4',
+          '#d87a80', '#9cbbff', '#d9d0c7',
+          '#87a997', '#d49ea2', '#5b4947'
+        ],
         title: {
           text: ' ',
           subtext: ' ',
@@ -72,7 +85,7 @@ block script
         },
         tooltip: {
           trigger: 'item',
-          formatter: "{a} <br/>{b} : {c} ({d}%)"
+          formatter: "{b} : {c} ({d}%)"
         },
         legend: {
           bottom: 'bottom',
@@ -80,16 +93,23 @@ block script
         },
         series: [
           {
-            name: '数据 ',
+            name: '浏览次数',
             type: 'pie',
-            radius: '55%',
-            center: ['50%', '40%'],
+            radius: '70%',
+            center: ['50%', '45%'],
+            selectedMode: 'single',
             data: vm.count_data,
+            labelLine: {
+              normal: {
+                show: false,
+                length: 10,
+                length2: 2
+              }
+            },
             itemStyle: {
-              emphasis: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              normal: {
+                borderColor: '#fff',
+                borderWidth: 5
               }
             }
           }
@@ -97,4 +117,11 @@ block script
       }
       var myChart = echarts.init(document.getElementById('chart'));
       myChart.setOption(option);
+      myChart.on('pieselectchanged', function (params) {
+        if (params.selected[params.name]) {
+          vm.chooseType(params.name);
+        } else {
+          vm.chooseType('全部');
+        }
+      })
     }
