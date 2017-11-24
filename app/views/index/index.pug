@@ -17,7 +17,7 @@ block content
       .tab-pane.fade.show.active(id="credits" role="tabpanel" aria-labelledby="credits-tab")
         .row.commission
           .col
-            a.green-text(href='/home/strategy/point'): p 积分攻略？
+            a.green-text(href='/home/strategy/point'): p.d-inline 积分攻略？
             p.text-center
               a.btn.btn-sm(href='/user/commission/withdraw') 兑换
               span.money= pointNum
@@ -46,12 +46,13 @@ block content
       .tab-pane.fade(id="commission" role="tabpanel" aria-labelledby="commission-tab")
         .row.commission
           .col
-            a.orange-text(href='/home/strategy/commission'): p 佣金攻略？
+            a.orange-text(href='/home/strategy/commission'): p.d-inline 佣金攻略？
             p.text-center
               span.money= commissionNum.toFixed(2)
               span.money-text 元
               a.btn.btn-sm.orange-bg(href='/user/commission/withdraw') 提现
             p.text-center: small.sub-text 可用佣金
+            .clearfix
         .count.text-center
           .row.d-block
             .chart.orange-bg
