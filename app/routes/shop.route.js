@@ -8,9 +8,6 @@ router.get('/category', authController.isLogin, shopController.searchProductByCa
 router.get('/product/:productId', authController.isLogin, shopController.searchProductById);
 router.get('/purchase', authController.isLogin, shopController.redirectToShopServer);
 
-// 购买完成后，商城服务器请求用
-router.post('/purchaseRecord', shopController.addPurchaseRecord);
-
 
 module.exports = function (app) {
   app.use(prefix, router);
