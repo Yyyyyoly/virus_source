@@ -108,7 +108,7 @@ block script
         {
           type: 'category',
           data: chartData.credits.map(function(e){
-            return e.date.replace(/(.{2})/g, '$1月$2日')
+            return e.date.replace(/(.{2})(.{2})/, '$1月$2日')
           }),
           axisLine: {
             lineStyle: {
