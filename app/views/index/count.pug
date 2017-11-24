@@ -65,7 +65,7 @@ block script
         },
         chooseChart: function (name) {
           myChart.dispatchAction({
-            type: 'pieSelect',
+            type: 'highlight',
             // 可选，数据名称，在有 dataIndex 的时候忽略
             name: name
           })
@@ -101,8 +101,7 @@ block script
             type: 'pie',
             radius: '70%',
             center: ['50%', '45%'],
-            selectedMode: 'single',
-            selectedOffset: 5,
+            selectedMode: false,
             data: vm.count_data,
             labelLine: {
               normal: {
