@@ -251,7 +251,7 @@ exports.isLogin = (req, res, next) => {
   req.session.originalUrl = originalUrl;
 
   if (!userInfo || !userInfo.userId) {
-    res.redirect(`${config.serverHost}:${config.serverPort}/auth/login`);
+    res.redirect(`${config.serverHost}/auth/login`);
   } else {
     next();
   }
