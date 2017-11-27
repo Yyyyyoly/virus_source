@@ -57,7 +57,8 @@ const getNewsList = async (orderType, contextType, page) => {
       count,
     };
     if (rankList.length) {
-      const datas = await Model.News.findAll({ where: { newsId: { $in: rankList } } });
+      // 这种写法等于$in:(1,2,3,4)
+      const datas = await Model.News.findAll({ where: { newsId: rankList } });
       // 按照排行榜的顺序重新排序
       for (const newsId of rankList) {
         for (const data of datas) {
