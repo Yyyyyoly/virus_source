@@ -244,7 +244,8 @@ exports.isLogin = (req, res, next) => {
 
   // 记载用户的起始url，方便登录/注册后跳转
   const originalUrl = decodeURIComponent(url.format({
-    protocol: req.protocol,
+    // protocol: req.protocol,
+    protocol: 'https',
     host: req.hostname,
     pathname: req.originalUrl,
   }));
