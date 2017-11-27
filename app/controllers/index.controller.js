@@ -6,6 +6,8 @@ const constants = require('../../config/constants');
 const moment = require('moment');
 const Model = require('../models/index');
 
+const Op = Model.Sequelize.Op;
+
 // 查询每日数据总量统计
 const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
   // 查询指定日期浏览文章的uv\pv
@@ -99,7 +101,7 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
         ],
         where: {
           shareId: userId,
-          createdAt: { $gte: startDate, $lte: endDate },
+          createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
         },
         group: [
           'viewerId',
@@ -126,7 +128,7 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
         ],
         where: {
           shareId: userId,
-          createdAt: { $gte: startDate, $lte: endDate },
+          createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
         },
         group: Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%Y%m%d'),
       });
@@ -329,7 +331,7 @@ exports.getListDetails = (req, res, next) => {
       const resultList = await sqlModel.findAll({
         where: {
           shareId: userId,
-          createdAt: { $gte: startDate, $lte: endDate },
+          createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
         },
       }) || { dataValues: [] };
 

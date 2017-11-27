@@ -8,6 +8,8 @@ const moment = require('moment');
 const config = require('../../config/config');
 const globalController = require('./global.controller');
 
+const Op = Model.Sequelize.Op;
+
 // 根据资讯id  查询点赞总数、浏览总数、评论总数
 exports.getPVAndThumpById = async (newsId) => {
   const thumbUpKey = redisUtil.getRedisPrefix(1);
@@ -57,7 +59,7 @@ const getNewsList = async (orderType, contextType, page) => {
       count,
     };
     if (rankList.length) {
-      // 这种写法等于$in:(1,2,3,4)
+      // 这种写法等于Op.in:(1,2,3,4)
       const datas = await Model.News.findAll({ where: { newsId: rankList } });
       // 按照排行榜的顺序重新排序
       for (const newsId of rankList) {
@@ -712,8 +714,8 @@ exports.finishTestById = (req, res) => {
     const estimate = await Model.SelfTestEstimate.findOne({
       where: {
         newsId,
-        minScore: { $lte: totalScore },
-        maxScore: { $gt: totalScore },
+        minScore: { [Op.lte]: totalScore },
+        maxScore: { [Op.gt]: totalScore },
       },
     });
     if (!estimate || !estimate.dataValues) {

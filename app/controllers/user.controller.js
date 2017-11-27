@@ -9,6 +9,8 @@ const moment = require('moment');
 const signatureUtil = require('../utils/signature.util');
 const config = require('../../config/config');
 
+const Op = Model.Sequelize.Op;
+
 // 渲染绑定手机号页面
 exports.renderBindPage = (req, res) => {
   const httpUtil = new HttpSend(req, res);
@@ -202,7 +204,7 @@ exports.bonusPointDetails = (req, res, next) => {
       const logInfos = await Model.PointRecord.findAll({
         where: {
           viewerId: userId,
-          createdAt: { $gte: startDate, $lte: endDate },
+          createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
         },
         limit: 10,
         order: [['createdAt', 'DESC']],
@@ -239,7 +241,7 @@ const bonusPointDetailsByDay = async (userId, date, page, limit) => {
     const logInfos = await Model.PointRecord.findAndCountAll({
       where: {
         viewerId: userId,
-        createdAt: { $gte: startDate, $lte: endDate },
+        createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
       },
       order: [['createdAt', 'DESC']],
       offset: (page - 1) * limit,
