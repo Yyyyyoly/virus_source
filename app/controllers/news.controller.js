@@ -30,7 +30,7 @@ exports.getPVAndThumpById = async (newsId) => {
 
 const getNewsList = async (orderType, contextType, page) => {
   // 分页中每页的最大数量
-  const limit = 10;
+  const limit = 15;
 
   // 按照发布时间最新查找资讯
   const findByNew = async () => {
