@@ -58,6 +58,7 @@ module.exports = function () {
   require('../app/routes/shop.route')(app);
   require('../app/routes/news.route')(app);
   require('../app/routes/user.route')(app);
+  require('../app/routes/external.route')(app);
   require('../app/routes/test.route')(app);
 
   // catch the 404 and render the 404 page.

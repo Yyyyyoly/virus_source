@@ -139,7 +139,7 @@ exports.withdraw = (req, res) => {
       const commissionKey = redisUtil.getRedisPrefix(6);
       const commissionNum = await globalClient.hgetAsync(commissionKey, userId);
 
-      if (changeNum <= 0 || changeNum > commissionNum) {
+      if (changeNum <= 0 || changeNum > parseFloat(commissionNum)) {
         resUtil.sendJson(constants.HTTP_FAIL, '提现金额不正确，请重新输入');
         return;
       }
@@ -426,6 +426,11 @@ exports.exchangePoints = (req, res) => {
   const now = Date.now();
   const resUtil = new HttpSend(req, res);
 
+  if (!timestamp || !signature || point <= 0 || !userId) {
+    resUtil.sendJson(constants.HTTP_FAIL, '参数不能为空');
+    return;
+  }
+
   // 计算签名 检验参数是否来自合法源
   const signatureInfo = signatureUtil.genSignature({
     userId,
@@ -443,17 +448,12 @@ exports.exchangePoints = (req, res) => {
     return;
   }
 
-  if (point <= 0) {
-    resUtil.sendJson(constants.HTTP_FAIL, '扣积分为非负数');
-    return;
-  }
-
   const mainFunction = async () => {
     try {
       // 检查积分是否超出扣除上限
       const bonusKey = redisUtil.getRedisPrefix(18);
       const myPoint = await globalClient.hgetAsync(bonusKey, userId);
-      if (myPoint < point) {
+      if (parseInt(myPoint, 0) < point) {
         resUtil.sendJson(constants.HTTP_FAIL, '积分超过最大兑换上限');
         return;
       }

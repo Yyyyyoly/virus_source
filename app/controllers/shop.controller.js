@@ -321,6 +321,13 @@ exports.addPurchaseRecord = (req, res) => {
   const now = Date.now();
   const resUtil = new HttpSend(req, res);
 
+  // 检查参数
+  if (!productList.length || !orderId || !shareUserId || !userId ||
+    !timestamp || !signature || totalPrice <= 0) {
+    resUtil.sendJson(constants.HTTP_FAIL, '参数不能为空');
+    return;
+  }
+
   // 计算签名 检验参数是否来自合法源
   const signatureInfo = signatureUtil.genSignature({
     productList,
@@ -338,11 +345,6 @@ exports.addPurchaseRecord = (req, res) => {
 
   if (timestamp < now - (5 * 60 * 1000) || timestamp > now) {
     resUtil.sendJson(408, '请求已经超时');
-    return;
-  }
-
-  if (totalPrice <= 0) {
-    resUtil.sendJson(constants.HTTP_SUCCESS);
     return;
   }
 
