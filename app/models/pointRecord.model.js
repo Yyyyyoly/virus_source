@@ -22,6 +22,7 @@ module.exports = function (sequelize, DataTypes) {
     // 凭据id 用于追溯这笔积分变动的依据
     // 当操作编号为1、2时，存储pvNews表的记录id
     // 当操作编号为3、4时，存储transmitNews表的记录id
+    // 当操作编号为5时，存储0
     proofId: { type: DataTypes.BIGINT, allowNull: false },
   }, {
     timestamps: true,

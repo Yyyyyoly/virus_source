@@ -463,7 +463,7 @@ exports.exchangePoints = (req, res) => {
       const result = await globalClient.multi()
         .hincrby(bonusKey, userId, (0 - point))
         .hincrby(globalBonusKey, constants.REDIS_PREFIX, (0 - point))
-        .exec();
+        .execAsync();
 
       if (result.length === 2) {
         const data = await Model.PointRecord.create({
@@ -471,6 +471,7 @@ exports.exchangePoints = (req, res) => {
           operator: 5,
           changeNum: point,
           totalPoint: result[0],
+          proofId: 0,
         });
         if (data) {
           resUtil.sendJson(constants.HTTP_SUCCESS);
