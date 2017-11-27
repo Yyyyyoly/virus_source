@@ -3,7 +3,7 @@ const constants = {
   REDIS_PREFIX: 'med',
 
   // 请求类型，之前用req.protocol 但是经过nginx转发后https修改为http 会造成错误，所以写在常量里
-  PROTOCOL: 'https',
+  PROTOCOL: 'http',
 
   // api const
   HTTP_FAIL: 500,
