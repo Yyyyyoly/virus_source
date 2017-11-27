@@ -402,9 +402,9 @@ exports.getPieDetails = (req, res, next) => {
       }
 
       // 全部排行列表
-      const list = await redisClient.zrangeAsync(`${rankKeyByType}:all`, 0, -1, 'WITHSCORES') || [];
+      const list = await redisClient.zrevrangeAsync(`${rankKeyByType}:all`, 0, -1, 'WITHSCORES') || [];
       // 饼图的分类列表
-      const typeList = await redisClient.zrangeAsync(typeKey, 0, -1, 'WITHSCORES') || [];
+      const typeList = await redisClient.zrevrangeAsync(typeKey, 0, -1, 'WITHSCORES') || [];
       // 所有商品/资讯的简介
       const ids = list.filter((item, index) => (index % 2 === 0));
       const briefIntroduction = ids.length ? await redisClient.hmgetAsync(briefKey, ids) : [];
