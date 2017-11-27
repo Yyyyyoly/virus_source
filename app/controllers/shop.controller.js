@@ -12,6 +12,8 @@ const moment = require('moment');
 // 商城首页
 exports.index = (req, res, next) => {
   const httpUtil = new HttpSend(req, res);
+  httpUtil.sendJson(constants.HTTP_SUCCESS,'商城功能暂未开放');
+  return;
   const limit = 25;
   // 查询分类
   const getCategories = async () => {
