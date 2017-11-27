@@ -2,6 +2,9 @@ const constants = {
   // redis key前缀，更换项目时修改，保证不要和之前的重复
   REDIS_PREFIX: 'med',
 
+  // 请求类型，之前用req.protocol 但是经过nginx转发后https修改为http 会造成错误，所以写在常量里
+  PROTOCOL: 'https',
+
   // api const
   HTTP_FAIL: 500,
   HTTP_SUCCESS: 200,
