@@ -57,7 +57,7 @@ block script
           $.get('/news/list', {
             order: vm.active.order,
             context: vm.active.newsClass,
-            page: 0
+            page: 1
           }, function (data) {
             if (data.errCode === 200) {
               vm.newLists = data.params.newLists;
