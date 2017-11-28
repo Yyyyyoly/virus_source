@@ -9,7 +9,7 @@ exports.addGlobalPoint = async (userId, newTotalNum) => {
   const redisKey = redisUtil.getRedisPrefix(1111, userId);
   const result = await globalRedis.hsetAsync(redisKey, constants.REDIS_PREFIX, newTotalNum);
   // 更新成功后，覆盖返回0，新增返回1
-  if (parseInt(result, 0) !== 1 || parseInt(result, 0) !== 0) {
+  if (parseInt(result, 0) !== 1 && parseInt(result, 0) !== 0) {
     const date = moment().format('YYYY-MM-DD HH:mm:ss');
     const record = `${date}  userId:${userId}  newTotalNum:${newTotalNum} \n`;
     fs.writeFile(`${__dirname}/../../logs/global_point.txt`, record, { flag: 'a' }, (err) => {
