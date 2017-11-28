@@ -1,9 +1,9 @@
 /* eslint-disable */
 const app = new Vue({
   methods: {
-   comingSoon: function () {
-     alert('暂未开放!');
-   }
+    comingSoon: function () {
+      alert('暂未开放!');
+    }
   }
 });
 
@@ -22,5 +22,9 @@ $("a[href='/user/commission/withdraw'],a[href='/mall'],a[href='/user/advice']").
   alert('暂未开放！')
 });
 
-$(".fixed-bottom a[href='/"+window.location.pathname.split('/')[1]+"']").addClass('active');
+$(".fixed-bottom a[href='/" + window.location.pathname.split('/')[1] + "']").addClass('active');
+
+if ($('iframe').length > 0) {
+  window.location.reload();
+}
 
