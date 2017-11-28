@@ -46,9 +46,19 @@ module.exports = function () {
   // flash
   require('../app/routes/flash.route')(app);
 
-  const router = require('../app/routes/external.route')();
-  app.use('/external', router);
+  require('../app/routes/external.route')(app);
 
+  function createApiRouter(app) {
+    const router = new express.Router();
+
+    router.post('/getProfile', (req, res) => {
+      res.send('no csrf to get here');
+    });
+
+    app.use('/api', router);
+  }
+
+  createApiRouter(app);
   // csrf
   app.use(csurf({ cookie: true }));
   require('../app/routes/csrf.route')(app);

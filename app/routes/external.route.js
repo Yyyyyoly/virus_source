@@ -9,6 +9,6 @@ router.post('/purchaseRecord', shopController.addPurchaseRecord);
 router.post('/pointRecord', userController.exchangePoints);
 
 
-module.exports = function () {
-  return router;
+module.exports = function (app) {
+  app.use(prefix, router);
 };
