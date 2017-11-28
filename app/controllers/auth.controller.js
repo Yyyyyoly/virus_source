@@ -152,7 +152,7 @@ const autoLoginAndRegister = (req, res) => {
       }
 
       // 如果有跳转前页面，先进入
-      const originalUrl = req.session.originalUrl || `${config.serverHost}:${config.serverPort}/`;
+      const originalUrl = req.session.originalUrl || `${config.serverHost}/`;
 
       req.session.originalUrl = null;
       res.redirect(originalUrl);
