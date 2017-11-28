@@ -24,7 +24,4 @@ $("a[href='/user/commission/withdraw'],a[href='/mall'],a[href='/user/advice']").
 
 $(".fixed-bottom a[href='/" + window.location.pathname.split('/')[1] + "']").addClass('active');
 
-if ($('iframe').length > 0) {
-  window.location.reload();
-}
 

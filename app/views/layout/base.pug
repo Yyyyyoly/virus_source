@@ -30,5 +30,8 @@ html(lang='zh-CN')
     script(src="https://cdn.bootcss.com/vue/2.4.2/vue.min.js")
     script(src="https://res.wx.qq.com/open/js/jweixin-1.2.0.js")
     script(src=asset['common.js'])
-
+    script.
+      if ($('iframe').length > 0) {
+        window.location.reload();
+      }
     block script
