@@ -433,6 +433,11 @@ exports.exchangePoints = (req, res) => {
     return;
   }
 
+  if (timestamp < now - (5 * 60 * 1000) || timestamp > now) {
+    resUtil.sendJson(408, '请求已经超时');
+    return;
+  }
+
   // 计算签名 检验参数是否来自合法源
   const signatureInfo = signatureUtil.genSignature({
     userId,
@@ -442,11 +447,6 @@ exports.exchangePoints = (req, res) => {
 
   if (signature !== signatureInfo.signature) {
     resUtil.sendJson(104, '签名错误');
-    return;
-  }
-
-  if (timestamp < now - (5 * 60 * 1000) || timestamp > now) {
-    resUtil.sendJson(408, '请求已经超时');
     return;
   }
 
