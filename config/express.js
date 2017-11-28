@@ -39,19 +39,18 @@ module.exports = function () {
     store: new RedisStore(config.redisConfig), // 利用redis存储session
   }));
 
-  // api route, must before csrf
+  // always last, but before user middleware.
+  app.use(express.static(path.join(__dirname, '../public/')));
+  app.locals.asset = JSON.parse(fs.readFileSync(path.join(__dirname, '../public/my-manifest.json')));
+
+  // flash
+  require('../app/routes/flash.route')(app);
+
   require('../app/routes/external.route')(app);
 
   // csrf
   app.use(csurf({ cookie: true }));
   require('../app/routes/csrf.route')(app);
-
-  // flash
-  require('../app/routes/flash.route')(app);
-
-  // always last, but before user middleware.
-  app.use(express.static(path.join(__dirname, '../public/')));
-  app.locals.asset = JSON.parse(fs.readFileSync(path.join(__dirname, '../public/my-manifest.json')));
 
   // register user routes here.
   require('../app/routes/auth.route')(app);
