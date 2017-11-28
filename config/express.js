@@ -38,17 +38,20 @@ module.exports = function () {
     secret: config.sessionSecret,
     store: new RedisStore(config.redisConfig), // 利用redis存储session
   }));
-  app.use(csurf({ cookie: true }));
+
+  // api route, must before csrf
+  require('../app/routes/external.route')(app);
 
   // csrf
+  app.use(csurf({ cookie: true }));
   require('../app/routes/csrf.route')(app);
+
   // flash
   require('../app/routes/flash.route')(app);
 
   // always last, but before user middleware.
   app.use(express.static(path.join(__dirname, '../public/')));
   app.locals.asset = JSON.parse(fs.readFileSync(path.join(__dirname, '../public/my-manifest.json')));
-
 
   // register user routes here.
   require('../app/routes/auth.route')(app);
@@ -58,7 +61,6 @@ module.exports = function () {
   require('../app/routes/shop.route')(app);
   require('../app/routes/news.route')(app);
   require('../app/routes/user.route')(app);
-  require('../app/routes/external.route')(app);
   require('../app/routes/test.route')(app);
 
   // catch the 404 and render the 404 page.
@@ -70,6 +72,7 @@ module.exports = function () {
   // error handler,
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {
+    console.log(err.toString());
     res.status(err.status || 500);
     res.render('500', { error: err.toString() });
   });
