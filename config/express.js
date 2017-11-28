@@ -46,9 +46,8 @@ module.exports = function () {
   // flash
   require('../app/routes/flash.route')(app);
 
-  require('../app/routes/external.route')(app);
-
-  function createApiRouter(app) {
+  // require('../app/routes/external.route')(app);
+  function createApiRouter() {
     const router = new express.Router();
 
     router.post('/getProfile', (req, res) => {
