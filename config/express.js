@@ -46,7 +46,8 @@ module.exports = function () {
   // flash
   require('../app/routes/flash.route')(app);
 
-  require('../app/routes/external.route')(app);
+  const router = require('../app/routes/external.route')();
+  app.use('/external', router);
 
   // csrf
   app.use(csurf({ cookie: true }));

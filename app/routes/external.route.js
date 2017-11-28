@@ -1,5 +1,4 @@
-const express = require('express');
-const router = new express.Router();
+const router = require('express').Router();
 const shopController = require('../controllers/shop.controller');
 const userController = require('../controllers/user.controller');
 
@@ -10,6 +9,6 @@ router.post('/purchaseRecord', shopController.addPurchaseRecord);
 router.post('/pointRecord', userController.exchangePoints);
 
 
-module.exports = function (app) {
-  app.use(prefix, router);
+module.exports = function () {
+  return router;
 };
