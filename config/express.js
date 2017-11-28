@@ -38,13 +38,9 @@ module.exports = function () {
     secret: config.sessionSecret,
     store: new RedisStore(config.redisConfig), // 利用redis存储session
   }));
-
-  // register route for third-party-system， must register before csrf
-  require('../app/routes/external.route')(app);
-
+  app.use(csurf({ cookie: true }));
 
   // csrf
-  app.use(csurf({ cookie: true }));
   require('../app/routes/csrf.route')(app);
   // flash
   require('../app/routes/flash.route')(app);
@@ -54,7 +50,7 @@ module.exports = function () {
   app.locals.asset = JSON.parse(fs.readFileSync(path.join(__dirname, '../public/my-manifest.json')));
 
 
-  // register other routes here（with csrf middleware）.
+  // register user routes here.
   require('../app/routes/auth.route')(app);
   require('../app/routes/verify.route')(app);
   require('../app/routes/index.route')(app);
@@ -62,6 +58,7 @@ module.exports = function () {
   require('../app/routes/shop.route')(app);
   require('../app/routes/news.route')(app);
   require('../app/routes/user.route')(app);
+  require('../app/routes/external.route')(app);
   require('../app/routes/test.route')(app);
 
   // catch the 404 and render the 404 page.
