@@ -9,7 +9,7 @@ module.exports = {
     {
       name: 'med-share',
       cwd: '/code/virus_source_app',
-      script: 'server.js',
+      script: './server.js',
       env: {
         NODE_ENV: 'production',
         COMMON_VARIABLE: 'true',
