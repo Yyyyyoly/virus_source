@@ -46,6 +46,8 @@ module.exports = function () {
   // flash
   require('../app/routes/flash.route')(app);
 
+  // api route
+  // mount api before csrf
   require('../app/routes/external.route')(app);
 
   // csrf
@@ -66,6 +68,17 @@ module.exports = function () {
   app.use((req, res) => {
     res.status(404);
     res.render('404');
+  });
+
+  // catch csrf error
+  app.use((err, req, res, next) => {
+    if (err.code !== 'EBADCSRFTOKEN') {
+      next(err);
+    } else {
+      // handle CSRF token errors here
+      res.status(403);
+      res.send('error with csrf');
+    }
   });
 
   // error handler,
