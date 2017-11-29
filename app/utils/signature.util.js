@@ -1,4 +1,4 @@
-const sha1 = require('crypto').createHash('sha1');
+const crypto = require('crypto');
 const config = require('../../config/config');
 
 
@@ -21,8 +21,11 @@ module.exports.genSignature = function (params, privateKey = '') {
 
   const s = keys.sort().map(key => `${key}:${JSON.stringify(signatureParams[key]) || ''}`).join(',');
   const signatureString = s ? `${s},privateKey:${privateKey}` : `privateKey:${privateKey}`;
-  signatureParams.signature = sha1.update(signatureString, 'utf8').digest('hex');
-
+  // note: crypto objects are not reusable
+  // 之前的做法:
+  // const crypto = require('crypto').createHash('sha1');
+  // crypto.update().digest()会在第二次的调用时候报错Digest already called
+  signatureParams.signature = crypto.createHash('sha1').update(signatureString, 'utf8').digest('hex');
   // 返回带签名的参数列表
   return signatureParams;
 };
