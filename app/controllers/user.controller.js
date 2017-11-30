@@ -8,7 +8,7 @@ const redisUtil = require('../utils/redis.util');
 const moment = require('moment');
 const signatureUtil = require('../utils/signature.util');
 const config = require('../../config/config');
-const logger = require('../app/utils/log.util').getLogger(constants.LOGGER_LEVEL);
+const logger = require('../utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 const Op = Model.Sequelize.Op;
 

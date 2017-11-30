@@ -8,7 +8,7 @@ const dataRedis = require('../../config/redis')(1);
 const redisUtil = require('../utils/redis.util');
 const qiniu = require('qiniu');
 const weChatUtil = require('../utils/wechat.util');
-const logger = require('../app/utils/log.util').getLogger(constants.LOGGER_LEVEL);
+const logger = require('../utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 const api = weChatUtil.api();
 const baseApi = weChatUtil.baseApi();

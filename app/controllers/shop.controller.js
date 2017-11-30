@@ -8,7 +8,7 @@ const Model = require('../models/index');
 const redisUtil = require('../utils/redis.util');
 const signatureUtil = require('../utils/signature.util');
 const moment = require('moment');
-const logger = require('../app/utils/log.util').getLogger(constants.LOGGER_LEVEL);
+const logger = require('../utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 // 商城首页
 exports.index = (req, res, next) => {

@@ -5,7 +5,7 @@ const HttpSend = require('../utils/http.util');
 const constants = require('../../config/constants');
 const moment = require('moment');
 const Model = require('../models/index');
-const logger = require('../app/utils/log.util').getLogger(constants.LOGGER_LEVEL);
+const logger = require('../utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 const Op = Model.Sequelize.Op;
 

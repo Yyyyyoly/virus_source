@@ -3,7 +3,7 @@ const SMSClient = require('@alicloud/sms-sdk/index');
 const randomstring = require('randomstring');
 const HttpSend = require('../utils/http.util');
 const constants = require('../../config/constants');
-const logger = require('../app/utils/log.util').getLogger(constants.LOGGER_LEVEL);
+const logger = require('../utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 const smsClient = new SMSClient({
   accessKeyId: config.messageConfig.accessKeyId,
