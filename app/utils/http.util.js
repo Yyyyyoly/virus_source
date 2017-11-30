@@ -1,3 +1,5 @@
+const weChatUtil = require('./wechat.util');
+
 class HttpSend {
   constructor(req, res) {
     this.req = req;
@@ -11,10 +13,8 @@ class HttpSend {
 
   // 统一的render方法
   async render(path, params) {
-    // 之前放在class外部引用，结果因为auth.controller'也引用了HttpSend，造成相互引用，加载死循环了
-    const authController = require('../controllers/auth.controller');
     const newsParams = params;
-    newsParams.wxConfig = await authController.getWeChatJsConfig(this.req);
+    newsParams.wxConfig = await weChatUtil.getWeChatJsConfig(this.req);
     return this.res.render(path, newsParams);
   }
 }
