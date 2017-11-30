@@ -3,6 +3,7 @@ const SMSClient = require('@alicloud/sms-sdk/index');
 const randomstring = require('randomstring');
 const HttpSend = require('../utils/http.util');
 const constants = require('../../config/constants');
+const logger = require('../app/utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 const smsClient = new SMSClient({
   accessKeyId: config.messageConfig.accessKeyId,
@@ -62,7 +63,7 @@ exports.MessageSend = (req, res) => {
     }
     resUtil.sendJson(constants.HTTP_FAIL, '获取验证码失败');
   }).catch((err) => {
-    console.log(err);
+    logger.info(err);
     resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
   });
 };

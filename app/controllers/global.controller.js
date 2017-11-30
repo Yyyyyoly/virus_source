@@ -3,6 +3,7 @@ const redisUtil = require('../utils/redis.util');
 const constants = require('../../config/constants');
 const fs = require('fs');
 const moment = require('moment');
+const logger = require('../app/utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 // 积分推送至汇总key里，以便于积分商城的查询
 exports.addGlobalPoint = async (userId, newTotalNum) => {
@@ -14,7 +15,7 @@ exports.addGlobalPoint = async (userId, newTotalNum) => {
     const record = `${date}  userId:${userId}  newTotalNum:${newTotalNum} \n`;
     fs.writeFile(`${__dirname}/../../logs/global_point.txt`, record, { flag: 'a' }, (err) => {
       if (err) {
-        console.log(err);
+        logger.info(err);
       }
     });
   }

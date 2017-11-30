@@ -5,6 +5,7 @@ const HttpSend = require('../utils/http.util');
 const constants = require('../../config/constants');
 const moment = require('moment');
 const Model = require('../models/index');
+const logger = require('../app/utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 const Op = Model.Sequelize.Op;
 
@@ -183,7 +184,7 @@ exports.index = (req, res, next) => {
         lineChartCommission,
       });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };
@@ -211,7 +212,7 @@ exports.renderStrategyPoint = (req, res, next) => {
 
       httpUtil.render('index/strategy-news', { title: '积分推广攻略', commissionNum: pointNum });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };
@@ -239,7 +240,7 @@ exports.renderStrategyCommission = (req, res, next) => {
 
       httpUtil.render('index/strategy-goods', { title: '佣金推广攻略', commissionNum });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };
@@ -264,7 +265,7 @@ exports.getDailyData = (req, res) => {
 
       resUtil.sendJson(constants.HTTP_SUCCESS, '', datas);
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统出错');
     }
   };
@@ -291,7 +292,7 @@ exports.getLineChart = (req, res) => {
 
       resUtil.sendJson(constants.HTTP_SUCCESS, '', { dataList });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
     }
   };
@@ -356,7 +357,7 @@ exports.getListDetails = (req, res, next) => {
       const titles = { 1: '浏览文章用户数', 2: '浏览商品用户数', 3: '下单用户数' };
       resUtil.render('index/user-list', { total: list.length, list, title: titles[type] });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };
@@ -436,7 +437,7 @@ exports.getPieDetails = (req, res, next) => {
       const titles = { 1: '浏览文章次数', 2: '浏览商品次数', 3: '下单商品数' };
       resUtil.render('index/count', { typePie: pieList, rank: formatList, title: titles[type] });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };

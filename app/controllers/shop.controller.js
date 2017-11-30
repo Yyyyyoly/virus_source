@@ -8,6 +8,7 @@ const Model = require('../models/index');
 const redisUtil = require('../utils/redis.util');
 const signatureUtil = require('../utils/signature.util');
 const moment = require('moment');
+const logger = require('../app/utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 // 商城首页
 exports.index = (req, res, next) => {
@@ -73,7 +74,7 @@ exports.index = (req, res, next) => {
 
       httpUtil.render('index', { categories, hotProductList });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };
@@ -127,7 +128,7 @@ exports.searchProductByCategory = (req, res, next) => {
       const productList = await searchProductsWithCondition(categoryId, '', page, limit);
       httpUtil.render('index', { categoryId, productList });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };
@@ -164,7 +165,7 @@ exports.searchProductById = (req, res, next) => {
 
       httpUtil.render('index', { productDetails: repos.data.product });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };
@@ -185,7 +186,7 @@ exports.searchProduct = (req, res) => {
       const productList = await searchProductsWithCondition(categoryId, searchWord, page, limit);
       resUtil.sendJson(constants.HTTP_SUCCESS, '', { productList });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
     }
   };
@@ -271,7 +272,7 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId) => {
     }
   }).catch((err) => {
     // Rolled back
-    console.log(err);
+    logger.info(err);
   });
 };
 
@@ -302,7 +303,7 @@ exports.redirectToShopServer = (req, res, next) => {
       ?userId=${userId}&shareId=${shareUserId}&productId=${productId}`;
       res.redirect(encodeURI(url));
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };
@@ -415,7 +416,7 @@ exports.addPurchaseRecord = (req, res) => {
         }, { transaction });
       }).then(() => resUtil.sendJson(constants.HTTP_SUCCESS));
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统出错');
     }
   };

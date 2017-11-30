@@ -7,6 +7,7 @@ const HttpSend = require('../utils/http.util');
 const moment = require('moment');
 const config = require('../../config/config');
 const globalController = require('./global.controller');
+const logger = require('../app/utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 const Op = Model.Sequelize.Op;
 
@@ -116,7 +117,7 @@ const getNewsList = async (orderType, contextType, page) => {
       }
       return { newLists, totalPage: Math.ceil(newsInfos.count / limit) };
     } catch (error) {
-      console.log(error);
+      logger.info(error);
       throw error;
     }
   };
@@ -164,7 +165,7 @@ exports.getNewsListByCondition = (req, res) => {
       const rtn = await getNewsList(orderType, contextType, page);
       resUtil.sendJson(constants.HTTP_SUCCESS, '', { newLists: rtn.newLists, totalPage: rtn.totalPage });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
     }
   };
@@ -306,7 +307,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     }
   }).catch((err) => {
     // Rolled back
-    console.log(err);
+    logger.info(err);
   });
 };
 
@@ -378,7 +379,7 @@ exports.getNewsDetailById = (req, res, next) => {
         title: '热文资讯', pageInfo, shareLink, shareUid,
       });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };
@@ -501,7 +502,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     }
   }).catch((err) => {
     // Rolled back
-    console.log(err);
+    logger.info(err);
   });
 };
 
@@ -529,7 +530,7 @@ exports.shareNewsById = (req, res) => {
       await exports.addTransmitLogByNewsId(newsInfo.dataValues, req.session.user, shareId);
       resUtil.sendJson(constants.HTTP_SUCCESS);
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统错误,积分增加失败');
     }
   };
@@ -564,7 +565,7 @@ exports.thumbUpNewsById = (req, res) => {
 
       resUtil.sendJson(constants.HTTP_SUCCESS, '', { newThumbUpNum });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
     }
   };
@@ -612,7 +613,7 @@ exports.commentNewsById = (req, res) => {
       }
       resUtil.sendJson(constants.HTTP_SUCCESS, '', { commentList });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
     }
   };
@@ -670,7 +671,7 @@ exports.getTestDetailById = (req, res, next) => {
       exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareUid);
       httpUtil.render('index', { questLists });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };
@@ -764,7 +765,7 @@ exports.finishTestById = (req, res) => {
 
       resUtil.sendJson(constants.HTTP_SUCCESS, '', { totalScore, estimateMsg: estimateInfo.estimate });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
     }
   };

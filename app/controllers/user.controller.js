@@ -8,6 +8,7 @@ const redisUtil = require('../utils/redis.util');
 const moment = require('moment');
 const signatureUtil = require('../utils/signature.util');
 const config = require('../../config/config');
+const logger = require('../app/utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 const Op = Model.Sequelize.Op;
 
@@ -38,7 +39,7 @@ exports.bindPhone = (req, res) => {
   Model.User.update({ phone, remark }, { where: { userId } }).then(() => {
     resUtil.sendJson(constants.HTTP_SUCCESS, '手机号绑定成功');
   }).catch((err) => {
-    console.log(err);
+    logger.info(err);
     resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
   });
 };
@@ -89,7 +90,7 @@ exports.commissionDetails = (req, res, next) => {
 
       httpUtil.render('user/commission', { commissionNum, logLists });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };
@@ -173,7 +174,7 @@ exports.withdraw = (req, res) => {
         throw err;
       });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
     }
   };
@@ -223,7 +224,7 @@ exports.bonusPointDetails = (req, res, next) => {
 
       httpUtil.render('user/credits', { pointNum, logLists });
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };
@@ -275,7 +276,7 @@ const bonusPointDetailsByDay = async (userId, date, page, limit) => {
       date, totalPage, page, decrSum, incrSum, logLists,
     };
   } catch (err) {
-    console.log(err);
+    logger.info(err);
     throw err;
   }
 };
@@ -305,7 +306,7 @@ exports.renderBonusPointDetailsByDay = (req, res, next) => {
 
       httpUtil.render('user/credits-list', data);
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };
@@ -337,7 +338,7 @@ exports.jsonBonusPointDetailsByDay = (req, res) => {
 
       httpUtil.sendJson(constants.HTTP_SUCCESS, '', data);
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       httpUtil.sendJson(constants.HTTP_FAIL, '系统错误');
     }
   };
@@ -384,7 +385,7 @@ exports.qryDetailsByRecordId = (req, res, next) => {
 
       httpUtil.render('user/credits-detail', data);
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       next(err);
     }
   };
@@ -414,7 +415,7 @@ exports.giveAdvice = (req, res) => {
   Model.Advice.create({ userId, advice }).then(() => {
     resUtils.sendJson(constants.HTTP_SUCCESS);
   }).catch((err) => {
-    console.log(err);
+    logger.info(err);
     resUtils.sendJson(constants.HTTP_FAIL, '系统错误');
   });
 };
@@ -484,7 +485,7 @@ exports.exchangePoints = (req, res) => {
         resUtil.sendJson(constants.HTTP_FAIL, 'redis扣除错误');
       }
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统出错');
     }
   };

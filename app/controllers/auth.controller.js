@@ -8,6 +8,7 @@ const dataRedis = require('../../config/redis')(1);
 const redisUtil = require('../utils/redis.util');
 const qiniu = require('qiniu');
 const weChatUtil = require('../utils/wechat.util');
+const logger = require('../app/utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 const api = weChatUtil.api();
 const baseApi = weChatUtil.baseApi();
@@ -100,7 +101,7 @@ const autoLoginAndRegister = (req, res) => {
       req.session.originalUrl = null;
       res.redirect(originalUrl);
     } catch (err) {
-      console.log(err);
+      logger.info(err);
       resUtil.sendJson(constants.HTTP_FAIL, '自动登陆出错');
     }
   };
@@ -117,7 +118,7 @@ exports.login = (req, res, next) => {
     res.redirect(weChatUrl);
   } else {
     const error = new Error('请从微信浏览器登入');
-    console.log('请从微信浏览器登入');
+    logger.info('请从微信浏览器登入');
     next(error);
   }
 };
@@ -221,7 +222,7 @@ exports.getQrCodePage = (req, res, next) => {
     if (!ticket) {
       baseApi.createTmpQRCode(1, 86400, (err, data) => {
         if (err) {
-          console.log(err);
+          logger.info(err);
           next(err);
         } else {
           tokenRedis.setAsync(ticketKey, data.ticket, 'EX', 86400);
