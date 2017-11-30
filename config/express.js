@@ -8,6 +8,7 @@ const morgan = require('morgan');
 const path = require('path');
 const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
+const logUtil = require('../app/utils/log.util');
 
 // local require
 const config = require('./config');
@@ -26,6 +27,11 @@ module.exports = function () {
     app.use(morgan('dev'));
   } else if (process.env.NODE_ENV === 'production') {
     app.use(compression());
+    // 因为pm2中不支持按日期分割日志，为了后续生产环境出bug便于查询，决定加入log4js
+    app.use(logUtil.getLog4Js().connectLogger(
+      logUtil.getLogger('infoLogger'),
+      { format: ':remote-addr :method :url :status :response-time ms' },
+    ));
   }
 
   app.use(bodyParser.json());
