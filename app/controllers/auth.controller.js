@@ -261,6 +261,11 @@ exports.menuCreate = (req, res) => {
             type: 'view',
             url: `${config.serverHost}/mall`,
           },
+          {
+            name: '自测游戏',
+            type: 'view',
+            url: `${config.serverHost}/news?context=4`,
+          },
         ],
       },
       {
