@@ -141,7 +141,7 @@ exports.index = (req, res, next) => {
 
       const newsClass = constants.NEWS_CLASS_LIST;
       httpUtil.render('news/news', {
-        title: '热文资讯', newLists: rtn.newLists, totalPage: rtn.totalPage, newsClass,
+        title: '热文资讯', newLists: rtn.newLists, totalPage: rtn.totalPage, newsClass, contextType,
       });
     } catch (err) {
       next(err);
