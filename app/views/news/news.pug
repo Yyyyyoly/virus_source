@@ -43,7 +43,7 @@ block script
           2: '最新'
         },
         active: {
-          newsClass: 0,
+          newsClass: !{JSON.stringify(contextType)},
           order: 1
         },
         newLists: !{JSON.stringify(newLists)}
