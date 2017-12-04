@@ -7,7 +7,7 @@ module.exports = function (sequelize, DataTypes) {
     // 用户信息
     userId: { type: DataTypes.STRING, allowNull: false },
     userName: { type: DataTypes.STRING },
-    userOpenId: { type: DataTypes.STRING },
+    headImg: { type: DataTypes.STRING },
 
     // 分数
     totalScore: { type: DataTypes.INTEGER, allowNull: false },
@@ -19,10 +19,10 @@ module.exports = function (sequelize, DataTypes) {
 
     // 自测题id
     newsId: { type: DataTypes.BIGINT, allowNull: false },
-    // 资讯所属类别 (eg. 糖尿病、痛风等)
+    // 自测题标题
+    title: { type: DataTypes.STRING },
+    // 自测题所属类别id
     newsClass: { type: DataTypes.INTEGER, allowNull: false },
-    // 资讯简介
-    introduction: { type: DataTypes.STRING },
   }, {
     timestamps: true,
     paranoid: true,
@@ -31,6 +31,11 @@ module.exports = function (sequelize, DataTypes) {
     charset: 'utf8',
     collate: 'utf8_general_ci',
   });
+
+  SelfTestRecord.associate = (models) => {
+    SelfTestRecord.belongsTo(models.News, { foreignKey: 'newsId', targetKey: 'newsId' });
+    SelfTestRecord.belongsTo(models.User, { foreignKey: 'userId', targetKey: 'userId' });
+  };
 
   return SelfTestRecord;
 };

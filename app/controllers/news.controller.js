@@ -683,10 +683,11 @@ exports.getTestDetailById = (req, res, next) => {
 exports.finishTestById = (req, res) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
   const choiceList = req.body.choiceList ? JSON.parse(req.body.choiceList) : {};
+  const userId = req.session.user.userId || '';
   const resUtil = new HttpSend(req, res);
 
   // 检查参数
-  if (!newsId || !req.body.choiceList) {
+  if (!newsId || !req.body.choiceList || !userId) {
     resUtil.sendJson(constants.HTTP_FAIL, '参数错误');
     return;
   }
@@ -697,7 +698,7 @@ exports.finishTestById = (req, res) => {
       order: [['order', 'ASC']],
     });
     if (questionLists.length === 0) {
-      throw new Error('自测题不存在');
+      throw new Error('自测题题目列表不存在');
     }
 
     let totalScore = 0;
@@ -720,40 +721,38 @@ exports.finishTestById = (req, res) => {
       },
     });
     if (!estimate || !estimate.dataValues) {
-      throw new Error('自测结果查询失败');
+      throw new Error('自测评判标准查询失败');
     }
 
     return estimate.dataValues;
   };
 
-  const uptRecord = async (totalScore, estimateInfo) => {
-    // 如果是游客登录 就不保存了
-    if (!req.session.user || !req.session.user.userId) {
-      return true;
-    }
-
-    // 查询自测题相关信息
-    const newsInfo = await Model.News.findOne({
-      where: { newsId },
-    });
-
-    await Model.SelfTestRecord.create({
-      userId: req.session.user.userId,
+  const uptRecord = (totalScore, estimateInfo, newsInfo) =>
+    Model.SelfTestRecord.create({
+      userId,
       userName: req.session.user.userName,
-      userOpenId: req.session.user.openId,
+      headImg: req.session.user.headImgUrl,
       totalScore,
       estimateId: estimateInfo.estimateId,
       estimate: estimateInfo.estimate,
       newsId,
       newsClass: newsInfo.dataValues.newsClass || 0,
-      introduction: newsInfo.dataValues.introduction || '',
+      title: newsInfo.dataValues.title || '',
     });
-
-    return true;
-  };
 
   const mainFunction = async () => {
     try {
+      // 查询自测题相关信息,验证参数合法性
+      const newsInfo = await Model.News.findOne({
+        where: { newsId },
+      });
+      if (!newsInfo || !newsInfo.dataValues ||
+        newsInfo.dataValues.type !== constants.TYPE_ESTIMATE) {
+        resUtil.sendJson(constants.HTTP_FAIL, '参数错误');
+        return;
+      }
+
+
       // 查询自测题题目,计算得分
       const totalScore = await calScore();
 
@@ -761,9 +760,20 @@ exports.finishTestById = (req, res) => {
       const estimateInfo = await qryEstimate(totalScore);
 
       // 异步更新评价结果至日志中
-      uptRecord(totalScore, estimateInfo);
+      uptRecord(totalScore, estimateInfo, newsInfo);
 
-      resUtil.sendJson(constants.HTTP_SUCCESS, '', { totalScore, estimateMsg: estimateInfo.estimate });
+      resUtil.sendJson(
+        constants.HTTP_SUCCESS,
+        '',
+        {
+          totalScore,
+          estimateMsg: estimateInfo.estimate,
+          shareLink: `${config.serverHost}/news/test/${newsId}?shareId=${userId}`,
+          shareContext: estimateInfo.shareContext,
+          img: newsInfo.imgUrl,
+          title: newsInfo.title,
+        },
+      );
     } catch (err) {
       logger.info(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
