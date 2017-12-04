@@ -625,7 +625,7 @@ exports.commentNewsById = (req, res) => {
 exports.getTestDetailById = (req, res, next) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
   // 分享者id
-  const shareUid = req.query.shareId || '';
+  const shareId = req.query.shareId || '';
   const httpUtil = new HttpSend(req, res);
 
   if (!newsId) {
@@ -668,8 +668,12 @@ exports.getTestDetailById = (req, res, next) => {
       }
 
       // 记录浏览日志
-      exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareUid);
-      httpUtil.render('index', { questLists });
+      exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareId);
+      if (shareId) {
+        httpUtil.render('index', { questLists });
+      } else {
+        httpUtil.render('index', { questLists });
+      }
     } catch (err) {
       logger.info(err);
       next(err);
@@ -706,7 +710,7 @@ exports.finishTestById = (req, res) => {
       const order = questionInfo.dataValues.order || 0;
       const userChoice = choiceList[order];
       const scores = JSON.parse(questionInfo.dataValues.scores || '');
-      totalScore += parseInt(scores[userChoice], 0);
+      totalScore += parseInt(scores[userChoice] || 0, 0);
     }
 
     return totalScore;
@@ -768,7 +772,7 @@ exports.finishTestById = (req, res) => {
         {
           totalScore,
           estimateMsg: estimateInfo.estimate,
-          shareLink: `${config.serverHost}/news/test/${newsId}?shareId=${userId}`,
+          shareLink: `${config.serverHost}/news/tests/${newsId}?shareId=${userId}`,
           shareContext: estimateInfo.shareContext,
           img: newsInfo.imgUrl,
           title: newsInfo.title,
