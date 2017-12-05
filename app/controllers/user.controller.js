@@ -424,7 +424,7 @@ exports.giveAdvice = (req, res) => {
 exports.exchangePoints = (req, res) => {
   const userId = req.body.userId || '';
   const point = parseInt(req.body.point, 0) || 0;
-  const timestamp = req.body.timestamp || 0;
+  const timestamp = req.body.timestamp || '0';
   const signature = req.body.signature || '';
   const now = Date.now();
   const resUtil = new HttpSend(req, res);
@@ -434,7 +434,7 @@ exports.exchangePoints = (req, res) => {
     return;
   }
 
-  if (timestamp < now - (5 * 60 * 1000) || timestamp > now) {
+  if (parseInt(timestamp, 0) < now - (5 * 60 * 1000) || parseInt(timestamp, 0) > now) {
     resUtil.sendJson(408, '请求已经超时');
     return;
   }
