@@ -472,7 +472,7 @@ exports.exchangePoints = (req, res) => {
         const data = await Model.PointRecord.create({
           viewerId: userId,
           operator: 5,
-          changeNum: point,
+          changeNum: (0 - point),
           totalPoint: result[0],
           proofId: 0,
         });
