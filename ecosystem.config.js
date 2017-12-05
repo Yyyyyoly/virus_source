@@ -8,7 +8,7 @@ module.exports = {
     // First application
     {
       name: 'med-share',
-      cwd: '/code/virus_source_app',
+      cwd: '/code/virus_source_test',
       script: './server.js',
       env: {
         NODE_ENV: 'production',
@@ -43,7 +43,7 @@ module.exports = {
       // host: '47.93.158.148',
       ref: 'origin/master',
       repo: 'https://github.com/excalibur233/virus_source.git',
-      path: '/code/virus_source_app',
+      path: '/code/virus_source_test',
       'post-deploy': 'npm install && pm2 reload ecosystem.config.js --env production',
       env: {
         NODE_ENV: 'production',
