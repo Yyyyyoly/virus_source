@@ -215,7 +215,7 @@ exports.bonusPointDetails = (req, res, next) => {
         logLists.push({
           recordId: log.dataValues.recordId,
           time: log.dataValues.createdAt,
-          changeNum: log.dataValues.changeNum,
+          changeNum: Math.abs(log.dataValues.changeNum),
           totalNum: log.dataValues.totalPoint,
           operator: log.dataValues.operator,
           operatorResult: log.dataValues.operatorResult,
@@ -265,7 +265,7 @@ const bonusPointDetailsByDay = async (userId, date, page, limit) => {
       logLists.push({
         recordId: log.dataValues.recordId,
         time: log.dataValues.createdAt,
-        changeNum: log.dataValues.changeNum,
+        changeNum: Math.abs(log.dataValues.changeNum),
         totalNum: log.dataValues.totalPoint,
         operator: log.dataValues.operator,
         operatorResult: log.dataValues.operatorResult,
@@ -273,7 +273,7 @@ const bonusPointDetailsByDay = async (userId, date, page, limit) => {
     }
 
     return {
-      date, totalPage, page, decrSum, incrSum, logLists,
+      date, totalPage, page, decrSum: Math.abs(decrSum), incrSum, logLists,
     };
   } catch (err) {
     logger.info(err);
