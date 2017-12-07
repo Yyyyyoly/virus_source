@@ -714,7 +714,7 @@ exports.finishTestById = (req, res) => {
       where: {
         newsId,
         minScore: { [Op.lte]: totalScore },
-        maxScore: { [Op.gt]: totalScore },
+        maxScore: { [Op.gte]: totalScore },
       },
     });
     if (!estimate || !estimate.dataValues) {
