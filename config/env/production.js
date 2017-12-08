@@ -40,9 +40,9 @@ module.exports = {
 
   // shop server config
   shopServerConfig: {
-    host: 'http://localhost',
-    port: 8080,
-    privateKey: 'xsm_development_secret',
+    host: 'http://shop.medsci-tech.com',
+    port: 80,
+    privateKey: 'medsci-tech-shop-server',
   },
 
   // point mall config
