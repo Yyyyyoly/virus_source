@@ -87,11 +87,11 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId = '') 
   Model.sequelize.transaction(async (transaction) => {
     await Model.PVProducts.create({
       productId: productInfo.id,
-      categoryId: productInfo.categoryId,
+      categoryId: productInfo.statistic_category_id,
       name: productInfo.name,
       description: productInfo.description,
       price: productInfo.shown_price,
-      soldCount: productInfo.soldCount,
+      soldCount: productInfo.sold_count,
       viewerId: viewerInfo.userId,
       viewerName: viewerInfo.userName,
       viewerHeadImg: viewerInfo.headImgUrl,
@@ -120,9 +120,9 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId = '') 
       // .hincrby(pvProductsLogKey, viewerInfo.userId, 1)
       // .hincrby(pvUserProductLogKey, viewerInfo.userId, 1)
         .hincrby(productUvKey, viewerInfo.userId, 1)
-        .zincrby(shareTypeKey, 1, productInfo.categoryId)
-        .zincrby(`${sharePdtKey}:all`, 1, productInfo.productId)
-        // .zincrby(`${sharePdtKey}:${productInfo.categoryId}`, 1, productInfo.productId)
+        .zincrby(shareTypeKey, 1, productInfo.statistic_category_id)
+        .zincrby(`${sharePdtKey}:all`, 1, productInfo.id)
+        // .zincrby(`${sharePdtKey}:${productInfo.statistic_category_id}`, 1, productInfo.id)
         //  目前前端根据标签自己排序，所以这里暂时注释
         .hset(
           productBriefKey,
@@ -130,7 +130,7 @@ const addViewLogByProductId = async (productInfo, viewerInfo, shareUserId = '') 
           JSON.stringify({
             name: productInfo.name,
             price: productInfo.shown_price,
-            cat: productInfo.categoryId,
+            cat: productInfo.statistic_category_id,
           }),
         )
         .execAsync();
@@ -181,17 +181,20 @@ exports.getDetailsById = (req, res, next) => {
       };
 
       const repos = await request(options);
-      if (!repos) {
+      if (!repos || !repos.data) {
         throw new Error('商城数据获取失败');
       }
-console.log(repos);
 
       // 异步记录商品类别信息，供首页数据分析显示使用
       const briefClassKey = redisUtil.getRedisPrefix(26);
-      // redisClient.hsetAsync(briefClassKey, repos.data.classId, repos.data.className);
+      redisClient.hsetAsync(
+        briefClassKey,
+        repos.data.statistic_category.id,
+        repos.data.statistic_category.name,
+      );
 
-      // //  异步记录pv日志
-      // addViewLogByProductId(repos.data, req.session.user, '');
+      //  异步记录pv日志
+      addViewLogByProductId(repos.data, req.session.user, '');
 
       const shareLink = encodeURI(`${config.serverHost}/mall/purchase?shareId=${req.session.user.userId}&&productId=${productId}`);
       httpUtil.render('index', { productDetails: repos.data, shareLink });
@@ -229,7 +232,6 @@ exports.searchProduct = (req, res) => {
 exports.redirectToShopServer = (req, res, next) => {
   const productId = req.query.productId || 0;
   const shareId = req.query.shareId || '';
-  const userId = req.session.user ? req.session.user.userId : '';
 
   const mainFunction = async () => {
     try {
@@ -247,8 +249,7 @@ exports.redirectToShopServer = (req, res, next) => {
       addViewLogByProductId(repos.data, req.session.user, shareId);
 
       // 跳转至商城服务器的购买相关页面
-      const url = `${config.shopServerConfig.host}:${config.shopServerConfig.port}/goods/${productId}
-      ?userId=${userId}&shareId=${shareId}`;
+      const url = `${config.shopServerConfig.host}:${config.shopServerConfig.port}/goods/${productId}?shareId=${shareId}`;
       res.redirect(encodeURI(url));
     } catch (err) {
       logger.info(err);
