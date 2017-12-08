@@ -267,7 +267,7 @@ exports.addPurchaseRecord = (req, res) => {
   const orderId = req.body.orderId || '';
   const shareUserId = req.body.shareId || '';
   const userId = req.body.userId || '';
-  const totalPrice = parseFloat(req.body.totalPrice) || 0;
+  const totalCommission = parseFloat(req.body.totalCommission) || 0;
   const timestamp = req.body.timestamp || '0';
   const signature = req.body.signature || '';
   const now = Date.now();
@@ -275,7 +275,7 @@ exports.addPurchaseRecord = (req, res) => {
 
   // 检查参数
   if (!productList.length || !orderId || !shareUserId || !userId ||
-    !timestamp || !signature || totalPrice <= 0) {
+    !timestamp || !signature || totalCommission <= 0) {
     resUtil.sendJson(constants.HTTP_FAIL, '参数不能为空');
     return;
   }
@@ -286,7 +286,7 @@ exports.addPurchaseRecord = (req, res) => {
     orderId,
     shareUserId,
     userId,
-    totalPrice,
+    totalCommission,
     timestamp,
   }, config.shopServerConfig.privateKey);
 
@@ -305,7 +305,7 @@ exports.addPurchaseRecord = (req, res) => {
       Model.sequelize.transaction(async (transaction) => {
         // redis记录总佣金数、下单数、下单用户数
         const commissionKey = redisUtil.getRedisPrefix(6);
-        const updateRedis = await globalClient.hincrbyAsync(commissionKey, shareUserId, totalPrice);
+        const updateRedis = await globalClient.hincrbyAsync(commissionKey, shareUserId, totalCommission);
         if (!updateRedis) {
           throw new Error('更新佣金失败');
         }
@@ -325,7 +325,7 @@ exports.addPurchaseRecord = (req, res) => {
         const typeRankKey = redisUtil.getRedisPrefix(8, `${shareUserId}:${date}`);
         const briefKey = redisUtil.getRedisPrefix(12);
         for (let i = 0; i < productList.length; i += 1) {
-          const type = productList[i].type || 0;
+          const categoryId = productList[i].categoryId || 0;
           const productId = productList[i].productId || 0;
           const productName = productList[i].productName || '';
           const num = parseInt(productList[i].num, 0) || 0;
@@ -336,7 +336,7 @@ exports.addPurchaseRecord = (req, res) => {
             viewerId: userId,
             orderId,
             productId,
-            type,
+            categoryId,
             productName,
             num,
             price,
@@ -344,9 +344,9 @@ exports.addPurchaseRecord = (req, res) => {
           });
           redisClient.multi()
             .zincrby(`${productRankKey}:all`, num, productId)
-            .zincrby(`${productRankKey}:${type}`, num, productId)
-            .zincrby(typeRankKey, num, type)
-            .hset(briefKey, productId, JSON.stringify({ name: productName, price, cat: type }))
+            .zincrby(`${productRankKey}:${categoryId}`, num, productId)
+            .zincrby(typeRankKey, num, categoryId)
+            .hset(briefKey, productId, JSON.stringify({ name: productName, price, cat: categoryId }))
             .execAsync();
         }
 
@@ -360,7 +360,7 @@ exports.addPurchaseRecord = (req, res) => {
           orderId,
           operator: 1,
           operatorResult: 1,
-          changeNum: totalPrice,
+          changeNum: totalCommission,
           totalCommission: updateRedis[0],
         }, { transaction });
       }).then(() => resUtil.sendJson(constants.HTTP_SUCCESS));

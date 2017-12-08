@@ -13,7 +13,7 @@ module.exports = function (sequelize, DataTypes) {
     // 成交商品id
     productId: { type: DataTypes.STRING, allowNull: false },
     // 商品所属类别
-    type: { type: DataTypes.STRING, allowNull: false },
+    categoryId: { type: DataTypes.STRING, allowNull: false },
     // 成交商品名称
     productName: { type: DataTypes.STRING, allowNull: false },
     // 成交商品数量

@@ -133,14 +133,18 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
         },
         group: Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%Y%m%d'),
       });
+
+      // 处理数据成为可以通过日期下标访问的对象
+      const formatList = {};
+      const length = recordList.length || 0;
+      for (let k = 0; k < length; k += 1) {
+        const datetime = recordList[k].dataValues.date;
+        formatList[datetime] = parseInt(recordList[k].dataValues.num, 0);
+      }
+
       for (let i = 1; i <= days; i += 1) {
         const date = moment().subtract(days - i, 'days').format('MMDD');
-        const numInfos = recordList.filter(data =>
-          parseInt(data.dataValues.date, 0) === parseInt(date, 0));
-        dataList.push({
-          date,
-          num: numInfos.length === 0 ? 0 : numInfos[0].dataValues.num,
-        });
+        dataList.push({ date, num: formatList[date] || 0 });
       }
     }
 
