@@ -20,7 +20,7 @@ module.exports = function (sequelize, DataTypes) {
     // 分享人详细信息 如果有
     shareId: { type: DataTypes.STRING },
     shareName: { type: DataTypes.STRING },
-    shareHeadImg: { type: DataTypes.STRING, allowNull: false },
+    shareHeadImg: { type: DataTypes.STRING },
   }, {
     timestamps: true,
     freezeTableName: true,

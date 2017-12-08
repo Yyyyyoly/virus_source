@@ -646,33 +646,26 @@ exports.getTestDetailById = (req, res, next) => {
         throw new Error('资讯类型错误');
       }
 
-      // 查询自测题题目
-      const questionLists = await Model.SelfTest.findAll({
-        where: { newsId },
-        order: [['order', 'ASC']],
-      });
-      if (!questionLists.length) {
-        throw new Error('自测题题目正在完善，目前无法使用');
-      }
-
-      const questLists = [];
-      for (const questionInfo of questionLists) {
-        questLists.push({
-          newsId: questionInfo.dataValues.newsId,
-          testId: questionInfo.dataValues.testId,
-          type: questionInfo.dataValues.type,
-          imgUrl: questionInfo.dataValues.imgUrl,
-          question: questionInfo.dataValues.question,
-          options: questionInfo.dataValues.options,
-        });
-      }
+      // 由于自测题目和答案都是UI切死图，所以这里去掉了查询题目这一步骤
 
       // 记录浏览日志
       exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareId);
+
+      const newShareId = shareId === '' ? req.session.user.userId : shareId;
+      const shareUrl = `${config.serverHost}/news/tests/${newsId}?shareId=${newShareId}`;
+
       if (shareId) {
-        httpUtil.render('index', { questLists });
+        httpUtil.render('index', {
+          shareUrl,
+          img: newsInfo.dataValues.imgUrl,
+          title: newsInfo.dataValues.title,
+        });
       } else {
-        httpUtil.render('index', { questLists });
+        httpUtil.render('index', {
+          shareUrl,
+          img: newsInfo.dataValues.imgUrl,
+          title: newsInfo.dataValues.title,
+        });
       }
     } catch (err) {
       logger.info(err);
@@ -721,7 +714,7 @@ exports.finishTestById = (req, res) => {
       where: {
         newsId,
         minScore: { [Op.lte]: totalScore },
-        maxScore: { [Op.gt]: totalScore },
+        maxScore: { [Op.gte]: totalScore },
       },
     });
     if (!estimate || !estimate.dataValues) {
@@ -766,18 +759,7 @@ exports.finishTestById = (req, res) => {
       // 异步更新评价结果至日志中
       uptRecord(totalScore, estimateInfo, newsInfo);
 
-      resUtil.sendJson(
-        constants.HTTP_SUCCESS,
-        '',
-        {
-          totalScore,
-          estimateMsg: estimateInfo.estimate,
-          shareLink: `${config.serverHost}/news/tests/${newsId}?shareId=${userId}`,
-          shareContext: estimateInfo.shareContext,
-          img: newsInfo.imgUrl,
-          title: newsInfo.title,
-        },
-      );
+      resUtil.sendJson(constants.HTTP_SUCCESS);
     } catch (err) {
       logger.info(err);
       resUtil.sendJson(constants.HTTP_FAIL, '系统错误');

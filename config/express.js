@@ -54,7 +54,7 @@ module.exports = function () {
 
   // api route
   // mount api before csrf
-  require('../app/routes/external.route')(app);
+  require('../app/routes/api.route')(app);
 
   // csrf
   app.use(csurf({ cookie: true }));

@@ -4,8 +4,7 @@ const authController = require('../controllers/auth.controller');
 
 const prefix = '/mall';
 router.get('/search', authController.isLogin, shopController.searchProduct);
-router.get('/category', authController.isLogin, shopController.searchProductByCategory);
-router.get('/product/:productId', authController.isLogin, shopController.searchProductById);
+router.get('/product/:productId', authController.isLogin, shopController.getDetailsById);
 router.get('/purchase', authController.isLogin, shopController.redirectToShopServer);
 
 
