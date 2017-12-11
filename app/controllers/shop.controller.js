@@ -262,10 +262,10 @@ exports.redirectToShopServer = (req, res, next) => {
 
 // 记录购买链接
 exports.addPurchaseRecord = (req, res) => {
-  const productInfos = req.body.productList || '';
+  const productInfos = req.body.productInfos || '';
   const productList = JSON.parse(productInfos);
   const orderId = req.body.orderId || '';
-  const shareUserId = req.body.shareId || '';
+  const shareUserId = req.body.shareUserId || '';
   const userId = req.body.userId || '';
   const totalCommission = parseFloat(req.body.totalCommission) || 0;
   const timestamp = req.body.timestamp || '0';
@@ -282,7 +282,7 @@ exports.addPurchaseRecord = (req, res) => {
 
   // 计算签名 检验参数是否来自合法源
   const signatureInfo = signatureUtil.genSignature({
-    productList,
+    productInfos: productList,
     orderId,
     shareUserId,
     userId,
@@ -300,75 +300,85 @@ exports.addPurchaseRecord = (req, res) => {
     return;
   }
 
-  const mainFunction = async () => {
-    try {
-      Model.sequelize.transaction(async (transaction) => {
-        // redis记录总佣金数、下单数、下单用户数
-        const commissionKey = redisUtil.getRedisPrefix(6);
-        const updateRedis = await globalClient.hincrbyAsync(commissionKey, shareUserId, totalCommission);
-        if (!updateRedis) {
-          throw new Error('更新佣金失败');
-        }
-
-        // redis记录当日购买用户排行
-        const date = moment().format('YYYYMMDD');
-        const orderRecordKey = redisUtil.getRedisPrefix(10, `${shareUserId}:${date}`);
-        const result = await redisClient.hincrbyAsync(orderRecordKey, userId, 1);
-        if (!result) {
-          throw new Error('更新订单记录失败');
-        }
-
-        // 根据商品的不同分类，加入到不同的排行榜中
-        const bulkData = []; // 批量插入mysql
-
-        const productRankKey = redisUtil.getRedisPrefix(7, `${shareUserId}:${date}`);
-        const typeRankKey = redisUtil.getRedisPrefix(8, `${shareUserId}:${date}`);
-        const briefKey = redisUtil.getRedisPrefix(12);
-        for (let i = 0; i < productList.length; i += 1) {
-          const categoryId = productList[i].categoryId || 0;
-          const productId = productList[i].productId || 0;
-          const productName = productList[i].productName || '';
-          const num = parseInt(productList[i].num, 0) || 0;
-          const price = parseFloat(productList[i].price) || 0;
-          const commission = parseFloat(productList[i].commission) || 0;
-          bulkData.push({
-            shareId: shareUserId,
-            viewerId: userId,
-            orderId,
-            productId,
-            categoryId,
-            productName,
-            num,
-            price,
-            commission,
-          });
-          redisClient.multi()
-            .zincrby(`${productRankKey}:all`, num, productId)
-            .zincrby(`${productRankKey}:${categoryId}`, num, productId)
-            .zincrby(typeRankKey, num, categoryId)
-            .hset(briefKey, productId, JSON.stringify({ name: productName, price, cat: categoryId }))
-            .execAsync();
-        }
-
-        // 增加多条商品分类记录
-        await Model.ProductPurchase.bulkCreate(bulkData, { transaction });
-
-        // 增加佣金流水记录
-        await Model.Commission.create({
-          shareId: shareUserId,
-          viewerId: userId,
-          orderId,
-          operator: 1,
-          operatorResult: 1,
-          changeNum: totalCommission,
-          totalCommission: updateRedis[0],
-        }, { transaction });
-      }).then(() => resUtil.sendJson(constants.HTTP_SUCCESS));
-    } catch (err) {
-      logger.info(err);
-      resUtil.sendJson(constants.HTTP_FAIL, '系统出错');
+  Model.sequelize.transaction(async (transaction) => {
+    // 检查是否为重复提交的请求
+    const uniqueKey = redisUtil.getRedisPrefix(27);
+    const requestNum = await redisClient.hincrbyAsync(uniqueKey, orderId, 1);
+    if (parseInt(requestNum, 0) !== 1) {
+      throw new Error(`请求已经重复提交${requestNum}次！`);
     }
-  };
 
-  mainFunction();
+    // redis记录总佣金数、下单数、下单用户数
+    const commissionKey = redisUtil.getRedisPrefix(6);
+    const updateRedis = await globalClient.hincrbyfloatAsync(
+      commissionKey,
+      shareUserId,
+      totalCommission,
+    );
+    if (!updateRedis) {
+      throw new Error('更新佣金失败');
+    }
+
+    // redis记录当日购买用户排行
+    const date = moment().format('YYYYMMDD');
+    const orderRecordKey = redisUtil.getRedisPrefix(10, `${shareUserId}:${date}`);
+    const result = await redisClient.hincrbyAsync(orderRecordKey, userId, 1);
+    if (!result) {
+      throw new Error('更新订单记录失败');
+    }
+
+    // 根据商品的不同分类，加入到不同的排行榜中
+    const bulkData = []; // 批量插入mysql
+
+    const productRankKey = redisUtil.getRedisPrefix(7, `${shareUserId}:${date}`);
+    const typeRankKey = redisUtil.getRedisPrefix(8, `${shareUserId}:${date}`);
+    const briefKey = redisUtil.getRedisPrefix(12);
+    for (let i = 0; i < productList.length; i += 1) {
+      const categoryId = productList[i].categoryId || 0;
+      const productId = productList[i].productId || 0;
+      const productName = productList[i].productName || '';
+      const num = parseInt(productList[i].num, 0) || 0;
+      const price = parseFloat(productList[i].price) || 0;
+      const commission = parseFloat(productList[i].commission) || 0;
+      const productJsonInfo = JSON.stringify({ name: productName, price, cat: categoryId });
+      bulkData.push({
+        shareId: shareUserId,
+        viewerId: userId,
+        orderId,
+        productId,
+        categoryId,
+        productName,
+        num,
+        price,
+        commission,
+      });
+      redisClient.multi()
+        .zincrby(`${productRankKey}:all`, num, productId)
+        .zincrby(`${productRankKey}:${categoryId}`, num, productId)
+        .zincrby(typeRankKey, num, categoryId)
+        .hset(briefKey, productId, productJsonInfo)
+        .execAsync();
+    }
+
+    // 增加多条商品分类记录
+    await Model.ProductPurchase.bulkCreate(bulkData, { transaction });
+
+    // 增加佣金流水记录
+    await Model.Commission.create({
+      shareId: shareUserId,
+      viewerId: userId,
+      orderId,
+      operator: 1,
+      operatorResult: 1,
+      changeNum: totalCommission,
+      totalCommission: updateRedis,
+    }, { transaction });
+  }).then(() => {
+    resUtil.sendJson(constants.HTTP_SUCCESS);
+  }).catch((err) => {
+    // Rolled back
+    logger.info(err);
+    const errMsg = err.message || '系统出错';
+    resUtil.sendJson(constants.HTTP_FAIL, errMsg);
+  });
 };

@@ -34,7 +34,6 @@ module.exports = function (sequelize, DataTypes) {
   ProductPurchase.associate = (models) => {
     ProductPurchase.belongsTo(models.User, { as: 'Share', foreignKey: 'shareId', targetKey: 'userId' });
     ProductPurchase.belongsTo(models.User, { as: 'Viewer', foreignKey: 'viewerId', targetKey: 'userId' });
-    ProductPurchase.belongsTo(models.Commission, { foreignKey: 'orderId', targetKey: 'orderId' });
   };
 
   return ProductPurchase;

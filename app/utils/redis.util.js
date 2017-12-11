@@ -49,6 +49,9 @@ exports.getRedisPrefix = (type, id = '') => {
     case 18:
       redisKey = `${constants.REDIS_PREFIX}|data|user|bonus_points`; // 用户积分总数
       break;
+    case 1111:
+      redisKey = 'sum|user|bonus_points'; // 所有项目的积分总数
+      break;
 
 
     case 11:
@@ -92,6 +95,10 @@ exports.getRedisPrefix = (type, id = '') => {
       redisKey = `${constants.REDIS_PREFIX}|log|transmit|user|news`; // 某用户分享出的某文章转发人次、人数 log|transmit|user|news:newsId:uid:20171020 {uid:_num}
       break;
 
+    case 27:
+      // 订单号是否唯一（防止订单号重复提交过来导致佣金重复增加，为了减小mysql的压力，所以查询挪到redis里）
+      redisKey = `${constants.REDIS_PREFIX}|unique_key|order_no`;
+      break;
 
     case 996:
       redisKey = `${constants.REDIS_PREFIX}|weChat|qrcode_ticket`; // wechat全局存储用户生成临时二维码的ticket
@@ -104,11 +111,6 @@ exports.getRedisPrefix = (type, id = '') => {
       break;
     case 999:
       redisKey = `${constants.REDIS_PREFIX}|weChat|snap_token`; // wechat全局存储授权token
-      break;
-
-
-    case 1111:
-      redisKey = 'sum|user|bonus_points'; // 所有项目的积分总数
       break;
     default:
       break;
