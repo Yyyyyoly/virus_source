@@ -121,7 +121,8 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
       }
     } else if (type === 2 || type === 4 || type === 6) {
       // 文章PV  商品PV  下单商品总数
-      const selectCol = type === 6 ? Model.sequelize.fn('SUM', 'num') : Model.sequelize.fn('COUNT', 1);
+      const selectCol = type === 6 ?
+        Model.sequelize.fn('SUM', Model.sequelize.col('num')) : Model.sequelize.fn('COUNT', 1);
       recordList = await mysqlModel.findAll({
         attributes: [
           [Model.sequelize.fn('DATE_FORMAT', Model.sequelize.col('createdAt'), '%m%d'), 'date'],
