@@ -150,8 +150,7 @@ exports.index = (req, res, next) => {
   const mainFunction = async () => {
     try {
       const productList = await getProductsList();
-
-      httpUtil.render('index', { productList });
+      httpUtil.render('index', productList);
     } catch (err) {
       logger.info(err);
       next(err);
@@ -161,6 +160,20 @@ exports.index = (req, res, next) => {
   mainFunction();
 };
 
+// 分页加载商品列表
+exports.getProductJsonList = async (req, res) => {
+  const httpUtil = new HttpSend(req, res);
+  const page = parseInt(req.query.page, 0) || 1;
+
+  try {
+    const productList = await getProductsList(page);
+    httpUtil.sendJson(constants.HTTP_SUCCESS, '', productList);
+  } catch (err) {
+    logger.info(err);
+    const errMsg = err.message || '系统错误';
+    httpUtil.sendJson(constants.HTTP_FAIL, errMsg);
+  }
+};
 
 // 进入商品详情页
 exports.getDetailsById = (req, res, next) => {
