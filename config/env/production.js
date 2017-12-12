@@ -1,7 +1,7 @@
 module.exports = {
   // production configuration options
-  serverPort: 9000,
-  serverHost: 'https://share.medsci-tech.com',
+  serverPort: 7000,
+  serverHost: 'https://test-share.medsci-tech.com',
   sessionSecret: 'xsm_production_secret',
 
   // mysql config
@@ -32,10 +32,10 @@ module.exports = {
 
   // weChat config
   weChatConfig: {
-    appId: 'wx3ae6e4b87579e542',
-    appSecret: '2077caf7478e9a00ce4854b2a7c98e99',
-    token: 'medsci',
-    encodingAESKey: 'F3LIW8XvsHH41nCLcKCSGufnCfKNdLxqaYMM5TjelgV',
+    appId: 'wxb7e964d18e56c250',
+    appSecret: '7a4f11e20bc12b5aa16c06879108680f',
+    token: 'wangyg',
+    //encodingAESKey: 'F3LIW8XvsHH41nCLcKCSGufnCfKNdLxqaYMM5TjelgV',
   },
 
   // shop server config
