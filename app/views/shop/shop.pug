@@ -36,7 +36,8 @@ block script
           $.get('/mall/list', {
             page: vm.page
           }, function (res) {
-            if(res.errCode === 200){
+            console.log(res);
+            if(res.errCode == 200){
               vm.goodsLists = res.params.productLists.concat(vm.goodsLists);
               vm.lastPage = res.params.lastPage
               vm.$nextTick(function () {
