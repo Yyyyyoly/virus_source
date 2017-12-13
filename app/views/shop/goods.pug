@@ -18,20 +18,20 @@ block content
           p.mb-2 {{goods.description}}
           span ￥{{goods.shown_price}}
           small.float-right 销量：{{goods.sold_count}}
-    .goods-detail
-      .row: .col(v-html="goods.detail")
+    .goods-detail(v-html="goods.detail")
 
   include ../layout/navbar-bottom
 
 block script
   script.
-    var mySwiper = new Swiper('.swiper-container', {
-      loop: true,
-      pagination: {
-        el: '.swiper-pagination'
-      }
-    });
-
+    $(document).ready(function () {
+      var mySwiper = new Swiper('.swiper-container', {
+        loop: true,
+        pagination: {
+          el: '.swiper-pagination'
+        }
+      });
+    })
     var vm = new Vue({
       el: '#goods',
       data: {

@@ -86,14 +86,23 @@ $orange: #f9b900;
     }
   }
   .goods-info {
+    border: none;
+    border-radius: 0;
     span {
       color: red;
+      font-weight: bolder;
+      font-size: 2rem;
     }
     small {
-      line-height: 1.5rem;
+      line-height: 2.5rem;
     }
     .card-body {
       padding: .8rem;
+    }
+  }
+  .goods-detail {
+    img {
+      width: 100%;
     }
   }
 }
