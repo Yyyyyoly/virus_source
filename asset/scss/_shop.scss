@@ -57,6 +57,9 @@ $orange: #f9b900;
   }
   .goods-block {
     border: none;
+    #wrapper {
+      height: 100vh;
+    }
     h5, p {
       display: -webkit-box;
       -webkit-line-clamp: 1;
