@@ -5,17 +5,16 @@ block attributes
 block title
   title #{title}
 block content
-  .container.shop#shop
-    #wrapper
-      .row.p-2#contant
-        .col-6.p-1(v-for= "goods in goodsLists")
-          .card.goods-block(v-cloak): a(:href="'/mall/product/'+goods.id")
-            img.card-img-top(:src="goods.image_thumbnail")
-            .card-body
-              h5 {{goods.name}}
-              p.mb-2 {{goods.description}}
-              span ￥{{goods.shown_price}}
-              small.float-right 销量：{{goods.sold_count}}
+  .container.shop#shop#wrapper
+    .row.p-2#contant
+      .col-6.p-1(v-for= "goods in goodsLists")
+        .card.goods-block(v-cloak): a(:href="'/mall/product/'+goods.id")
+          img.card-img-top(:src="goods.image_thumbnail")
+          .card-body
+            h5 {{goods.name}}
+            p.mb-2 {{goods.description}}
+            span ￥{{goods.shown_price}}
+            small.float-right 销量：{{goods.sold_count}}
   include ../layout/navbar-bottom
 
 block script
