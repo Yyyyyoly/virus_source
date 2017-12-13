@@ -6,8 +6,8 @@ block title
   title #{title}
 block content
   .container.shop#shop
-    .goods-block
-      .row.p-2#wrapper
+    .goods-block#wrapper
+      .row.p-2
         .col-6.p-1(v-for= "goods in goodsLists"): a(:href="'/mall/product/'+goods.id")
           .card.goods-block(v-cloak)
             img.card-img-top(:src="goods.image_thumbnail")
@@ -37,9 +37,7 @@ block script
             page: vm.page
           }, function (res) {
             if (res.errCode === 200) {
-              console.log(vm.goodsLists);
               vm.goodsLists = vm.goodsLists.concat(res.params.productList);
-              console.log(vm.goodsLists);
               vm.lastPage = res.params.lastPage
               vm.$nextTick(function () {
                 if (!vm.scroll) {
