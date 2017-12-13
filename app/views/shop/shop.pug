@@ -5,7 +5,7 @@ block attributes
 block title
   title #{title}
 block content
-  .container.shop#shop#wrapper
+  .container.shop#shop
     .row.p-2#contant
       .col-6.p-1(v-for= "goods in goodsLists")
         .card.goods-block(v-cloak): a(:href="'/mall/product/'+goods.id")
@@ -51,9 +51,9 @@ block script
       }
     });
     vm.loadData();
-    $('#wrapper').scroll(function () {
-      console.log(document.getElementById('contant').scrollTop + ':::' + document.getElementById('wrapper').clientHeight + ':::' + document.getElementById('contant').offsetHeight)
-      if (document.getElementById('contant').scrollTop + document.getElementById('wrapper').clientHeight > document.getElementById('contant').offsetHeight - 100) {
+    $('#shop').scroll(function () {
+      console.log(document.getElementById('contant').scrollTop + ':::' + document.getElementById('shop').clientHeight + ':::' + document.getElementById('contant').offsetHeight)
+      if (document.getElementById('contant').scrollTop + document.getElementById('shop').clientHeight > document.getElementById('contant').offsetHeight - 100) {
         if (vm.autoLoad) {
           vm.loadData()
         }
