@@ -40,8 +40,8 @@ block script
               if (res.errCode === 200) {
                 vm.goodsLists = vm.goodsLists.concat(res.params.productList);
                 vm.lastPage = res.params.lastPage
-                console.log(document.getElementById('contant').scrollTop +':::'+ document.getElementById('contant').clientHeight +':::'+ document.getElementById('contant').offsetHeight)
-                if (document.getElementById('contant').scrollTop + document.getElementById('contant').clientHeight > document.getElementById('contant').offsetHeight - 100) {
+                console.log(document.getElementById('contant').scrollTop +':::'+ document.getElementById('wrapper').clientHeight +':::'+ document.getElementById('contant').offsetHeight)
+                if (document.getElementById('contant').scrollTop + document.getElementById('wrapper').clientHeight > document.getElementById('contant').offsetHeight - 100) {
                   vm.loadData()
                 }
                 vm.page++;
