@@ -53,7 +53,7 @@ block script
       mounted() {
         this.$nextTick(function () {
           vm.loadData();
-          $('#contant').scroll(function () {
+          $('#wrapper').scroll(function () {
             console.log(document.getElementById('contant').scrollTop + ':::' + document.getElementById('wrapper').clientHeight + ':::' + document.getElementById('contant').offsetHeight)
             if (document.getElementById('contant').scrollTop + document.getElementById('wrapper').clientHeight > document.getElementById('contant').offsetHeight - 100) {
               if (vm.autoLoad) {
