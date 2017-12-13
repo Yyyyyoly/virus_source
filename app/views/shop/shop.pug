@@ -36,7 +36,7 @@ block script
           $.get('/mall/list', {
             page: vm.page
           }, function (res) {
-            if (res.errCode === 200) {
+            if ( res.goodsLists ) {
               console.log(vm.goodsLists);
               vm.goodsLists = vm.goodsLists.concat(res.params.productLists);
               console.log(vm.goodsLists);
