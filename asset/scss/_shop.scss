@@ -85,4 +85,15 @@ $orange: #f9b900;
       width: 100%;
     }
   }
+  .goods-info {
+    span {
+      color: red;
+    }
+    small {
+      line-height: 1.5rem;
+    }
+    .card-body {
+      padding: .8rem;
+    }
+  }
 }

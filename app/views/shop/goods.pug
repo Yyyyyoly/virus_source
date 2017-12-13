@@ -11,12 +11,15 @@ block content
         .swiper-slide(v-for="img in goods.image_slide")
           img.img-fluid(:src="img")
       .swiper-pagination
-    .goods-info
-      h5 {{goods.name}}
-      p {{goods.description}}
-      span {{goods.shown_price}}
-      small {{goods.sold_count}}
-    .goods-detail(v-html="goods.detail")
+    .goods-info.row: .col
+      .card.goods-block(v-cloak)
+        .card-body
+          h5 {{goods.name}}
+          p.mb-2 {{goods.description}}
+          span ￥{{goods.shown_price}}
+          small.float-right 销量：{{goods.sold_count}}
+    .goods-detail
+      .row: .col(v-html="goods.detail")
 
   include ../layout/navbar-bottom
 
