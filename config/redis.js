@@ -6,7 +6,7 @@ global.globalRedisClient = {};
 
 // 目前:
 // redis-session存在0库  这个主要存储session
-// 业务数据记录在1库
+// 业务数据记录在4库
 // 获取微信信息的token存在2库
 
 // 所有项目的总积分存在3库里 便于通用积分商城的使用
@@ -16,7 +16,7 @@ module.exports = function (type) {
 
   if (!global.globalRedisClient[clientType]) {
     if (clientType === 1) {
-      redisConfig.db = 1;
+      redisConfig.db = 4;
     } else if (clientType === 2) {
       redisConfig.db = 2;
     } else if (clientType === 3) {
