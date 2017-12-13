@@ -19,7 +19,7 @@ block script
     var vm = new Vue({
       el: '#goods',
       data: {
-        goods: #{productDetails}
+        goods: JSON.parse(!{JSON.stringify(productDetails)})
       }
     });
   script.

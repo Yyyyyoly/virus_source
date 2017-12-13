@@ -23,9 +23,10 @@ block script
     var vm = new Vue({
       el: '#shop',
       data: {
-        page: 0,
+        page: 1,
         goodsLists: [],
-        lastPage: 1
+        lastPage: 1,
+        autoLoad: true
       },
       methods: {
         timeFormat: function (e) {
@@ -33,26 +34,32 @@ block script
         },
         loadData() {
           var vm = this;
-          $.get('/mall/list', {
-            page: vm.page
-          }, function (res) {
-            if (res.errCode === 200) {
-              vm.page++;
-              vm.goodsLists = vm.goodsLists.concat(res.params.productList);
-              vm.lastPage = res.params.lastPage
-              console.log(document.getElementById('contant').scrollTop + ':::' + document.getElementById('wrapper').clientHeight + ':::' + document.getElementById('contant').offsetHeight)
-              $('#contant').scroll(function () {
-                if (document.getElementById('contant').scrollTop + document.getElementById('wrapper').clientHeight > document.getElementById('contant').offsetHeight - 100) {
-                  if (vm.page <= vm.lastPage) {
-                    vm.loadData()
-                  }
-                }
-              })
-            }
-          }, 'json')
+          vm.autoLoad = false;
+          if (vm.page <= vm.lastPage) {
+            $.get('/mall/list', {
+              page: vm.page
+            }, function (res) {
+              if (res.errCode === 200) {
+                vm.page++;
+                vm.goodsLists = vm.goodsLists.concat(res.params.productList);
+                vm.lastPage = res.params.lastPage
+                console.log(document.getElementById('contant').scrollTop + ':::' + document.getElementById('wrapper').clientHeight + ':::' + document.getElementById('contant').offsetHeight)
+                vm.autoLoad = true;
+              }
+            }, 'json')
+          }
+
         }
       },
       mounted() {
-        this.loadData();
+        this.$nextTick(function () {
+          $('#contant').scroll(function () {
+            if (document.getElementById('contant').scrollTop + document.getElementById('wrapper').clientHeight > document.getElementById('contant').offsetHeight - 100) {
+              if (vm.autoLoad) {
+                vm.loadData()
+              }
+            }
+          })
+        })
       }
     });
