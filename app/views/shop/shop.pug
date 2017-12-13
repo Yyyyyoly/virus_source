@@ -38,9 +38,9 @@ block script
           }, function (res) {
             console.log(res);
             if(res.errCode == 200){
-              vm.goodsLists = res.params.productLists.concat(vm.goodsLists);
-              vm.lastPage = res.params.lastPage
               vm.$nextTick(function () {
+                vm.goodsLists = res.params.productLists.concat(vm.goodsLists);
+                vm.lastPage = res.params.lastPage
                 if (!vm.scroll) {
                   vm.scroll = new Bscroll($('#warpper'), {})
                   vm.scroll.on('touchend', function (pos) {
