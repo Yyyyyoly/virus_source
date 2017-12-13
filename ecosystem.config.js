@@ -17,7 +17,7 @@ module.exports = {
       env_development: {
         NODE_ENV: 'development',
       },
-      watch: true,
+      watch: false,
       ignore_watch: ['logs', 'node_modules', 'pem'],
     },
   ],
