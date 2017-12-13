@@ -53,8 +53,8 @@ block script
     });
     vm.loadData();
     $('#wrapper').scroll(function () {
-      console.log(document.getElementById('contant').scrollTop + ':::' + document.getElementById('wrapper').clientHeight + ':::' + document.getElementById('contant').offsetHeight)
-      if (document.getElementById('contant').scrollTop + document.getElementById('wrapper').clientHeight > document.getElementById('contant').offsetHeight - 100) {
+      console.log(document.getElementById('wrapper').scrollTop + ':::' + document.getElementById('wrapper').clientHeight + ':::' + document.getElementById('contant').offsetHeight)
+      if (document.getElementById('wrapper').scrollTop + document.getElementById('wrapper').clientHeight > document.getElementById('contant').offsetHeight - 100) {
         if (vm.autoLoad) {
           vm.loadData()
         }

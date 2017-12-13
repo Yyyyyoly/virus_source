@@ -1,6 +1,7 @@
 $orange: #f9b900;
 
 .shop {
+  padding: 0;
   .count-type {
     background-color: $orange;
     color: #fff;
@@ -56,10 +57,9 @@ $orange: #f9b900;
     }
   }
   #wrapper {
-    ::-webkit-scrollbar {
-      display: none;
-    }
-    height: calc(100vh - 56px);
+    padding: 5px 10px;
+    overflow-y: auto;
+    height: calc(100vh - 60px);
     .goods-block {
       border: none;
       h5, p {
