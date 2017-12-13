@@ -10,14 +10,14 @@ module.exports = {
     port: 3306,
     database: 'virus_source_app',
     username: 'root',
-    password: 'root',
+    password: '',
   },
 
   // redis config
   redisConfig: {
     host: '127.0.0.1',
     port: '6379',
-    password: 'root',
+    password: '',
     ttl: 1800,
     logErrors: true,
   },
