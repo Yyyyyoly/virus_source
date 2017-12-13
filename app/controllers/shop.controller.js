@@ -262,7 +262,7 @@ exports.redirectToShopServer = (req, res, next) => {
       addViewLogByProductId(repos.data, req.session.user, shareId);
 
       // 跳转至商城服务器的购买相关页面
-      const url = `${config.shopServerConfig.host}:${config.shopServerConfig.port}/goods/${productId}?shareId=${shareId}`;
+      const url = `${config.shopServerConfig.host}:${config.shopServerConfig.port}/spu/${productId}?shareId=${shareId}`;
       res.redirect(encodeURI(url));
     } catch (err) {
       logger.info(err);
