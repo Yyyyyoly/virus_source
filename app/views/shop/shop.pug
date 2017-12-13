@@ -40,7 +40,7 @@ block script
               vm.lastPage = res.params.lastPage
               vm.$nextTick(function () {
                 if (!vm.scroll) {
-                  vm.scroll = new BScroll($('#warpper')[0], {})
+                  vm.scroll = new BScroll(document.querySelector('#wrapper'), {})
                   vm.scroll.on('touchend', function (pos) {
                     // 下拉动作
                     if (pos.y > 50 && vm.page <= vm.lastPage) {
