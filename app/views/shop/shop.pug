@@ -43,7 +43,6 @@ block script
                 vm.page++;
                 vm.goodsLists = vm.goodsLists.concat(res.params.productList);
                 vm.lastPage = res.params.lastPage
-                console.log(document.getElementById('contant').scrollTop + ':::' + document.getElementById('wrapper').clientHeight + ':::' + document.getElementById('contant').offsetHeight)
                 vm.autoLoad = true;
               }
             }, 'json')
@@ -53,7 +52,9 @@ block script
       },
       mounted() {
         this.$nextTick(function () {
+          vm.loadData();
           $('#contant').scroll(function () {
+            console.log(document.getElementById('contant').scrollTop + ':::' + document.getElementById('wrapper').clientHeight + ':::' + document.getElementById('contant').offsetHeight)
             if (document.getElementById('contant').scrollTop + document.getElementById('wrapper').clientHeight > document.getElementById('contant').offsetHeight - 100) {
               if (vm.autoLoad) {
                 vm.loadData()
