@@ -49,18 +49,14 @@ block script
           }
 
         }
-      },
-      mounted() {
-        this.$nextTick(function () {
-          vm.loadData();
-          $('#wrapper').scroll(function () {
-            console.log(document.getElementById('contant').scrollTop + ':::' + document.getElementById('wrapper').clientHeight + ':::' + document.getElementById('contant').offsetHeight)
-            if (document.getElementById('contant').scrollTop + document.getElementById('wrapper').clientHeight > document.getElementById('contant').offsetHeight - 100) {
-              if (vm.autoLoad) {
-                vm.loadData()
-              }
-            }
-          })
-        })
       }
     });
+    vm.loadData();
+    $('#wrapper').scroll(function () {
+      console.log(document.getElementById('contant').scrollTop + ':::' + document.getElementById('wrapper').clientHeight + ':::' + document.getElementById('contant').offsetHeight)
+      if (document.getElementById('contant').scrollTop + document.getElementById('wrapper').clientHeight > document.getElementById('contant').offsetHeight - 100) {
+        if (vm.autoLoad) {
+          vm.loadData()
+        }
+      }
+    })
