@@ -6,15 +6,16 @@ block title
   title #{title}
 block content
   .container.shop#shop
-    .row.p-2#contant
-      .col-6.p-1(v-for= "goods in goodsLists")
-        .card.goods-block(v-cloak): a(:href="'/mall/product/'+goods.id")
-          img.card-img-top(:src="goods.image_thumbnail")
-          .card-body
-            h5 {{goods.name}}
-            p.mb-2 {{goods.description}}
-            span ￥{{goods.shown_price}}
-            small.float-right 销量：{{goods.sold_count}}
+    #wrapper
+      .row.p-2#contant
+        .col-6.p-1(v-for= "goods in goodsLists")
+          .card.goods-block(v-cloak): a(:href="'/mall/product/'+goods.id")
+            img.card-img-top(:src="goods.image_thumbnail")
+            .card-body
+              h5 {{goods.name}}
+              p.mb-2 {{goods.description}}
+              span ￥{{goods.shown_price}}
+              small.float-right 销量：{{goods.sold_count}}
   include ../layout/navbar-bottom
 
 block script
@@ -51,9 +52,9 @@ block script
       }
     });
     vm.loadData();
-    $('#shop').scroll(function () {
-      console.log(document.getElementById('contant').scrollTop + ':::' + document.getElementById('shop').clientHeight + ':::' + document.getElementById('contant').offsetHeight)
-      if (document.getElementById('contant').scrollTop + document.getElementById('shop').clientHeight > document.getElementById('contant').offsetHeight - 100) {
+    $('#wrapper').scroll(function () {
+      console.log(document.getElementById('contant').scrollTop + ':::' + document.getElementById('wrapper').clientHeight + ':::' + document.getElementById('contant').offsetHeight)
+      if (document.getElementById('contant').scrollTop + document.getElementById('wrapper').clientHeight > document.getElementById('contant').offsetHeight - 100) {
         if (vm.autoLoad) {
           vm.loadData()
         }

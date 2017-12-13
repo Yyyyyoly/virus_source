@@ -1,7 +1,6 @@
 $orange: #f9b900;
 
 .shop {
-  height: 100vh;
   .count-type {
     background-color: $orange;
     color: #fff;
@@ -56,22 +55,28 @@ $orange: #f9b900;
       }
     }
   }
-  .goods-block {
-    border: none;
-    h5, p {
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      -webkit-box-orient: vertical;
+  #wrapper {
+    ::-webkit-scrollbar {
+      display: none;
     }
-    span {
-      color: red;
-    }
-    small {
-      line-height: 1.5rem;
-    }
-    .card-body {
-      padding: .8rem;
+    height: calc(100vh - 56px);
+    .goods-block {
+      border: none;
+      h5, p {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+      }
+      span {
+        color: red;
+      }
+      small {
+        line-height: 1.5rem;
+      }
+      .card-body {
+        padding: .8rem;
+      }
     }
   }
   .swiper-container {
