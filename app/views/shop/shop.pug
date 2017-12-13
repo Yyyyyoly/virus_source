@@ -1,0 +1,119 @@
+extends ../layout/base
+
+block attributes
+
+block title
+  title #{title}
+block content
+  .container.shop#shop
+//.row.count-type
+//  .col
+//    ul.nav.nav-pills
+//      li.nav-item(v-for="(order, index) in orders")
+//        a.nav-link(@click="chooseOrder(index)", href="javascript:;", :class="(index == active.order) ? 'active' : ''" ) &ensp;{{order}}&ensp;
+//.row.goods-type
+//  .col
+//    ul.nav.nav-pills
+//      li.nav-item(v-for="(goodsClass, index) in goodsClasses")
+//        a.nav-link(@click="chooseClass(index)", href='javascript:;', :class="(index == active.goodsClass) ? 'active' : ''" ) {{goodsClass}}
+.goods-block
+  .row.p-2#wrapper
+    .col-6.p-1(v-for= "goods in goodsLists"): a(:href="'/mall/product/'+goods.id")
+      .card.goods-block(v-cloak)
+        img.card-img-top(:src="goods.image_thumbnail")
+        .card-body
+          h5 {{goods.name}}
+          p.mb-2 {{goods.description}}
+          span ￥{{goods.shown_price}}
+          small.float-right 销量：{{goods.sold_count}}
+include ../layout/navbar-bottom
+
+block script
+  script.
+    var vm = new Vue({
+      el: '#shop',
+      data: {
+        page: 1,
+        goodsLists: {}
+      },
+      methods: {
+        timeFormat: function (e) {
+          return moment(e).format('YYYY-MM-DD HH:mm')
+        },
+        chooseOrder: function (e) {
+          this.active.order = e;
+          $.get('/goods/list', {
+            order: vm.active.order,
+            context: vm.active.goodsClass,
+            page: 1
+          }, function (data) {
+            if (data.errCode === 200) {
+              vm.goodsLists = data.params.goodsLists;
+            }
+          }, 'json')
+        },
+        chooseClass: function (e) {
+          this.active.goodsClass = e;
+          $.get('/goods/list', {
+            order: vm.active.order,
+            context: vm.active.goodsClass,
+            page: 1
+          }, function (data) {
+            if (data.errCode === 200) {
+              vm.goodsLists = data.params.goodsLists;
+            }
+          }, 'json')
+        },
+        share: function (e) {
+          wx.onMenuShareTimeline({
+            title: '#{title}', // 分享标题
+            link: e, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+            imgUrl: '', // 分享图标
+            success: function () {
+              // 用户确认分享后执行的回调函数
+            },
+            cancel: function () {
+              // 用户取消分享后执行的回调函数
+            }
+          });
+          wx.onMenuShareAppMessage({
+            title: '#{title}', // 分享标题
+            desc: '', // 分享描述
+            link: e, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+            imgUrl: '', // 分享图标
+            type: '', // 分享类型,music、video或link，不填默认为link
+            dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+            success: function () {
+              // 用户确认分享后执行的回调函数
+            },
+            cancel: function () {
+              // 用户取消分享后执行的回调函数
+            }
+          });
+        },
+        loadData() {
+          $.get('/mall/list', {
+            page: vm.page
+          }, function (res) {
+            vm.goodsLists = res.goodsLists.concat(vm.goodsLists);
+            vm.$nextTick(function () {
+              if (!vm.scroll) {
+                vm.scroll = new Bscroll($('#warpper'), {})
+                vm.scroll.on('touchend', function (pos) {
+                  // 下拉动作
+                  if (pos.y > 50) {
+                    vm.loadData()
+                  }
+                })
+              } else {
+                vm.scroll.refresh()
+              }
+              vm.page++;
+            });
+          })
+        }
+      },
+      created() {
+        this.loadData();
+      }
+    });

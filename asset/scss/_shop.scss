@@ -1,0 +1,81 @@
+$orange: #f9b900;
+
+.shop {
+  .count-type {
+    background-color: $orange;
+    color: #fff;
+    font-size: 1.2rem;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    .nav {
+      justify-content: center;
+    }
+    .nav-link {
+      width: 6rem;
+      text-align: center;
+      &.active {
+        background-color: transparent;
+        border-radius: 0;
+        &:before {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          background-color: #fff;
+          height: .3rem;
+          width: 3.2rem;
+          border-radius: .5rem;
+        }
+      }
+    }
+  }
+  .goods-type {
+    color: #666;
+    .col {
+      padding: 1rem 0;
+    }
+    .nav {
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+      .nav-item {
+        width: 25%;
+      }
+      .nav-link {
+        //width: 5rem;
+        text-align: center;
+        margin: 0 1rem;
+        padding: .2rem 0;
+        &.active {
+          background-color: $orange;
+          color: #fff;
+          border-radius: 3rem;
+        }
+      }
+    }
+  }
+  .goods-block {
+    border: none;
+    h5, p {
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+    }
+    span {
+      color: red;
+    }
+    small {
+      line-height: 1.5rem;
+    }
+    .card-body {
+      padding: .8rem;
+    }
+  }
+  .swiper-container {
+    width: 100vw;
+    img {
+      width: 100%;
+    }
+  }
+}

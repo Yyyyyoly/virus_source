@@ -1,0 +1,39 @@
+extends ../layout/base
+
+block attributes
+
+block title
+  title #{title}
+block content
+  .container.shop#goods
+    .swiper-container
+      .swiper-wrapper
+        .swiper-slide(v-for="img in goods.image_slide")
+          img.img-fluid(:src="img")
+      .swiper-pagination
+
+  include ../layout/navbar-bottom
+
+block script
+  script.
+    var vm = new Vue({
+      el: '#goods',
+      data: {
+        goods: !{JSON.stringify(productDetails)}
+      }
+    });
+  script.
+    wx.config(!{JSON.stringify(wxConfig)});
+    wx.ready(function () {
+      wx.onMenuShareTimeline({
+        title: '#{productDetails.name}', // 分享标题
+        link: '#{productDetails.shareLink}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+        imgUrl: '#{productDetails.image_thumbnail}', // 分享图标
+      });
+      wx.onMenuShareAppMessage({
+        title: '#{productDetails.name}', // 分享标题
+        desc: '#{productDetails.description}', // 分享描述
+        link: '#{productDetails.shareLink}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+        imgUrl: '#{productDetails.image_thumbnail}', // 分享图标
+      });
+    })
