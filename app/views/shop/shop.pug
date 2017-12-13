@@ -6,26 +6,16 @@ block title
   title #{title}
 block content
   .container.shop#shop
-//.row.count-type
-//  .col
-//    ul.nav.nav-pills
-//      li.nav-item(v-for="(order, index) in orders")
-//        a.nav-link(@click="chooseOrder(index)", href="javascript:;", :class="(index == active.order) ? 'active' : ''" ) &ensp;{{order}}&ensp;
-//.row.goods-type
-//  .col
-//    ul.nav.nav-pills
-//      li.nav-item(v-for="(goodsClass, index) in goodsClasses")
-//        a.nav-link(@click="chooseClass(index)", href='javascript:;', :class="(index == active.goodsClass) ? 'active' : ''" ) {{goodsClass}}
-.goods-block
-  .row.p-2#wrapper
-    .col-6.p-1(v-for= "goods in goodsLists"): a(:href="'/mall/product/'+goods.id")
-      .card.goods-block(v-cloak)
-        img.card-img-top(:src="goods.image_thumbnail")
-        .card-body
-          h5 {{goods.name}}
-          p.mb-2 {{goods.description}}
-          span ￥{{goods.shown_price}}
-          small.float-right 销量：{{goods.sold_count}}
+    .goods-block
+      .row.p-2#wrapper
+        .col-6.p-1(v-for= "goods in goodsLists"): a(:href="'/mall/product/'+goods.id")
+          .card.goods-block(v-cloak)
+            img.card-img-top(:src="goods.image_thumbnail")
+            .card-body
+              h5 {{goods.name}}
+              p.mb-2 {{goods.description}}
+              span ￥{{goods.shown_price}}
+              small.float-right 销量：{{goods.sold_count}}
 include ../layout/navbar-bottom
 
 block script
