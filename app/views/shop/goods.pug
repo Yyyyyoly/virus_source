@@ -11,13 +11,13 @@ block content
         .swiper-slide(v-for="img in goods.image_slide")
           img.img-fluid(:src="img")
       .swiper-pagination
-    .goods-info.row: .col
-      .card.goods-block(v-cloak)
-        .card-body
-          h5 {{goods.name}}
-          p.mb-2 {{goods.description}}
-          span ￥{{goods.shown_price}}
-          small.float-right 销量：{{goods.sold_count}}
+    .goods-info(v-cloak)
+      h5 {{goods.name}}
+      span ￥{{goods.shown_price}}
+      small.float-right 销量：{{goods.sold_count}}
+      hr.m-2
+      p.mb-2 {{goods.description}}
+    p.mt-1.mb-1.text-center 商品详情
     .goods-detail(v-html="goods.detail")
 
   include ../layout/navbar-bottom
