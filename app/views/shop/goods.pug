@@ -11,15 +11,35 @@ block content
         .swiper-slide(v-for="img in goods.image_slide")
           img.img-fluid(:src="img")
       .swiper-pagination
+    .goods-info
+      h5 {{goods.name}}
+      p {{goods.description}}
+      span {{goods.shown_price}}
+      small {{goods.sold_count}}
+    .goods-detail(v-html="goods.detail")
 
   include ../layout/navbar-bottom
 
 block script
   script.
+    var mySwiper = new Swiper('.swiper-container', {
+      loop: true,
+      pagination: {
+        el: '.swiper-pagination'
+      }
+    });
+
     var vm = new Vue({
       el: '#goods',
       data: {
-        goods: JSON.parse(!{JSON.stringify(productDetails)})
+        goods: {
+          image_slide: !{JSON.stringify(productDetails.image_slide)},
+          name: !{JSON.stringify(productDetails.name)},
+          description: !{JSON.stringify(productDetails.description)},
+          sold_count: !{JSON.stringify(productDetails.sold_count)},
+          detail: !{JSON.stringify(productDetails.detail)},
+          shown_price: !{JSON.stringify(productDetails.shown_price)}
+        }
       }
     });
   script.
