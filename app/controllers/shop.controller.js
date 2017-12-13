@@ -150,7 +150,7 @@ exports.index = (req, res, next) => {
   const mainFunction = async () => {
     try {
       const productList = await getProductsList();
-      httpUtil.render('index', productList);
+      httpUtil.render('shop/shop.pug', productList);
     } catch (err) {
       logger.info(err);
       next(err);
@@ -210,7 +210,7 @@ exports.getDetailsById = (req, res, next) => {
       addViewLogByProductId(repos.data, req.session.user, '');
 
       const shareLink = encodeURI(`${config.serverHost}/mall/purchase?shareId=${req.session.user.userId}&&productId=${productId}`);
-      httpUtil.render('index', { productDetails: repos.data, shareLink });
+      httpUtil.render('shop/goods.pug', { productDetails: repos.data, shareLink });
     } catch (err) {
       logger.info(err);
       next(err);
