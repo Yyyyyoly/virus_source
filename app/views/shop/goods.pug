@@ -11,12 +11,12 @@ block content
         .swiper-slide(v-for="img in goods.image_slide")
           img.img-fluid(:src="img")
       .swiper-pagination
-    .goods-info.pt-3(v-cloak)
+    .goods-info.p-3(v-cloak)
       h5 {{goods.name}}
       p.mb-2.text-secondary {{goods.description}}
       hr.mt-2.mb-2
       p.mb-2: span ￥{{goods.shown_price}}
-      p.mb-0: small.float-right.text-secondary 销量：{{goods.sold_count}}
+      p.mb-0: small.text-secondary 销量：{{goods.sold_count}}
     p.mt-1.mb-2.text-center.text-secondary 商品详情
     .goods-detail(v-html="goods.detail")
 
