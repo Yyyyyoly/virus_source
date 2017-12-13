@@ -55,23 +55,24 @@ $orange: #f9b900;
       }
     }
   }
-  .goods-block {
-    border: none;
-    height: 100vh;
-    h5, p {
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      -webkit-box-orient: vertical;
-    }
-    span {
-      color: red;
-    }
-    small {
-      line-height: 1.5rem;
-    }
-    .card-body {
-      padding: .8rem;
+  #wrapper {
+    .goods-block {
+      border: none;
+      h5, p {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+      }
+      span {
+        color: red;
+      }
+      small {
+        line-height: 1.5rem;
+      }
+      .card-body {
+        padding: .8rem;
+      }
     }
   }
   .swiper-container {
