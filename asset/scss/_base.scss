@@ -65,6 +65,13 @@ a, a:visited, a:hover, a:visited {
   }
 }
 
+.orange-background-active {
+  .active {
+    background-color: $orange !important;
+    color: #fff!important;
+  }
+}
+
 .green-text {
   color: $green !important;
 }

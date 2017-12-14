@@ -14,7 +14,7 @@ block content
         .col
           a.btn.btn-block.btn-lg.text-white.orange-bg(href="/mall") 立刻去分享商品
     .row.type-block(v-if="show_rank.length != 0")
-      .col.text-center.p-2.orange-active
+      .col.text-center.p-2.orange-background-active
         p.text-secondary.mb-0 #{title}
         button.btn.m-2(@click="chooseType('全部'), chooseChart('全部')", :class="show_type === '全部'?'active':''") 全部
         button.btn.m-2(v-for="item in typePie", @click="chooseType(item.cat_name), chooseChart(item.cat_name)", :class="show_type === item.cat_name?'active':''") {{item.cat_name}}
