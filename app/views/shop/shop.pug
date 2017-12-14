@@ -12,8 +12,8 @@ block content
           .card.goods-block(v-cloak): a(:href="'/mall/product/'+goods.id")
             img.card-img-top(:src="goods.image_thumbnail")
             .card-body
-              h5.mb-1 {{goods.name}}
-              p.mb-0.text-secondary {{goods.description}}
+              h5.mb-1.name {{goods.name}}
+              p.mb-0.text-secondary.description {{goods.description}}
               p.mb-0.text-secondary: small 销量：{{goods.sold_count}}
               p.mb-0
                 span ￥{{goods.shown_price}}
