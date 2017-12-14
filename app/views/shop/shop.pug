@@ -12,12 +12,12 @@ block content
           .card.goods-block(v-cloak): a(:href="'/mall/product/'+goods.id")
             img.card-img-top(:src="goods.image_thumbnail")
             .card-body
-              h5.mb-0 {{goods.name}}
+              h5.mb-1 {{goods.name}}
               p.mb-0.text-secondary {{goods.description}}
               p.mb-0.text-secondary: small 销量：{{goods.sold_count}}
               p.mb-0
                 span ￥{{goods.shown_price}}
-                span.shown-commission 赚￥{{goods.shown_commission}}
+                span.shown-commission.float-right 赚￥{{goods.shown_commission}}
   include ../layout/navbar-bottom
 
 block script
