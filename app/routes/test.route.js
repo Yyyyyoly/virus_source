@@ -40,6 +40,13 @@ router.get('/withdraw', (req, res) => {
 router.get('/share', (req, res) => {
   res.render('user/share');
 });
+router.get('/shop', (req, res) => {
+  res.render('shop/shop');
+});
+
+router.get('/goods', (req, res) => {
+  res.render('shop/goods');
+});
 
 module.exports = function (app) {
   app.use(prefix, router);

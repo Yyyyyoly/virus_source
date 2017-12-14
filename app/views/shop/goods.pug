@@ -1,0 +1,62 @@
+extends ../layout/base
+
+block attributes
+
+block title
+  title #{title}
+block content
+  .container.shop#goods
+    .swiper-container
+      .swiper-wrapper
+        .swiper-slide(v-for="img in goods.image_slide")
+          img.img-fluid(:src="img")
+      .swiper-pagination
+    .goods-info.p-3(v-cloak)
+      h5 {{goods.name}}
+      p.mb-2.text-secondary {{goods.description}}
+      hr.mt-2.mb-2
+      p.mb-2: span ￥{{goods.shown_price}}
+      p.mb-0: small.text-secondary 销量：{{goods.sold_count}}
+    p.mt-1.mb-2.text-center.text-secondary 商品详情
+    .goods-detail(v-html="goods.detail")
+
+  include ../layout/navbar-bottom
+
+block script
+  script.
+    $(document).ready(function () {
+      var mySwiper = new Swiper('.swiper-container', {
+        loop: true,
+        pagination: {
+          el: '.swiper-pagination'
+        }
+      });
+    })
+    var vm = new Vue({
+      el: '#goods',
+      data: {
+        goods: {
+          image_slide: !{productDetails.image_slide},
+          name: !{JSON.stringify(productDetails.name)},
+          description: !{JSON.stringify(productDetails.description)},
+          sold_count: !{JSON.stringify(productDetails.sold_count)},
+          detail: !{JSON.stringify(productDetails.detail)},
+          shown_price: !{JSON.stringify(productDetails.shown_price)}
+        }
+      }
+    });
+  script.
+    wx.config(!{JSON.stringify(wxConfig)});
+    wx.ready(function () {
+      wx.onMenuShareTimeline({
+        title: '#{productDetails.name}', // 分享标题
+        link: '#{productDetails.shareLink}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+        imgUrl: '#{productDetails.image_thumbnail}', // 分享图标
+      });
+      wx.onMenuShareAppMessage({
+        title: '#{productDetails.name}', // 分享标题
+        desc: '#{productDetails.description}', // 分享描述
+        link: '#{productDetails.shareLink}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+        imgUrl: '#{productDetails.image_thumbnail}', // 分享图标
+      });
+    })
