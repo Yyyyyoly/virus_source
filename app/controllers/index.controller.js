@@ -113,7 +113,7 @@ const getLineChartInfoByType = async (userId, type = 1, days = 5) => {
       for (let i = 1; i <= days; i += 1) {
         const date = moment().subtract(days - i, 'days').format('MMDD');
         const numInfos = recordList.filter(data =>
-        parseInt(data.dataValues.date, 0) === parseInt(date, 0));
+          parseInt(data.dataValues.date, 0) === parseInt(date, 0));
         dataList.push({
           date,
           num: numInfos.length || 0,
@@ -335,11 +335,11 @@ exports.getListDetails = (req, res, next) => {
       const startDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 00:00:00');
       const endDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 23:59:59');
       const resultList = await sqlModel.findAll({
-          where: {
-            shareId: userId,
-            createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
-          },
-        }) || { dataValues: [] };
+        where: {
+          shareId: userId,
+          createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
+        },
+      }) || { dataValues: [] };
 
       // 查询用户缩略信息
       const idList = await resultList.map(value => value.dataValues.viewerId);
