@@ -6,7 +6,7 @@ const prefix = '/mall';
 router.get('/list', authController.isLogin, shopController.getProductJsonList);
 router.get('/search', authController.isLogin, shopController.searchProduct);
 router.get('/product/:productId', authController.isLogin, shopController.getDetailsById);
-router.get('/purchase', authController.isLogin, shopController.redirectToShopServer);
+router.get('/purchase', shopController.redirectToShopServer);
 
 
 module.exports = function (app) {
