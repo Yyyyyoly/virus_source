@@ -442,9 +442,13 @@ exports.getPieDetails = (req, res, next) => {
 
       const titles = { 1: '浏览文章次数', 2: '浏览商品次数', 3: '下单商品数' };
       if (type === 1) {
-        resUtil.render('index/count', { typePie: pieList, rank: formatList, title: titles[type] });
+        resUtil.render('index/count', {
+          typePie: pieList, rank: formatList, title: titles[type], type,
+        });
       } else {
-        resUtil.render('index/count-commission', { typePie: pieList, rank: formatList, title: titles[type] });
+        resUtil.render('index/count-commission', {
+          typePie: pieList, rank: formatList, title: titles[type], type,
+        });
       }
     } catch (err) {
       logger.info(err);

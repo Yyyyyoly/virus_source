@@ -25,8 +25,13 @@ block content
         p.title {{item.name}}
         p.info.mb-2
           span.price(v-show="item.price != 0") ￥{{item.price}}
-          //span.daily 当日：#{item.num}人
-          span.count 累计：{{item.num}}人&emsp;
+          case type
+            when 3
+              span.count 下单数量：{{item.num}}&emsp;
+            default
+              span.count 浏览量：{{item.num}}&emsp;
+
+
 
   include ../layout/navbar-bottom
 

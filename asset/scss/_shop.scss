@@ -74,6 +74,13 @@ $orange: #f9b900;
       small {
         line-height: 1.5rem;
       }
+      .shown-commission {
+        padding: 0 .2rem;
+        font-size: .8rem;
+        border-radius: .3rem;
+        border: 1px solid $orange;
+        color: $orange;
+      }
       .card-body {
         padding: .8rem;
       }
@@ -93,6 +100,13 @@ $orange: #f9b900;
       color: red;
       font-weight: bolder;
       font-size: 1.5rem;
+    }
+    .shown-commission {
+      padding: 0 .2rem;
+      font-size: .8rem;
+      border-radius: .3rem;
+      border: 1px solid $orange;
+      color: $orange;
     }
   }
   .goods-detail {
