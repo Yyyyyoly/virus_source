@@ -37,7 +37,6 @@ module.exports = function (sequelize, DataTypes) {
 
   Commission.associate = (models) => {
     Commission.belongsTo(models.User, { as: 'Share', foreignKey: 'shareId', targetKey: 'userId' });
-    Commission.belongsTo(models.User, { as: 'Viewer', foreignKey: 'viewerId', targetKey: 'userId' });
   };
 
   return Commission;
