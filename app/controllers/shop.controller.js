@@ -286,6 +286,8 @@ exports.addPurchaseRecord = (req, res) => {
   const orderId = req.body.orderId || '';
   const shareUserId = req.body.shareUserId || '';
   const userId = req.body.userId || '';
+  const userName = req.body.userName || '';
+  const headImgUrl = req.body.headImgUrl || '';
   const totalCommission = parseFloat(req.body.totalCommission) || 0;
   const timestamp = req.body.timestamp || '0';
   const signature = req.body.signature || '';
@@ -294,7 +296,7 @@ exports.addPurchaseRecord = (req, res) => {
 
   // 检查参数
   if (!productList.length || !orderId || !shareUserId || !userId ||
-    !timestamp || !signature || totalCommission <= 0) {
+    !timestamp || !signature || totalCommission <= 0 || !userName || !headImgUrl) {
     resUtil.sendJson(constants.HTTP_FAIL, '参数不能为空');
     return;
   }
@@ -307,6 +309,8 @@ exports.addPurchaseRecord = (req, res) => {
     userId,
     totalCommission,
     timestamp,
+    userName,
+    headImgUrl,
   }, config.shopServerConfig.privateKey);
 
   if (signature !== signatureInfo.signature) {
@@ -345,6 +349,15 @@ exports.addPurchaseRecord = (req, res) => {
     if (!result) {
       throw new Error('更新订单记录失败');
     }
+
+
+    // 记录购买用户的基本信息日志  防止是未注册本系统，直接通过商城购买的人
+    const userBriefKey = redisUtil.getRedisPrefix(25);
+    await redisUtil.hsetAsync(
+      userBriefKey,
+      userId,
+      JSON.stringify({ userName, headImgUrl }),
+    );
 
     // 根据商品的不同分类，加入到不同的排行榜中
     const bulkData = []; // 批量插入mysql
