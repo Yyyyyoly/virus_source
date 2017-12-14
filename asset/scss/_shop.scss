@@ -59,6 +59,7 @@ $orange: #f9b900;
   #wrapper {
     padding: 5px 15px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     height: calc(100vh - 60px);
     .goods-block {
       border: none;
