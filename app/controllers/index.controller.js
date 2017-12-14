@@ -339,6 +339,7 @@ exports.getListDetails = (req, res, next) => {
           shareId: userId,
           createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
         },
+        order: [['createdAt', 'DESC']],
       }) || { dataValues: [] };
 
       // 查询用户缩略信息
