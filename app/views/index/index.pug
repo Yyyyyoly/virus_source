@@ -65,20 +65,22 @@ block content
                 span 每日数据&emsp;
                 span.now_date
             .col.count-block
-              a
+              a(href="/home/details/list/2")
                 p 浏览商品用户数
                 p= datas.productView.uvProducts
             .col.count-block
-              a
+              a(href="/home/details/pie/2")
                 p 浏览商品次数
                 p= datas.productView.pvProducts
           .row
             .col.count-block
-              p 下单用户数
-              p= datas.purchaseRecord.userNum
+              a(href="/home/details/list/3")
+                p 下单用户数
+                p= datas.purchaseRecord.userNum
             .col.count-block
-              p 下单商品数
-              p= datas.purchaseRecord.orderNum
+              a(href="/home/details/pie/3")
+                p 下单商品数
+                p= datas.purchaseRecord.orderNum
 
   include ../layout/navbar-bottom
 
