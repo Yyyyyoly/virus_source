@@ -15,7 +15,7 @@ block content
       h5 {{goods.name}}
       p.mb-2.text-secondary {{goods.description}}
       hr.mt-2.mb-2
-      p.mb-2: span ￥{{goods.shown_price}}
+      p.mb-0: span ￥{{goods.shown_price}}
       p.mb-0: small.text-secondary 销量：{{goods.sold_count}}
     p.mt-1.mb-2.text-center.text-secondary 商品详情
     .goods-detail(v-html="goods.detail")
@@ -50,13 +50,13 @@ block script
     wx.ready(function () {
       wx.onMenuShareTimeline({
         title: '#{productDetails.name}', // 分享标题
-        link: '#{shareLink}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+        link: '!{shareLink}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
         imgUrl: '#{productDetails.image_thumbnail}', // 分享图标
       });
       wx.onMenuShareAppMessage({
         title: '#{productDetails.name}', // 分享标题
         desc: '#{productDetails.description}', // 分享描述
-        link: '#{shareLink}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+        link: '!{shareLink}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
         imgUrl: '#{productDetails.image_thumbnail}', // 分享图标
       });
     })
