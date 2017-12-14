@@ -1,0 +1,62 @@
+extends ../layout/base
+
+block attributes
+
+block title
+  title #{title}
+block content
+  .container.shop#shop
+    #wrapper
+      .row.p-2#contant
+        .col-6.p-1(v-for= "goods in goodsLists")
+          .card.goods-block(v-cloak): a(:href="'/mall/product/'+goods.id")
+            img.card-img-top(:src="goods.image_thumbnail")
+            .card-body
+              h5 {{goods.name}}
+              p.mb-2 {{goods.description}}
+              span ￥{{goods.shown_price}}
+              small.float-right 销量：{{goods.sold_count}}
+  include ../layout/navbar-bottom
+
+block script
+  script.
+    var vm = new Vue({
+      el: '#shop',
+      data: {
+        page: 1,
+        goodsLists: [],
+        lastPage: 1,
+        autoLoad: true
+      },
+      methods: {
+        timeFormat: function (e) {
+          return moment(e).format('YYYY-MM-DD HH:mm')
+        },
+        loadData() {
+          var vm = this;
+          vm.autoLoad = false;
+          if (vm.page <= vm.lastPage) {
+            $.get('/mall/list', {
+              page: vm.page
+            }, function (res) {
+              if (res.errCode === 200) {
+                vm.page++;
+                vm.goodsLists = vm.goodsLists.concat(res.params.productList);
+                vm.lastPage = res.params.lastPage
+                vm.autoLoad = true;
+              }
+            }, 'json')
+          }
+
+        }
+      }
+    });
+    vm.loadData();
+    $('#wrapper').scroll(function () {
+      console.log(document.getElementById('wrapper').scrollTop + ':::' + document.getElementById('wrapper').clientHeight + ':::' + document.getElementById('contant').offsetHeight)
+      if (document.getElementById('wrapper').scrollTop + document.getElementById('wrapper').clientHeight > document.getElementById('contant').offsetHeight - 100) {
+        if (vm.autoLoad) {
+          vm.loadData()
+        }
+      }
+    })
