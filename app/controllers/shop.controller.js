@@ -209,7 +209,7 @@ exports.getDetailsById = (req, res, next) => {
       //  异步记录pv日志
       addViewLogByProductId(repos.data, req.session.user, '');
 
-      const shareLink = encodeURI(`${config.serverHost}/mall/purchase?shareId=${req.session.user.userId}&&productId=${productId}`);
+      const shareLink = encodeURI(`${config.serverHost}/mall/purchase?shareId=${req.session.user.userId}&productId=${productId}`);
       httpUtil.render('shop/goods.pug', { productDetails: repos.data, shareLink });
     } catch (err) {
       logger.info(err);
@@ -246,6 +246,12 @@ exports.redirectToShopServer = (req, res, next) => {
   const productId = req.query.productId || 0;
   const shareId = req.query.shareId || '';
 
+  if (!productId) {
+    const err = new Error('商品id不能为空');
+    next(err);
+    return;
+  }
+
   const mainFunction = async () => {
     try {
       const options = {
@@ -254,8 +260,8 @@ exports.redirectToShopServer = (req, res, next) => {
       };
 
       const repos = await request(options);
-      if (!repos) {
-        throw new Error('分享的商品已经不存在了');
+      if (!repos || !repos.data) {
+        throw new Error('分享链接的商品不存在');
       }
 
       //  异步记录pv日志
@@ -263,7 +269,7 @@ exports.redirectToShopServer = (req, res, next) => {
 
       // 跳转至商城服务器的购买相关页面
       const url = `${config.shopServerConfig.host}:${config.shopServerConfig.port}/spu/${productId}?shareId=${shareId}`;
-      res.redirect(encodeURI(url));
+      res.redirect(url);
     } catch (err) {
       logger.info(err);
       next(err);
