@@ -10,18 +10,18 @@ block content
       .col
         h5.text-center 我的佣金
         p.text-center
-          span.money= commissionNum.toFixed(2)
+          span.money= commissionNum
           span.money-text 元
           a.btn.btn-sm.orange-bg(href='/user/commission/withdraw') 提现
         p.text-center: small.sub-text 可用积分
     .row.strategy
       .col
         h5.text-center 推广攻略
-        p 您只需要把商品分享出去，产生成交就能收到佣金，佣金可直接提现到支付宝账户！
+        p 您只需要把商品分享出去，他人购买支付就能收到佣金，佣金可直接提现到支付宝账户！
         p 不用囤货发货，无额外费用，多劳多得，上不封顶！
     .row.share
       .col
-        button.btn.btn-block.btn-lg.orange-bg 立刻去分享商品
+        a.btn.btn-block.btn-lg.orange-bg(href="/mall") 立刻去分享商品
 
 
   include ../layout/navbar-bottom
