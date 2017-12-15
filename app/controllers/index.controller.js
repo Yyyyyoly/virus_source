@@ -182,7 +182,7 @@ exports.index = (req, res, next) => {
 
       httpUtil.render('index/index', {
         title: '首页',
-        commissionNum: parseInt(commissionNum, 0) || 0,
+        commissionNum: parseFloat(commissionNum) || 0,
         pointNum: parseInt(pointNum, 0) || 0,
         datas,
         lineChartPoint,
