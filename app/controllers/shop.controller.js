@@ -333,10 +333,14 @@ exports.addPurchaseRecord = (req, res) => {
 
     // redis记录总佣金数、下单数、下单用户数
     const commissionKey = redisUtil.getRedisPrefix(6);
-    const updateRedis = await globalClient.hincrbyfloatAsync(
+    // note: 这里存储金额单位是分
+    // 为什么不存元  是因为之前用了incrbyfloat 结果inc 0.1的时候精度被强转成了0.999999
+    // 时间长了以后差距将变明显，所以这里挥泪改成了分
+    const redisCommission = totalCommission.toFixed(2) * 100;
+    const updateRedis = await globalClient.hincrbyAsync(
       commissionKey,
       shareUserId,
-      totalCommission.toFixed(2),
+      redisCommission,
     );
     if (!updateRedis) {
       throw new Error('更新佣金失败');
@@ -394,7 +398,7 @@ exports.addPurchaseRecord = (req, res) => {
       operator: 1,
       operatorResult: 1,
       changeNum: totalCommission.toFixed(2),
-      totalCommission: updateRedis,
+      totalCommission: parseFloat(updateRedis / 100).toFixed(2),
     }, { transaction });
   }).then(() => {
     resUtil.sendJson(constants.HTTP_SUCCESS);
