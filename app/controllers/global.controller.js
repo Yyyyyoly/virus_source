@@ -11,12 +11,18 @@ exports.addGlobalPoint = async (userId, newTotalNum) => {
   const result = await globalRedis.hsetAsync(redisKey, constants.REDIS_PREFIX, newTotalNum);
   // 更新成功后，覆盖返回0，新增返回1
   if (parseInt(result, 0) !== 1 && parseInt(result, 0) !== 0) {
-    const date = moment().format('YYYY-MM-DD HH:mm:ss');
-    const record = `${date}  userId:${userId}  newTotalNum:${newTotalNum} \n`;
-    fs.writeFile(`${__dirname}/../../logs/global_point.txt`, record, { flag: 'a' }, (err) => {
-      if (err) {
-        logger.info(err);
-      }
-    });
+    const record = `userId:${userId}  newTotalNum:${newTotalNum}`;
+    exports.writeLog('global_point', record);
   }
+};
+
+// 通用写日志文件的方法，防止有需要记载日志文件的
+exports.writeLog = async (filename, logInfos) => {
+  const date = moment().format('YYYY-MM-DD HH:mm:ss');
+  const record = `${date} :  ${logInfos} \n`;
+  fs.writeFile(`${__dirname}/../../logs/${filename}_${date.substr(0, 10)}.log`, record, { flag: 'a' }, (err) => {
+    if (err) {
+      logger.info(err);
+    }
+  });
 };

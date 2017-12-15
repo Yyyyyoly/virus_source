@@ -8,6 +8,7 @@ const redisUtil = require('../utils/redis.util');
 const moment = require('moment');
 const signatureUtil = require('../utils/signature.util');
 const config = require('../../config/config');
+const globalController = require('./global.controller');
 const logger = require('../utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 const Op = Model.Sequelize.Op;
@@ -422,6 +423,9 @@ exports.giveAdvice = (req, res) => {
 
 // 积分商城调用   兑换积分
 exports.exchangePoints = (req, res) => {
+  // 记录一下积分商城扣除的请求日志，以便以后查询
+  globalController.writeLog('post_from_pointShop', JSON.stringify(req.body));
+
   const userId = req.body.userId || '';
   const point = parseInt(req.body.point, 0) || 0;
   const timestamp = req.body.timestamp || '0';

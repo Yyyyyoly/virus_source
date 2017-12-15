@@ -11,9 +11,9 @@ module.exports = function (sequelize, DataTypes) {
     // 操作状态   0: 待处理  1: 已完成
     operatorResult: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
     // 本次变动金额
-    changeNum: { type: DataTypes.FLOAT, allowNull: false },
+    changeNum: { type: DataTypes.FLOAT(11, 2), allowNull: false },
     // 当前佣金总额
-    totalCommission: { type: DataTypes.FLOAT, allowNull: false },
+    totalCommission: { type: DataTypes.FLOAT(11, 2), allowNull: false },
 
     // 传播引流（购买）用户的id
     viewerId: { type: DataTypes.STRING },

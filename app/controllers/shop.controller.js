@@ -9,6 +9,7 @@ const redisUtil = require('../utils/redis.util');
 const signatureUtil = require('../utils/signature.util');
 const moment = require('moment');
 const logger = require('../utils/log.util').getLogger(constants.LOGGER_LEVEL);
+const globalController = require('./global.controller');
 
 // 查询商品列表
 const getProductsList = async (page = 1) => {
@@ -281,6 +282,9 @@ exports.redirectToShopServer = (req, res, next) => {
 
 // 记录购买链接
 exports.addPurchaseRecord = (req, res) => {
+  // 记录一下商城佣金的请求日志，以便以后查询
+  globalController.writeLog('post_from_shop', JSON.stringify(req.body));
+
   const productInfos = req.body.productInfos || '';
   const productList = JSON.parse(productInfos);
   const orderId = req.body.orderId || '';
@@ -294,7 +298,7 @@ exports.addPurchaseRecord = (req, res) => {
 
   // 检查参数
   if (!productList.length || !orderId || !shareUserId || !userId ||
-    !timestamp || !signature || totalCommission <= 0 ) {
+    !timestamp || !signature || totalCommission <= 0) {
     resUtil.sendJson(constants.HTTP_FAIL, '参数不能为空');
     return;
   }
@@ -332,7 +336,7 @@ exports.addPurchaseRecord = (req, res) => {
     const updateRedis = await globalClient.hincrbyfloatAsync(
       commissionKey,
       shareUserId,
-      totalCommission,
+      totalCommission.toFixed(2),
     );
     if (!updateRedis) {
       throw new Error('更新佣金失败');
@@ -389,7 +393,7 @@ exports.addPurchaseRecord = (req, res) => {
       orderId,
       operator: 1,
       operatorResult: 1,
-      changeNum: totalCommission,
+      changeNum: totalCommission.toFixed(2),
       totalCommission: updateRedis,
     }, { transaction });
   }).then(() => {
