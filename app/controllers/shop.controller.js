@@ -366,7 +366,7 @@ exports.addPurchaseRecord = (req, res) => {
       const productName = productList[i].productName || '';
       const num = parseInt(productList[i].num, 0) || 0;
       const price = parseFloat(productList[i].price) || 0;
-      const commission = parseFloat(productList[i].commission) || 0;
+      const commission = parseFloat(productList[i].commission) || 0.00;
       const productJsonInfo = JSON.stringify({ name: productName, price, cat: categoryId });
       bulkData.push({
         shareId: shareUserId,
