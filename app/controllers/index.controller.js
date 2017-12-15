@@ -182,7 +182,7 @@ exports.index = (req, res, next) => {
 
       httpUtil.render('index/index', {
         title: '首页',
-        commissionNum: parseFloat(commissionNum) || 0,
+        commissionNum: parseFloat(commissionNum / 100) || 0.00,
         pointNum: parseInt(pointNum, 0) || 0,
         datas,
         lineChartPoint,
@@ -241,7 +241,7 @@ exports.renderStrategyCommission = (req, res, next) => {
       // 查询用户的佣金总额
       const commissionKey = redisUtil.getRedisPrefix(6);
       let commissionNum = await globalClient.hgetAsync(commissionKey, userId);
-      commissionNum = parseInt(commissionNum, 0) || 0;
+      commissionNum = parseFloat(commissionNum / 100) || 0.00;
 
       httpUtil.render('index/strategy-goods', { title: '佣金推广攻略', commissionNum });
     } catch (err) {

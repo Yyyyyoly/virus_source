@@ -89,7 +89,7 @@ exports.commissionDetails = (req, res, next) => {
         });
       }
 
-      httpUtil.render('user/commission', { commissionNum, logLists });
+      httpUtil.render('user/commission', { commissionNum: parseFloat(commissionNum / 100) || 0.00, logLists });
     } catch (err) {
       logger.info(err);
       next(err);
@@ -112,7 +112,7 @@ exports.withdrawPage = (req, res, next) => {
 
   const commissionKey = redisUtil.getRedisPrefix(6);
   globalClient.hget(commissionKey, userId).then((commissionNum) => {
-    httpUtil.render('user/withdraw', { commissionNum });
+    httpUtil.render('user/withdraw', { commissionNum: parseFloat(commissionNum / 100) || 0.00 });
   });
 };
 
@@ -141,16 +141,17 @@ exports.withdraw = (req, res) => {
     try {
       // 查询佣金总额
       const commissionKey = redisUtil.getRedisPrefix(6);
-      const commissionNum = await globalClient.hgetAsync(commissionKey, userId);
+      const commissionNum = await globalClient.hgetAsync(commissionKey, userId) || 0;
 
-      if (changeNum <= 0 || changeNum > parseFloat(commissionNum)) {
+      if (changeNum <= 0 || changeNum > parseFloat(commissionNum / 100)) {
         resUtil.sendJson(constants.HTTP_FAIL, '提现金额不正确，请重新输入');
         return;
       }
 
       // 日志记录，redis总金额同步
       Model.sequelize.transaction(async (transaction) => {
-        const updateRedis = await redisClient.hincrbyAsync(commissionKey, userId, 0 - changeNum);
+        const newChangeNum = 0 - (changeNum * 100);
+        const updateRedis = await redisClient.hincrbyAsync(commissionKey, userId, newChangeNum);
         if (!updateRedis) {
           throw new Error('redis update failed');
         }
@@ -160,7 +161,7 @@ exports.withdraw = (req, res) => {
           operator: 2,
           operatorResult: 0,
           changeNum: 0 - changeNum,
-          totalCommission: parseFloat(updateRedis),
+          totalCommission: parseFloat(updateRedis / 100) || 0.00,
           phone,
           aliPayAccount,
           aliPayAccountName,
