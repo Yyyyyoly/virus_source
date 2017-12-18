@@ -43,9 +43,11 @@ router.get('/share', (req, res) => {
 router.get('/shop', (req, res) => {
   res.render('shop/shop');
 });
-
 router.get('/goods', (req, res) => {
   res.render('shop/goods');
+});
+router.get('/test', (req, res) => {
+  res.render('test/test-tongfeng');
 });
 
 module.exports = function (app) {

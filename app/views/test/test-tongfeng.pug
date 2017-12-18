@@ -1,0 +1,89 @@
+block attributes
+
+doctype html
+html(lang='zh-CN')
+  head
+    meta(charset="utf-8")
+    meta(http-equiv="X-UA-Compatible", content="IE=edge")
+    meta(name="viewport", content="width=device-width, initial-scale=1, user-scalable=no")
+    meta(name="csrf-token", content=csrfToken)
+
+    title #{title}
+
+    style.
+      html,body{ margin: 0; padding: 0; overflow-x: hidden; }
+      html{ background-color: #aeca96; }
+
+  body
+    script.
+      if (document.getElementsByTagName('iframe').length > 0) {
+        window.location.reload();
+      }
+      var currentTitle = 0, data = Array(8),
+      resources = {
+        'bg_01': '/resources/bg_01.jpg',
+        'title_01': '/resources/bg_02.png',
+        'title_02': '/resources/bg_03.png',
+        'resources/bg_04.png': '/resources/bg_04.png',
+        'resources/fg_01.png': '/resources/fg_01.png',
+        'resources/fg_02.png': '/resources/fg_02.png',
+        'btn_01': '/resources/btn_01.png',
+        'btn_yes': '/resources/btn_yes.png',
+        'btn_no': '/resources/btn_no.png',
+        'subtitle': '/resources/subtitle.png',
+        'cover': '/resources/cover.jpg',
+        'head_icon_01': '/resources/head_icon_01.png',
+        'head_icon_02': '/resources/head_icon_02.png',
+        'head_icon_03': '/resources/head_icon_03.png',
+        'btn_retest': '/resources/btn_retest.png',
+        'tips': '/resources/tips.png',
+        'blackboard': '/resources/blackboard.png'
+      },
+      api_url = '',
+      results = [
+        { min: 0, max: 2,
+            pic_1: '/resources/result_1_1.png',
+            pic_2: '/resources/result_1_2.jpg',
+            text_1: '棒棒哒！由于长期的健康生活习惯，高血尿酸\n\
+                    想要骚扰您都并不容易。亲，要继续保持哦，\n\
+                    赶紧分享给您的亲人好友，让更多人远离高血\n\
+                    尿酸带来的困扰。',
+            text_2: '患痛风/高尿酸血症的概率大，怎么办？\n\n\
+                    光谷慢病研究院蚂蚁博士\n\
+                    建议：\n\
+                    控制饮食，加强锻炼，适当饮用苏打水或枸橼酸泡腾片\n\
+                    来碱化身体，枸橼酸钾可以缓解高嘌呤食物造成的尿酸\n\
+                    升高等症状，让痛风/高尿酸血症带来的危害都远离您。'
+        },
+        { min: 3, max: 5,
+            pic_1: '/resources/result_2_1.png',
+            pic_2: '/resources/result_2_2.jpg',
+            text_1: '头晕？胸闷？做事效率不高？长期如此，您的\n\
+                    血尿酸值偏高的概率有点大哦，赶紧“改过自新”\n\
+                    吧！想让您的亲人好友都远离高血尿酸的困扰嘛？\n\
+                    赶紧分享吧！',
+            text_2: '患痛风/高尿酸血症的概率大，怎么办？\n\n\
+                    光谷慢病研究院蚂蚁博士\n\
+                    建议：\n\
+                    控制饮食，加强锻炼，适当饮用苏打水或枸橼酸泡腾片\n\
+                    来碱化身体，枸橼酸钾可以缓解高嘌呤食物造成的尿酸\n\
+                    升高等症状，让痛风/高尿酸血症带来的危害都远离您。'
+        },
+        { min: 5, max: 8,
+            pic_1: '/resources/result_3_1.png',
+            pic_2: '/resources/result_3_2.jpg',
+            text_1: '日常生活中请注意饮食（减少酒、海鲜、油腻\n\
+                    食物的摄入，适当饮用苏打水、枸橼酸泡腾片）和\n\
+                    锻炼。“迈开腿、管住嘴、多饮水”，健康生活，您\n\
+                    值得拥有。',
+            text_2: '患痛风/高尿酸血症的概率大，怎么办？\n\n\
+                    光谷慢病研究院蚂蚁博士\n\
+                    建议：\n\
+                    控制饮食，加强锻炼，适当饮用苏打水或枸橼酸泡腾片\n\
+                    来碱化身体，枸橼酸钾可以缓解高嘌呤食物造成的尿酸\n\
+                    升高等症状，让痛风/高尿酸血症带来的危害都远离您。'
+        },
+      ]
+
+    script(src="/release.js")
+            
