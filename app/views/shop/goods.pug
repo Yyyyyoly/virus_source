@@ -17,7 +17,7 @@ block content
       hr.mt-2.mb-2
       p.mb-0
         span ￥{{goods.shown_price}}
-        //span.shown-commission 赚￥{{goods.shown_commission}}
+        span.shown-commission 赚￥{{goods.shown_commission}}
       p.mb-0: small.text-secondary 销量：{{goods.sold_count}}
     p.mt-1.mb-2.text-center.text-secondary 商品详情
     .goods-detail(v-html="goods.detail")
@@ -44,7 +44,7 @@ block script
           sold_count: !{JSON.stringify(productDetails.sold_count)},
           detail: !{JSON.stringify(productDetails.detail)},
           shown_price: !{JSON.stringify(productDetails.shown_price)},
-          //shown_commission: !{JSON.stringify(productDetails.shown_commission)}
+          shown_commission: !{JSON.stringify(productDetails.shown_commission)}
         }
       }
     });
