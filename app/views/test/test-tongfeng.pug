@@ -19,7 +19,7 @@ block script
         imgUrl: '#{img}', // 分享图标
         success: function () {
           // 用户确认分享后执行的回调函数
-          $.post('/news/share/#{pageInfo.newsId}', {
+          $.post('/news/share/#{newsId}', {
             shareId: '#{shareUid}'
           }, function (data) {
             if (data && data.errCode === 200) {
@@ -35,7 +35,7 @@ block script
         imgUrl: '#{img}', // 分享图标
         success: function () {
           // 用户确认分享后执行的回调函数
-          $.post('/news/share/#{pageInfo.newsId}', {
+          $.post('/news/share/#{newsId}', {
             shareId: '#{shareUid}'
           }, function (data) {
             if (data && data.errCode === 200) {
