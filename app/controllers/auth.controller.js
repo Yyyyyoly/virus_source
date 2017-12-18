@@ -155,25 +155,6 @@ exports.weChatCodeGet = (req, res) => {
 
 // 中间件：判断是否已经登录
 exports.isLogin = (req, res, next) => {
-  // req.session.user = {
-  //   userId: 'o82p90sZgb-aPqbUC7ejWUitE_Fg',
-  //   openId: 'oDCXE0nnqjKT02Gt5GA_zAwejGLQ',
-  //   userName: '叫我女王大人',
-  //   sex: 2,
-  //   province: 'Hubei',
-  //   city: 'Wuhan',
-  //   country: 'China',
-  //   headImgUrl: 'http://wx.qlogo.cn/mmhead/Q3auHgzwzM61WMU23LmA22f7BZPc8TJpNbmaUEDjYeKZcianIHUeNiaw/0',
-  // };
-  // const briefUserKey = redisUtil.getRedisPrefix(25);
-  // dataRedis.hsetAsync(
-  //   briefUserKey,
-  //   req.session.user.userId,
-  //   JSON.stringify({
-  //     userName: req.session.user.userName,
-  //     headImgUrl: req.session.user.headImgUrl,
-  //   }),
-  // );
   const userInfo = req.session.user || {};
 
   // 记载用户的起始url，方便登录/注册后跳转
