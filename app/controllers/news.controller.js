@@ -653,20 +653,12 @@ exports.getTestDetailById = (req, res, next) => {
 
       const newShareId = shareId === '' ? req.session.user.userId : shareId;
       const shareUrl = `${config.serverHost}/news/tests/${newsId}?shareId=${newShareId}`;
-
-      if (shareId) {
-        httpUtil.render('index', {
-          shareUrl,
-          img: newsInfo.dataValues.imgUrl,
-          title: newsInfo.dataValues.title,
-        });
-      } else {
-        httpUtil.render('index', {
-          shareUrl,
-          img: newsInfo.dataValues.imgUrl,
-          title: newsInfo.dataValues.title,
-        });
-      }
+      httpUtil.render('test/test-tongfeng', {
+        newsId,
+        shareUrl,
+        img: newsInfo.dataValues.imgUrl,
+        title: newsInfo.dataValues.title,
+      });
     } catch (err) {
       logger.info(err);
       next(err);
