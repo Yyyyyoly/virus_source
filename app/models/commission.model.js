@@ -16,7 +16,7 @@ module.exports = function (sequelize, DataTypes) {
     totalCommission: { type: DataTypes.FLOAT(11, 2), allowNull: false },
 
     // 传播引流（购买）用户的id
-    viewerId: { type: DataTypes.STRING },
+    viewerId: { type: DataTypes.STRING, allowNull: false },
     // 成交订单编号
     orderId: { type: DataTypes.STRING, unique: true },
 
@@ -37,6 +37,7 @@ module.exports = function (sequelize, DataTypes) {
 
   Commission.associate = (models) => {
     Commission.belongsTo(models.User, { as: 'Share', foreignKey: 'shareId', targetKey: 'userId' });
+    Commission.belongsTo(models.User, { as: 'Viewer', foreignKey: 'viewerId', targetKey: 'userId' });
   };
 
   return Commission;
