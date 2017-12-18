@@ -655,6 +655,7 @@ exports.getTestDetailById = (req, res, next) => {
       const shareUrl = `${config.serverHost}/news/tests/${newsId}?shareId=${newShareId}`;
       httpUtil.render('test/test-tongfeng', {
         newsId,
+        shareUid: newShareId,
         shareUrl,
         img: newsInfo.dataValues.imgUrl,
         title: newsInfo.dataValues.title,
