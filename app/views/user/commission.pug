@@ -30,7 +30,7 @@ block content
         .row: .col
           p 收支明细
             //span: a#showAll 查看全部
-        if logLists.length == 0
+        if logLists.length !== 0
           for list in logLists
             .row: .col
               p.article= operators[list.operator]
