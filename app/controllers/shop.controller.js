@@ -179,10 +179,17 @@ exports.getProductJsonList = async (req, res) => {
 // 进入商品详情页
 exports.getDetailsById = (req, res, next) => {
   const productId = req.params.productId || 0;
+  const userInfo = req.session.user || {}
   const httpUtil = new HttpSend(req, res);
 
   if (!productId) {
     const err = new Error('参数有误');
+    next(err);
+    return;
+  }
+
+  if (!userInfo.userId) {
+    const err = new Error('请先登录');
     next(err);
     return;
   }
@@ -208,7 +215,7 @@ exports.getDetailsById = (req, res, next) => {
       );
 
       //  异步记录pv日志
-      addViewLogByProductId(repos.data, req.session.user, '');
+      addViewLogByProductId(repos.data, userInfo, '');
 
       const shareLink = encodeURI(`${config.serverHost}/mall/purchase?shareId=${req.session.user.userId}&productId=${productId}`);
       httpUtil.render('shop/goods.pug', { productDetails: repos.data, shareLink });
@@ -246,9 +253,16 @@ exports.searchProduct = (req, res) => {
 exports.redirectToShopServer = (req, res, next) => {
   const productId = req.query.productId || 0;
   const shareId = req.query.shareId || '';
+  const userInfo = req.session.user || {};
 
   if (!productId) {
     const err = new Error('商品id不能为空');
+    next(err);
+    return;
+  }
+
+  if (!userInfo.userId) {
+    const err = new Error('请先登录');
     next(err);
     return;
   }
@@ -266,7 +280,7 @@ exports.redirectToShopServer = (req, res, next) => {
       }
 
       //  异步记录pv日志
-      addViewLogByProductId(repos.data, req.session.user, shareId);
+      addViewLogByProductId(repos.data, userInfo, shareId);
 
       // 跳转至商城服务器的购买相关页面
       const url = `${config.shopServerConfig.host}:${config.shopServerConfig.port}/spu/${productId}?shareId=${shareId}`;
