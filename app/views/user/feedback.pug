@@ -10,7 +10,7 @@ block content
       form(action='/user/advice', method="post", @submit.prevent="sendFeedback")
         .form-group
           label.sr-only(for=advice)
-          textarea(rows=5, required, placeholder="请输入您的建议和反馈", name="advice", v-model='advice')
+          textarea.form-control(rows=5, required, placeholder="请输入您的建议和反馈", name="advice", v-model='advice')
         button.btn.btn-block.bg-orange.text-white(type="submit") 提交
 
   include ../layout/navbar-bottom
