@@ -672,7 +672,7 @@ exports.getTestDetailById = (req, res, next) => {
 // 提交自测题
 exports.finishTestById = (req, res) => {
   const newsId = parseInt(req.params.newsId, 0) || 0;
-  const choiceList = req.body.choiceList ? JSON.parse(req.body.choiceList) : {};
+  const choiceList = req.body.choiceList || {};
   const userId = req.session.user.userId || '';
   const resUtil = new HttpSend(req, res);
 
@@ -722,6 +722,7 @@ exports.finishTestById = (req, res) => {
       userId,
       userName: req.session.user.userName,
       headImg: req.session.user.headImgUrl,
+      options: JSON.stringify(choiceList),
       totalScore,
       estimateId: estimateInfo.estimateId,
       estimate: estimateInfo.estimate,
