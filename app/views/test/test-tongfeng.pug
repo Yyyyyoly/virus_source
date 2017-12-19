@@ -10,7 +10,6 @@ block stylesheet
     html{ background-color: #aeca96; }
 
 block script
-  script(src=asset['common.js'])
   script.
     wx.config(!{JSON.stringify(wxConfig)});
     wx.ready(function () {
