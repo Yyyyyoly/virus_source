@@ -82,7 +82,7 @@ exports.commissionDetails = (req, res, next) => {
       for (const log of logInfos) {
         logLists.push({
           time: log.dataValues.createdAt,
-          changeNum: log.dataValues.changeNum,
+          changeNum: Math.abs(log.dataValues.changeNum),
           totalNum: log.dataValues.totalCommission,
           operator: log.dataValues.operator,
           operatorResult: log.dataValues.operatorResult,
