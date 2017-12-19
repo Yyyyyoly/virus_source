@@ -398,7 +398,7 @@ exports.qryDetailsByRecordId = (req, res, next) => {
 // 建议页面
 exports.getAdvicePage = (req, res) => {
   const httpUtil = new HttpSend(req, res);
-  httpUtil.render('index', { title: '建议和反馈' });
+  httpUtil.render('user/feedback', { title: '建议和反馈' });
 };
 
 // 上传建议
