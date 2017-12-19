@@ -18,40 +18,43 @@ block stylesheet
 
 block script
   script.
-    wx.config(!{JSON.stringify(wxConfig)});
-    wx.ready(function () {
-      wx.onMenuShareTimeline({
-        title: '#{title}', // 分享标题
-        link: '#{shareUrl}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
-        imgUrl: '#{img}', // 分享图标
-        success: function () {
-          // 用户确认分享后执行的回调函数
-          $.post('/news/share/#{newsId}', {
-            shareId: '#{shareUid}'
-          }, function (data) {
-            if (data && data.errCode === 200) {
-              alert('分享成功!')
-            }
-          }, 'json')
-        }
-      });
-      wx.onMenuShareAppMessage({
-        title: '#{title}', // 分享标题
-        desc: shareMessage(data), // 分享描述
-        link: '#{shareUrl}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
-        imgUrl: '#{img}', // 分享图标
-        success: function () {
-          // 用户确认分享后执行的回调函数
-          $.post('/news/share/#{newsId}', {
-            shareId: '#{shareUid}'
-          }, function (data) {
-            if (data && data.errCode === 200) {
-              alert('分享成功!')
-            }
-          }, 'json')
-        },
-      });
-    })
+    var wx_config = !{JSON.stringify(wxConfig)}
+    function wxShare() {
+      wx.config(wx_config);
+      wx.ready(function () {
+        wx.onMenuShareTimeline({
+          title: '#{title}', // 分享标题
+          link: '#{shareUrl}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+          imgUrl: '#{img}', // 分享图标
+          success: function () {
+            // 用户确认分享后执行的回调函数
+            $.post('/news/share/#{newsId}', {
+              shareId: '#{shareUid}'
+            }, function (data) {
+              if (data && data.errCode === 200) {
+                alert('分享成功!')
+              }
+            }, 'json')
+          }
+        });
+        wx.onMenuShareAppMessage({
+          title: '#{title}', // 分享标题
+          desc: shareMessage(data), // 分享描述
+          link: '#{shareUrl}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+          imgUrl: '#{img}', // 分享图标
+          success: function () {
+            // 用户确认分享后执行的回调函数
+            $.post('/news/share/#{newsId}', {
+              shareId: '#{shareUid}'
+            }, function (data) {
+              if (data && data.errCode === 200) {
+                alert('分享成功!')
+              }
+            }, 'json')
+          },
+        });
+      })
+    }
     function shareMessage(data) {
       console.log(data);
       if (data[7]) {
@@ -69,9 +72,7 @@ block script
       }
       return '测一测你患痛风的概率'
     }
-    if (document.getElementsByTagName('iframe').length > 0) {
-      window.location.reload();
-    }
+    wxShare();
     var currentTitle = 0, data = Array(8),
       resources = {
         'bg_01': '/resources/bg_01.jpg',
