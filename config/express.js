@@ -1,7 +1,6 @@
 const bodyParser = require('body-parser');
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
-const csurf = require('csurf');
 const express = require('express');
 const fs = require('fs');
 const morgan = require('morgan');
@@ -49,16 +48,11 @@ module.exports = function () {
   app.use(express.static(path.join(__dirname, '../public/')));
   app.locals.asset = JSON.parse(fs.readFileSync(path.join(__dirname, '../public/my-manifest.json')));
 
+  // csrf  myst before all routes
+  require('../app/routes/csrf.route')(app);
+
   // flash
   require('../app/routes/flash.route')(app);
-
-  // api route
-  // mount api before csrf
-  require('../app/routes/api.route')(app);
-
-  // csrf
-  app.use(csurf({ cookie: true }));
-  require('../app/routes/csrf.route')(app);
 
   // register user routes here.
   require('../app/routes/auth.route')(app);
@@ -69,6 +63,9 @@ module.exports = function () {
   require('../app/routes/news.route')(app);
   require('../app/routes/user.route')(app);
   require('../app/routes/test.route')(app);
+
+  // api route
+  require('../app/routes/api.route')(app);
 
   // catch the 404 and render the 404 page.
   app.use((req, res) => {
