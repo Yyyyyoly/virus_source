@@ -52,11 +52,13 @@ block script
         },
       });
     })
-    function shareMessage(data) {
-      if (data[7]) {
-        var count = data.reduce(function (count, val) {
+    function shareMessage(e) {
+      if (e[7]) {
+        var count = e.reduce(function (count, val) {
           return val + count
         }, 0)
+        console.log(e);
+        console.log(count);
         switch (true) {
           case (count <= 2):
             return '我患痛风的概率几乎为零'
