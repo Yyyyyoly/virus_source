@@ -670,14 +670,14 @@ exports.getTestDetailById = (req, res, next) => {
 };
 
 // 提交自测题
-exports.finishTestById = (req, res) => {
-  const newsId = parseInt(req.params.newsId, 0) || 0;
-  const choiceList = req.body.choiceList || {};
-  const userId = req.session.user.userId || '';
+exports.finishTestById = async(req, res) => {
   const resUtil = new HttpSend(req, res);
+  const newsId = parseInt(req.params.newsId, 0) || 0;
+  const choiceList = req.body.choiceList || await resUtil.transferJson() || {};
+  const userId = req.session.user.userId || '';
 
   // 检查参数
-  if (!newsId || !req.body.choiceList || !userId) {
+  if (!newsId || JSON.stringify(choiceList) === '{}' || !userId) {
     resUtil.sendJson(constants.HTTP_FAIL, '参数错误');
     return;
   }
@@ -731,34 +731,30 @@ exports.finishTestById = (req, res) => {
       title: newsInfo.dataValues.title || '',
     });
 
-  const mainFunction = async () => {
-    try {
-      // 查询自测题相关信息,验证参数合法性
-      const newsInfo = await Model.News.findOne({
-        where: { newsId },
-      });
-      if (!newsInfo || !newsInfo.dataValues ||
-        newsInfo.dataValues.type !== constants.TYPE_ESTIMATE) {
-        resUtil.sendJson(constants.HTTP_FAIL, '参数错误');
-        return;
-      }
-
-
-      // 查询自测题题目,计算得分
-      const totalScore = await calScore();
-
-      // 根据分数查询评价
-      const estimateInfo = await qryEstimate(totalScore);
-
-      // 异步更新评价结果至日志中
-      uptRecord(totalScore, estimateInfo, newsInfo);
-
-      resUtil.sendJson(constants.HTTP_SUCCESS);
-    } catch (err) {
-      logger.info(err);
-      resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
+  try {
+    // 查询自测题相关信息,验证参数合法性
+    const newsInfo = await Model.News.findOne({
+      where: { newsId },
+    });
+    if (!newsInfo || !newsInfo.dataValues ||
+      newsInfo.dataValues.type !== constants.TYPE_ESTIMATE) {
+      resUtil.sendJson(constants.HTTP_FAIL, '参数错误');
+      return;
     }
-  };
 
-  mainFunction();
+
+    // 查询自测题题目,计算得分
+    const totalScore = await calScore();
+
+    // 根据分数查询评价
+    const estimateInfo = await qryEstimate(totalScore);
+
+    // 异步更新评价结果至日志中
+    uptRecord(totalScore, estimateInfo, newsInfo);
+
+    resUtil.sendJson(constants.HTTP_SUCCESS);
+  } catch (err) {
+    logger.info(err);
+    resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
+  }
 };
