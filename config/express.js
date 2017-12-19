@@ -48,7 +48,7 @@ module.exports = function () {
   app.use(express.static(path.join(__dirname, '../public/')));
   app.locals.asset = JSON.parse(fs.readFileSync(path.join(__dirname, '../public/my-manifest.json')));
 
-  // csrf  myst before all routes
+  // csrf  must before all routes
   require('../app/routes/csrf.route')(app);
 
   // flash
@@ -62,10 +62,9 @@ module.exports = function () {
   require('../app/routes/shop.route')(app);
   require('../app/routes/news.route')(app);
   require('../app/routes/user.route')(app);
+  require('../app/routes/api.route')(app);
   require('../app/routes/test.route')(app);
 
-  // api route
-  require('../app/routes/api.route')(app);
 
   // catch the 404 and render the 404 page.
   app.use((req, res) => {
