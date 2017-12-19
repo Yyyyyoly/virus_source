@@ -1,0 +1,36 @@
+extends ../layout/base
+
+block attributes
+
+block title
+  title #{title}
+block content
+  .container.user#feedback
+    .row.mt-3: .col
+      form(action='/user/advice', method="post", @submit.prevent="sendFeedback")
+        .form-group
+          label.sr-only(for=advice)
+          textarea.form-control(rows=5, required, placeholder="请输入您的建议和反馈", name="advice", v-model='advice')
+        button.btn.btn-block.bg-orange.text-white(type="submit") 提交
+
+  include ../layout/navbar-bottom
+
+block script
+  script.
+    var vm = new Vue({
+      el: '#feedback',
+      data: {
+        advice: ''
+      },
+      methods: {
+        sendFeedback() {
+          $.post('/user/advice', { advice: this.advice },
+            function (data) {
+              if (data.errCode === 200) {
+                alert('提交成功！')
+                vm.advice = ''
+              }
+            }, 'json')
+        }
+      }
+    })

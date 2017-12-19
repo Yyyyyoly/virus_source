@@ -40,12 +40,17 @@ router.get('/withdraw', (req, res) => {
 router.get('/share', (req, res) => {
   res.render('user/share');
 });
+router.get('/feedback', (req, res) => {
+  res.render('user/feedback');
+});
 router.get('/shop', (req, res) => {
   res.render('shop/shop');
 });
-
 router.get('/goods', (req, res) => {
   res.render('shop/goods');
+});
+router.get('/test', (req, res) => {
+  res.render('test/test-tongfeng');
 });
 
 module.exports = function (app) {

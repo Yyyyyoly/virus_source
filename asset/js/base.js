@@ -17,7 +17,7 @@ let now = moment();
 let now_date = moment().format('YYYY-MM-DD');
 $('.now_date').text(now_date);
 
-$("a[href='/user/commission/withdraw'],a[href='/user/advice']").click(function (e) {
+$("a[href='/user/commission/withdraw']").click(function (e) {
   e.preventDefault();
   alert('暂未开放！')
 });
