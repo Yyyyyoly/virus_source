@@ -52,13 +52,12 @@ block script
         },
       });
     })
-    function shareMessage(e) {
-      if (e[7]) {
-        var count = e.reduce(function (count, val) {
+    function shareMessage(data) {
+      console.log(data);
+      if (data[7]) {
+        var count = data.reduce(function (count, val) {
           return val + count
         }, 0)
-        console.log(e);
-        console.log(count);
         switch (true) {
           case (count <= 2):
             return '我患痛风的概率几乎为零'
@@ -67,9 +66,8 @@ block script
           default:
             return '我患痛风的概率极高'
         }
-      } else {
-        return '测一测你患痛风的概率'
       }
+      return '测一测你患痛风的概率'
     }
     if (document.getElementsByTagName('iframe').length > 0) {
       window.location.reload();
@@ -126,8 +124,7 @@ block script
     来碱化身体，枸橼酸钾可以缓解高嘌呤食物造成的尿酸\n\
     升高等症状，让痛风/高尿酸血症带来的危害都远离您。'
         },
-        {
-          min: 6, max: 8,
+        { min: 6, max: 8,
           pic_1: '/resources/result_3_1.png',
           pic_2: '/resources/result_3_2.jpg',
           text_1: '日常生活中请注意饮食（减少酒、海鲜、油腻\n\
