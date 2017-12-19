@@ -11,6 +11,11 @@ block stylesheet
 
 block script
   script.
+    $.ajaxSetup({
+      headers: {
+        'Content-type': 'application'
+      }
+    });
     wx.config(!{JSON.stringify(wxConfig)});
     wx.ready(function () {
       wx.onMenuShareTimeline({
