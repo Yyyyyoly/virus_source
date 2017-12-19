@@ -40,6 +40,9 @@ router.get('/withdraw', (req, res) => {
 router.get('/share', (req, res) => {
   res.render('user/share');
 });
+router.get('/feedback', (req, res) => {
+  res.render('user/feedback');
+});
 router.get('/shop', (req, res) => {
   res.render('shop/shop');
 });
