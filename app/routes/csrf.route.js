@@ -1,13 +1,18 @@
 const csurf = require('csurf');
+const url = require('url');
 
 module.exports = function (app) {
   app.use((req, res, next) => {
-    const originalUrl = req.originalUrl.pathname;
-    if (originalUrl.indexOf('/external') === -1) {
-      csurf({ cookie: true });
-      res.locals.csrfToken = req.csrfToken();
-    }
+    const pathName = url.parse(req.originalUrl).pathname;
 
-    next();
+    //  针对特殊的api路由/external 去掉csrf控制
+    if (pathName.indexOf('/external') === -1) {
+      csurf({ cookie: true })(req, res, () => {
+        res.locals.csrfToken = req.csrfToken();
+        next();
+      });
+    } else {
+      next();
+    }
   });
 };
