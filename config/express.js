@@ -87,8 +87,12 @@ module.exports = function () {
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {
     console.log(err.toString());
-    res.status(err.status || 500);
-    res.render('500', { error: err.toString() });
+    if (err.message === '') {
+      res.status(err.status || 500);
+      res.render('500', { error: err.toString() });
+    } else {
+      res.render('error', { error: err.message });
+    }
   });
 
   return app;
