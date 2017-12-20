@@ -62,14 +62,14 @@ block script
         }, 0)
         switch (true) {
           case (count <= 2):
-            return '我患痛风的概率几乎为零'
-          case (count <= 6):
-            return '我患痛风的概率有点大'
+            return '哈哈，我患痛风/高尿酸血症的概率几乎为0，我要保持，哈哈！亲们，快来测测您患痛风/高尿酸血症的概率。'
+          case (count <= 5):
+            return '哎，我患痛风/高尿酸血证的概率有点大，我要改变、改变、改变。亲们，快来测测您患痛风/高尿酸血症的概率。'
           default:
-            return '我患痛风的概率极高'
+            return '呜呜，我患痛风/高尿酸血症的概率极高！亲们，快来测测您患痛风/ 高尿酸血证的概率。'
         }
       }
-      return '测一测你患痛风的概率'
+      return '亲们，我正在进行痛风/高尿酸血症的小测试，你们也来试试吧！'
     }
     wxShare();
     var currentTitle = 0, data = Array(8),
