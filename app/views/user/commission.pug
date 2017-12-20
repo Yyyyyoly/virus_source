@@ -5,11 +5,10 @@ block attributes
     var operators = {
       1: '成交订单获利',
       2: '提现',
-      3: '积分兑换',
-      4: '订单取消，取消返利'
+      3: '订单取消，取消返利'
     };
     var operatorResults = {
-      0: '待处理',
+      0: '（审核中）',
       1: '已完成'
     }
 
@@ -31,12 +30,18 @@ block content
           p 收支明细
             //span: a#showAll 查看全部
         if logLists.length !== 0
-          for list in logLists
-            .row: .col
-              p.article= operators[list.operator]
-                span.time.sr-only= list.time
-              p 余额： #{list.totalNum}
-                span= list.changeNum
+          .row
+            table.table
+              thead
+                tr
+                  th 时间
+                  th.text-right 佣金变动
+              tbody
+                for log in logLists
+                  tr
+                    td(nowrap): a= operators[log.operator] + (log.operatorResult ? '' : operatorResults[log.operatorResult])
+                      small.d-block.time.sr-only= log.time
+                    td.text-right: a(class= log.operator === 1 ? 'add' : 'sub')= log.changeNum
         else
           .no-data 无数据
 

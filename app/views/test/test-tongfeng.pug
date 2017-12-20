@@ -3,74 +3,99 @@ extends ./../layout/base
 block title
   title #{title}
 block content
-  
+
 block stylesheet
   style.
-    html,body{ margin: 0; padding: 0; overflow-x: hidden; }
-    html{ background-color: #aeca96; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    html {
+      background-color: #aeca96;
+    }
 
 block script
   script.
-    wx.config(!{JSON.stringify(wxConfig)});
-    wx.ready(function () {
-      wx.onMenuShareTimeline({
-        title: '#{title}', // 分享标题
-        link: '#{shareUrl}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
-        imgUrl: '#{img}', // 分享图标
-        success: function () {
-          // 用户确认分享后执行的回调函数
-          $.post('/news/share/#{newsId}', {
-            shareId: '#{shareUid}'
-          }, function (data) {
-            if (data && data.errCode === 200) {
-              alert('分享成功!')
-            }
-          }, 'json')
-        }
-      });
-      wx.onMenuShareAppMessage({
-        title: '#{title}', // 分享标题
-        desc: '#{title}', // 分享描述
-        link: '#{shareUrl}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
-        imgUrl: '#{img}', // 分享图标
-        success: function () {
-          // 用户确认分享后执行的回调函数
-          $.post('/news/share/#{newsId}', {
-            shareId: '#{shareUid}'
-          }, function (data) {
-            if (data && data.errCode === 200) {
-              alert('分享成功!')
-            }
-          }, 'json')
-        },
-      });
-    })
-    if (document.getElementsByTagName('iframe').length > 0) {
-      window.location.reload();
+    var wx_config = !{JSON.stringify(wxConfig)}
+    function wxShare() {
+      wx.config(wx_config);
+      wx.ready(function () {
+        wx.onMenuShareTimeline({
+          title: '#{title}', // 分享标题
+          link: '#{shareUrl}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+          imgUrl: '#{img}', // 分享图标
+          success: function () {
+            // 用户确认分享后执行的回调函数
+            $.post('/news/share/#{newsId}', {
+              shareId: '#{shareUid}'
+            }, function (data) {
+              if (data && data.errCode === 200) {
+                alert('分享成功!')
+              }
+            }, 'json')
+          }
+        });
+        wx.onMenuShareAppMessage({
+          title: '#{title}', // 分享标题
+          desc: shareMessage(data), // 分享描述
+          link: '#{shareUrl}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+          imgUrl: '#{img}', // 分享图标
+          success: function () {
+            // 用户确认分享后执行的回调函数
+            $.post('/news/share/#{newsId}', {
+              shareId: '#{shareUid}'
+            }, function (data) {
+              if (data && data.errCode === 200) {
+                alert('分享成功!')
+              }
+            }, 'json')
+          },
+        });
+      })
     }
+    function shareMessage(data) {
+      if (data[7]) {
+        var count = data.reduce(function (count, val) {
+          return val + count
+        }, 0)
+        switch (true) {
+          case (count <= 2):
+            return '哈哈，我患痛风/高尿酸血症的概率几乎为0，我要保持，哈哈！亲们，快来测测您患痛风/高尿酸血症的概率。'
+          case (count <= 5):
+            return '哎，我患痛风/高尿酸血证的概率有点大，我要改变、改变、改变。亲们，快来测测您患痛风/高尿酸血症的概率。'
+          default:
+            return '呜呜，我患痛风/高尿酸血症的概率极高！亲们，快来测测您患痛风/ 高尿酸血证的概率。'
+        }
+      }
+      return '亲们，我正在进行痛风/高尿酸血症的小测试，你们也来试试吧！'
+    }
+    wxShare();
     var currentTitle = 0, data = Array(8),
-    resources = {
-      'bg_01': '/resources/bg_01.jpg',
-      'title_01': '/resources/bg_02.png',
-      'title_02': '/resources/bg_03.png',
-      'resources/bg_04.png': '/resources/bg_04.png',
-      'resources/fg_01.png': '/resources/fg_01.png',
-      'resources/fg_02.png': '/resources/fg_02.png',
-      'btn_01': '/resources/btn_01.png',
-      'btn_yes': '/resources/btn_yes.png',
-      'btn_no': '/resources/btn_no.png',
-      'subtitle': '/resources/subtitle.png',
-      'cover': '/resources/cover.jpg',
-      'head_icon_01': '/resources/head_icon_01.png',
-      'head_icon_02': '/resources/head_icon_02.png',
-      'head_icon_03': '/resources/head_icon_03.png',
-      'btn_retest': '/resources/btn_retest.png',
-      'tips': '/resources/tips.png',
-      'blackboard': '/resources/blackboard.png'
-    },
-    api_url = '/news/tests/#{newsId}',
-    results = [
-      { min: 0, max: 2,
+      resources = {
+        'bg_01': '/resources/bg_01.jpg',
+        'title_01': '/resources/bg_02.png',
+        'title_02': '/resources/bg_03.png',
+        'resources/bg_04.png': '/resources/bg_04.png',
+        'resources/fg_01.png': '/resources/fg_01.png',
+        'resources/fg_02.png': '/resources/fg_02.png',
+        'btn_01': '/resources/btn_01.png',
+        'btn_yes': '/resources/btn_yes.png',
+        'btn_no': '/resources/btn_no.png',
+        'subtitle': '/resources/subtitle.png',
+        'cover': '/resources/cover.jpg',
+        'head_icon_01': '/resources/head_icon_01.png',
+        'head_icon_02': '/resources/head_icon_02.png',
+        'head_icon_03': '/resources/head_icon_03.png',
+        'btn_retest': '/resources/btn_retest.png',
+        'tips': '/resources/tips.png',
+        'blackboard': '/resources/blackboard.png'
+      },
+      api_url = '/news/tests/#{newsId}',
+      results = [
+        {
+          min: 0, max: 2,
           pic_1: '/resources/result_1_1.png',
           pic_2: '/resources/result_1_2.jpg',
           text_1: '棒棒哒！由于长期的健康生活习惯，高血尿酸\n\
@@ -83,8 +108,9 @@ block script
           控制饮食，加强锻炼，适当饮用苏打水或枸橼酸泡腾片\n\
           来碱化身体，枸橼酸钾可以缓解高嘌呤食物造成的尿酸\n\
           升高等症状，让痛风/高尿酸血症带来的危害都远离您。'
-      },
-      { min: 3, max: 5,
+        },
+        {
+          min: 3, max: 5,
           pic_1: '/resources/result_2_1.png',
           pic_2: '/resources/result_2_2.jpg',
           text_1: '头晕？胸闷？做事效率不高？长期如此，您的\n\
@@ -97,8 +123,8 @@ block script
     控制饮食，加强锻炼，适当饮用苏打水或枸橼酸泡腾片\n\
     来碱化身体，枸橼酸钾可以缓解高嘌呤食物造成的尿酸\n\
     升高等症状，让痛风/高尿酸血症带来的危害都远离您。'
-      },
-      { min: 6, max: 8,
+        },
+        { min: 6, max: 8,
           pic_1: '/resources/result_3_1.png',
           pic_2: '/resources/result_3_2.jpg',
           text_1: '日常生活中请注意饮食（减少酒、海鲜、油腻\n\
@@ -111,8 +137,8 @@ block script
     控制饮食，加强锻炼，适当饮用苏打水或枸橼酸泡腾片\n\
     来碱化身体，枸橼酸钾可以缓解高嘌呤食物造成的尿酸\n\
     升高等症状，让痛风/高尿酸血症带来的危害都远离您。'
-      },
-    ]
+        },
+      ]
 
   script(src="/js/test.js")
           
