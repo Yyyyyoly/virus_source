@@ -26,6 +26,7 @@ deb-src http://mirrors.aliyun.com/ubuntu/ trusty-backports main restricted unive
 RUN sudo apt-get update 
 RUN sudo apt-get install -y wget
 RUN sudo apt-get install xz-utils
+RUN sudo apt-get install build-essential -y
 
 
 # WORKDIR切换目录，相当于cd的作用
@@ -61,7 +62,7 @@ VOLUME  /code/virus_source
 # 使用淘宝的npm镜像
 WORKDIR /code/virus_source
 RUN npm install -g cnpm --registry=https://registry.npm.taobao.org
-RUN cnpm install
+RUN /usr/local/node-v8.8.1-linux-x64/bin/cnpm install
 
 # container内部服务开启的端口。主机上要用还得在启动container时，做host-container的端口映射
 EXPOSE 8088
