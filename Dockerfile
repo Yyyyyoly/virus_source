@@ -57,17 +57,13 @@ RUN redis-server  /usr/local/redis-4.0.2/redis.conf &
  
 # 把主机上的代码目录挂载到容器中的/code/virus_source目录下
 RUN mkdir -p /code/virus_source
-VOLUME  /code/virus_source
 
-# 使用淘宝的npm镜像
+# 替换使用淘宝的npm镜像
 WORKDIR /code/virus_source
 RUN npm install -g cnpm --registry=https://registry.npm.taobao.org
-RUN /usr/local/node-v8.8.1-linux-x64/bin/cnpm install
+RUN ln -s  /usr/local/node-v8.8.1-linux-x64/bin/cnpm  /usr/local/bin/cnpm
 
 # container内部服务开启的端口。主机上要用还得在启动container时，做host-container的端口映射
 EXPOSE 8088
 
 ENV NODE_ENV development
-
-# 运行app.js 
-RUN node  /code/virus_source/server.js
