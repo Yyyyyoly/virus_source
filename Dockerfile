@@ -44,7 +44,6 @@ RUN /etc/init.d/mysql start &&\
 mysql -e "grant all privileges on *.* to 'root'@'%' identified by 'root';"&&\
 mysql -e "grant all privileges on *.* to 'root'@'localhost' identified by 'root';"&&\
 mysql -u root -proot -e "create database virus_source_app;"
-ENTRYPOINT /usr/bin/mysqld_safe
 
 # 安装redis v4.0.2
 RUN wget http://download.redis.io/releases/redis-4.0.2.tar.gz 
@@ -53,7 +52,6 @@ RUN rm redis-4.0.2.tar.gz
 WORKDIR redis-4.0.2
 RUN make
 RUN ln -s  /usr/local/redis-4.0.2/src/redis-server  /usr/local/bin/redis-server
-RUN redis-server  /usr/local/redis-4.0.2/redis.conf &
  
 # 把主机上的代码目录挂载到容器中的/code/virus_source目录下
 RUN mkdir -p /code/virus_source
@@ -67,3 +65,6 @@ RUN ln -s  /usr/local/node-v8.8.1-linux-x64/bin/cnpm  /usr/local/bin/cnpm
 EXPOSE 8088
 
 ENV NODE_ENV development
+
+#启动mysql和redis
+ENTRYPOINT /etc/init.d/mysql restart && redis-server  /usr/local/redis-4.0.2/redis.conf &
