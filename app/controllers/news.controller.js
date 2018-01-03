@@ -514,7 +514,7 @@ exports.shareNewsById = (req, res) => {
   const resUtil = new HttpSend(req, res);
 
   // 检查参数
-  if (!newsId || !userId || !shareId) {
+  if (!newsId || !userId) {
     resUtil.sendJson(constants.HTTP_FAIL, '参数错误,积分增加失败');
     return;
   }
