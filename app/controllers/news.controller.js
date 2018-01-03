@@ -376,7 +376,7 @@ exports.getNewsDetailById = (req, res, next) => {
       const shareLink = encodeURI(`${config.serverHost}/news/details/${pageInfo.newsId}?shareId=${shareUid}`);
       const renderUrl = !shareId ? 'news/news-detail' : 'news/news-detail-share';
       httpUtil.render(renderUrl, {
-        title: '热文资讯', pageInfo, shareLink, shareUid,
+        title: '热文资讯', pageInfo, shareLink, shareUid: shareId,
       });
     } catch (err) {
       logger.info(err);
@@ -670,7 +670,7 @@ exports.getTestDetailById = (req, res, next) => {
 };
 
 // 提交自测题
-exports.finishTestById = async(req, res) => {
+exports.finishTestById = async (req, res) => {
   const resUtil = new HttpSend(req, res);
   const newsId = parseInt(req.params.newsId, 0) || 0;
   const choiceList = req.body.choiceList || await resUtil.transferJson() || {};
