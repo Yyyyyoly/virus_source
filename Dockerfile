@@ -67,4 +67,4 @@ EXPOSE 8088
 ENV NODE_ENV development
 
 #启动mysql和redis
-ENTRYPOINT /etc/init.d/mysql restart && redis-server  /usr/local/redis-4.0.2/redis.conf &
+ENTRYPOINT [“dockerShell.sh”]
