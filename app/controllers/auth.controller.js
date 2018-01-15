@@ -3,12 +3,12 @@ const HttpSend = require('../utils/http.util');
 const config = require('../../config/config');
 const constants = require('../../config/constants');
 const url = require('url');
-const tokenRedis = require('../../config/redis')(2);
-const dataRedis = require('../../config/redis')(1);
 const redisUtil = require('../utils/redis.util');
-const qiniu = require('qiniu');
 const weChatUtil = require('../utils/wechat.util');
 const logger = require('../utils/log.util').getLogger(constants.LOGGER_LEVEL);
+const qiniu = require('qiniu');
+const tokenRedis = require('../../config/redis')(2);
+const userCon = require('./user.controller');
 
 const api = weChatUtil.api();
 const baseApi = weChatUtil.baseApi();
@@ -79,20 +79,14 @@ const autoLoginAndRegister = (req, res) => {
         city: userInfo.dataValues.city,
         country: userInfo.dataValues.country,
         headImgUrl: userInfo.dataValues.headImgUrl,
+        phone: userInfo.dataValues.phone,
+        realName: userInfo.dataValues.realName,
+        hospitalName: userInfo.dataValues.hospitalName,
+        jobTitleId: userInfo.dataValues.jobTitleId,
       };
 
       if (updateRedisBrief) {
-        // 异步记录一下用户的昵称和头像缩略信息，
-        // 以免某些排行榜需要显示下级头像、昵称之类
-        const briefUserKey = redisUtil.getRedisPrefix(25);
-        dataRedis.hsetAsync(
-          briefUserKey,
-          userInfo.dataValues.userId,
-          JSON.stringify({
-            userName: userInfo.dataValues.userName,
-            headImgUrl: userInfo.dataValues.headImgUrl,
-          }),
-        );
+        userCon.updateUserBriefRank(userInfo.dataValues);
       }
 
       // 如果有跳转前页面，先进入
@@ -153,7 +147,7 @@ exports.weChatCodeGet = (req, res) => {
   });
 };
 
-// 中间件：判断是否已经登录
+// 中间件1：判断是否已经登录
 exports.isLogin = (req, res, next) => {
   const userInfo = req.session.user || {};
 
@@ -167,6 +161,26 @@ exports.isLogin = (req, res, next) => {
 
   if (!userInfo || !userInfo.userId) {
     res.redirect(`${config.serverHost}/auth/login`);
+  } else {
+    next();
+  }
+};
+
+
+// 中间件2：判断手机号是否绑定
+exports.isBindPhone = (req, res, next) => {
+  const userInfo = req.session.user || {};
+
+  // 记载用户的起始url，方便登录/注册后跳转
+  const originalUrl = decodeURIComponent(url.format({
+    protocol: constants.PROTOCOL,
+    host: req.hostname,
+    pathname: req.originalUrl,
+  }));
+  req.session.originalUrl = req.session.originalUrl || originalUrl;
+
+  if (!userInfo || !userInfo.phone) {
+    res.redirect(`${config.serverHost}/user/phone`);
   } else {
     next();
   }

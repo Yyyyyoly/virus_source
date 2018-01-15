@@ -3,10 +3,10 @@ const userController = require('../controllers/user.controller');
 const authController = require('../controllers/auth.controller');
 
 const prefix = '/user';
-// 佣金相关
-router.get('/commission', authController.isLogin, userController.commissionDetails);
-router.get('/commission/withdraw', authController.isLogin, userController.withdrawPage);
-router.post('/commission/withdraw', authController.isLogin, userController.withdraw);
+// 佣金相关 此版本不包含商城，所以佣金部分去掉
+// router.get('/commission', authController.isLogin, userController.commissionDetails);
+// router.get('/commission/withdraw', authController.isLogin, userController.withdrawPage);
+// router.post('/commission/withdraw', authController.isLogin, userController.withdraw);
 
 // 积分相关
 router.get('/bonusPoint', authController.isLogin, userController.bonusPointDetails);

@@ -13,6 +13,25 @@ const logger = require('../utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 const Op = Model.Sequelize.Op;
 
+// 异步记录一下用户的昵称和头像缩略信息，
+// 以免某些排行榜需要显示下级头像、昵称之类
+exports.updateUserBriefRank = (userInfo) => {
+  const briefUserKey = redisUtil.getRedisPrefix(25);
+  redisClient.hsetAsync(
+    briefUserKey,
+    userInfo.userId,
+    JSON.stringify({
+      userName: userInfo.userName || '',
+      headImgUrl: userInfo.headImgUrl || '',
+      phone: userInfo.phone || '',
+      realName: userInfo.realName || '',
+      hospitalName: userInfo.hospitalName || '',
+      jobTitleId: userInfo.jobTitleId || 0,
+    }),
+  );
+  return true;
+};
+
 // 渲染绑定手机号页面
 exports.renderBindPage = (req, res) => {
   const httpUtil = new HttpSend(req, res);
@@ -20,11 +39,13 @@ exports.renderBindPage = (req, res) => {
 };
 
 // 绑定user表中的手机号、便于积分转化
-exports.bindPhone = (req, res) => {
+exports.bindPhone = async (req, res) => {
   const userId = req.session.user ? req.session.user.userId : '';
+  const realName = req.body.realName || '';
+  const hospitalName = req.body.hospitalName || '';
+  const jobTitleId = req.body.jobTitleId || 0;
   const phone = req.body.phone || '';
   const captcha = req.body.captcha || '';
-  const remark = req.body.remark || '';
   const resUtil = new HttpSend(req, res);
 
   if (!userId) {
@@ -32,17 +53,32 @@ exports.bindPhone = (req, res) => {
     return;
   }
 
-  if (!phone || !captcha) {
+  if (!phone || !captcha || !realName || !hospitalName || !jobTitleId) {
     resUtil.sendJson(constants.HTTP_FAIL, '参数不能为空');
     return;
   }
 
-  Model.User.update({ phone, remark }, { where: { userId } }).then(() => {
+  // 验证手机号验证码是否有效
+  if (verifyCon.CodeVerify(req, captcha) !== true) {
+    resUtil.sendJson(constants.HTTP_FAIL, '验证码错误');
+    return;
+  }
+
+  // 绑定手机号、更新医生的就职信息
+  const affectedRows = await Model.User.update({
+    phone, realName, hospitalName, jobTitleId,
+  }, { where: { userId } });
+
+  if (parseInt(affectedRows, 0) > 0) {
+    req.session.user.phone = phone;
+    req.session.user.realName = realName;
+    req.session.user.hospitalName = hospitalName;
+    req.session.user.jobTitleId = jobTitleId;
+    exports.updateUserBriefRank(req.session.user);
     resUtil.sendJson(constants.HTTP_SUCCESS, '手机号绑定成功');
-  }).catch((err) => {
-    logger.info(err);
+  } else {
     resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
-  });
+  }
 };
 
 // 用户中心首页
