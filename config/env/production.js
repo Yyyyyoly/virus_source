@@ -1,7 +1,7 @@
 module.exports = {
   // production configuration options
   serverPort: 7000,
-  serverHost: 'http://test-share.medsci-tech.com',
+  serverHost: 'http://medtong-share.medsci-tech.com',
   sessionSecret: 'xsm_production_secret',
 
   // mysql config
@@ -42,12 +42,12 @@ module.exports = {
   shopServerConfig: {
     host: 'http://shop.medsci-tech.com',
     port: 80,
-    privateKey: 'medsci-tech-shop-server',
+    privateKey: 'medTong-shop-server',
   },
 
   // point mall config
   pointMallConfig: {
-    privateKey: 'medsci-tech-share',
+    privateKey: 'medTong-share',
   },
 
   // qiniu config
