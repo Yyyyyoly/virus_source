@@ -18,7 +18,7 @@ module.exports = function (type = 0) {
 
   if (!globalRedisClient[clientType]) {
     if (clientType === 1) {
-      redisConfig.db = 4;
+      redisConfig.db = 5;
     } else if (clientType === 2) {
       redisConfig.db = 2;
     } else if (clientType === 3) {
