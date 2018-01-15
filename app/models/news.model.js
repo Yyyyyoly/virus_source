@@ -5,7 +5,7 @@ module.exports = function (sequelize, DataTypes) {
     newsId: {
       type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true, unique: true,
     },
-    // 文章作者id
+    // 文章作者id （如果是管理员后台编辑的文章，这里为空）
     writerId: { type: DataTypes.STRING },
     // 资讯类型 自测题/文章
     type: { type: DataTypes.INTEGER, allowNull: false, defaultValue: constants.TYPE_NEWS },
