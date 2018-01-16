@@ -416,7 +416,8 @@ exports.getPieDetails = (req, res, next) => {
       const ids = list.filter((item, index) => (index % 2 === 0));
       const briefIntroduction = ids.length ? await redisClient.hmgetAsync(briefKey, ids) : [];
       // 所有商品/资讯的类别
-      const briefClassInfos = briefClassKey === '' ? constants.NEWS_CLASS_LIST : await redisClient.hgetallAsync(briefClassKey);
+      const briefClassInfos = briefClassKey === '' ? constants.NEWS_CLASS_LIST.OFFICIAL :
+        await redisClient.hgetallAsync(briefClassKey);
 
       const pieList = [];
       for (let j = 0; j < typeList.length; j += 2) {

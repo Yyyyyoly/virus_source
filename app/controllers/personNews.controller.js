@@ -36,13 +36,12 @@ const getNewsList = async (orderType, contextType, page) => {
   // 按照发布时间最新查找资讯
   const findByNew = async () => {
     const conditions = {
-      where: { type: { [Op.ne]: constants.TYPE_PERSON_NEWS } },
       order: [['newsId', 'DESC']],
       offset: limit * (page - 1),
       limit,
     };
     if (contextType !== constants.CONTEXT_TOTAL) {
-      conditions.where.newsClass = contextType;
+      conditions.where = { newsClass: contextType };
     }
     return Model.News.findAndCountAll(conditions);
   };
@@ -209,8 +208,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     /** *****************************记录资讯浏览日志**************************************** */
     const pvNewsInfo = await Model.PVNews.create({
       newsId: newsInfo.newsId,
-      writerId: newsInfo.writerId,
-      type: newsInfo.type,
+      writerName: newsInfo.writerName,
       newsClass: newsInfo.newsClass,
       title: newsInfo.title,
       introduction: newsInfo.introduction,
@@ -358,7 +356,7 @@ exports.getNewsDetailById = (req, res, next) => {
 
       const pageInfo = {
         newsId: newsInfo.dataValues.newsId,
-        userName: '蚂蚁小助手',
+        userName: newsInfo.dataValues.writerName,
         newsClass: newsInfo.dataValues.newsClass,
         title: newsInfo.dataValues.title,
         introduction: newsInfo.dataValues.introduction,
@@ -426,7 +424,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     /** *****************************记录资讯转发日志**************************************** */
     const transmitInfo = await Model.TransmitNews.create({
       newsId: newsInfo.newsId,
-      writerId: newsInfo.writerId,
+      writerName: newsInfo.writerName,
       newsClass: newsInfo.newsClass,
       title: newsInfo.title,
       introduction: newsInfo.introduction,
