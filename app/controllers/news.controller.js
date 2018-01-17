@@ -427,6 +427,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     const transmitInfo = await Model.TransmitNews.create({
       newsId: newsInfo.newsId,
       writerId: newsInfo.writerId,
+      type: newsInfo.type,
       newsClass: newsInfo.newsClass,
       title: newsInfo.title,
       introduction: newsInfo.introduction,
