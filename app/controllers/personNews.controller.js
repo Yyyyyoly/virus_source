@@ -1,3 +1,5 @@
+// 个人资讯模块，基本上继承news.controller
+
 const constants = require('../../config/constants');
 const redisClient = require('../../config/redis')(1);
 const globalClient = require('../../config/redis')(3);
@@ -6,28 +8,11 @@ const Model = require('../models/index');
 const HttpSend = require('../utils/http.util');
 const moment = require('moment');
 const config = require('../../config/config');
+const newsController = require('./news.controller');
 const globalController = require('./global.controller');
 const logger = require('../utils/log.util').getLogger(constants.LOGGER_LEVEL);
 
 const Op = Model.Sequelize.Op;
-
-// 根据资讯id  查询点赞总数、浏览总数、评论总数
-exports.getPVAndThumpById = async (newsId) => {
-  const thumbUpKey = redisUtil.getRedisPrefix(1);
-  const pvKey = redisUtil.getRedisPrefix(2);
-  const commentKey = redisUtil.getRedisPrefix(13);
-  const [pvNum, thumbUpNum, commentNum] = await Promise.all([
-    redisClient.zscoreAsync(pvKey, newsId),
-    redisClient.zscoreAsync(thumbUpKey, newsId),
-    redisClient.zscoreAsync(commentKey, newsId),
-  ]);
-
-  return {
-    pvNum: Math.round(pvNum) || 0,
-    thumbUpNum: thumbUpNum || 0,
-    commentNum: commentNum || 0,
-  };
-};
 
 const getNewsList = async (orderType, contextType, page) => {
   // 分页中每页的最大数量
@@ -36,21 +21,26 @@ const getNewsList = async (orderType, contextType, page) => {
   // 按照发布时间最新查找资讯
   const findByNew = async () => {
     const conditions = {
+      where: {
+        type: { [Op.eq]: constants.TYPE_PERSON_NEWS },
+        include: [
+          { model: Model.User, required: true },
+          { model: Model.JobTitle, required: true },
+        ],
+      },
       order: [['newsId', 'DESC']],
       offset: limit * (page - 1),
       limit,
     };
-    if (contextType !== constants.CONTEXT_TOTAL) {
-      conditions.where = { newsClass: contextType };
+    if (contextType !== constants.CONTEXT_PERSON_TOTAL) {
+      conditions.where.newsClass = contextType;
     }
     return Model.News.findAndCountAll(conditions);
   };
 
   // 按照热门程度查找资讯  热门目前按照总浏览量排序
   const findByHot = async () => {
-    const rankKey = contextType === constants.CONTEXT_TOTAL ?
-      redisUtil.getRedisPrefix(2) :
-      redisUtil.getRedisPrefix(2, contextType);
+    const rankKey = contextType === redisUtil.getRedisPrefix(2, contextType);
     const [start, end] = [(page - 1) * limit, page * limit];
     const rankList = await redisClient.zrevrangeAsync(rankKey, start, end);
     const count = await redisClient.zcardAsync(rankKey);
@@ -61,7 +51,13 @@ const getNewsList = async (orderType, contextType, page) => {
     };
     if (rankList.length) {
       // 这种写法等于Op.in:(1,2,3,4)
-      const datas = await Model.News.findAll({ where: { newsId: rankList } });
+      const datas = await Model.News.findAll({
+        where: { newsId: rankList },
+        include: [
+          { model: Model.User, required: true },
+          { model: Model.JobTitle, required: true },
+        ],
+      });
       // 按照排行榜的顺序重新排序
       for (const newsId of rankList) {
         for (const data of datas) {
@@ -91,14 +87,10 @@ const getNewsList = async (orderType, contextType, page) => {
       // 并发查询每个资讯的点赞数和访问数
       const getNewsPromises = newsInfos.rows.map(async (newsInfo) => {
         const newsId = newsInfo.dataValues.newsId || 0;
-        const supportInfo = await exports.getPVAndThumpById(newsId);
-        let redirectUrl = '/news/details';
-        if (parseInt(newsInfo.dataValues.type, 0) === constants.TYPE_ESTIMATE) {
-          redirectUrl = '/news/tests';
-        }
+        const supportInfo = await newsController.getPVAndThumpById(newsId);
         return {
           newsId,
-          redirectUrl: `${redirectUrl}/${newsId}`,
+          redirectUrl: `/person_news/details/${newsId}`,
           newsClass: newsInfo.dataValues.newsClass,
           title: newsInfo.dataValues.title,
           introduction: newsInfo.dataValues.introduction,
@@ -107,6 +99,10 @@ const getNewsList = async (orderType, contextType, page) => {
           pv: supportInfo.pvNum,
           thumbUp: supportInfo.thumbUpNum,
           commentNum: supportInfo.commentNum,
+          writerRealName: newsInfo.User.dataValues.realName,
+          headImgUrl: newsInfo.User.dataValues.headImgUrl,
+          hospitalName: newsInfo.User.dataValues.hospitalName,
+          jobTitleName: newsInfo.JobTitle.dataValues.title,
         };
       });
 
@@ -130,7 +126,7 @@ exports.index = (req, res, next) => {
   // 资讯查找方式  按热门/按最新
   const orderType = parseInt(req.query.order, 0) || constants.HOT_NEWS;
   // 资讯内容分类  按领域分类/全部
-  const contextType = parseInt(req.query.context, 0) || constants.CONTEXT_TOTAL;
+  const contextType = parseInt(req.query.context, 0) || constants.CONTEXT_PERSON_TOTAL;
   // 分页
   const page = req.query.page || 1;
   const httpUtil = new HttpSend(req, res);
@@ -139,9 +135,9 @@ exports.index = (req, res, next) => {
     try {
       const rtn = await getNewsList(orderType, contextType, page);
 
-      const newsClass = constants.NEWS_CLASS_LIST.OFFICIAL;
+      const newsClass = constants.NEWS_CLASS_LIST.PERSONAL;
       httpUtil.render('news/news', {
-        title: '热文资讯', newLists: rtn.newLists, totalPage: rtn.totalPage, newsClass, contextType,
+        title: '个人资讯', newLists: rtn.newLists, totalPage: rtn.totalPage, newsClass, contextType,
       });
     } catch (err) {
       next(err);
@@ -155,7 +151,7 @@ exports.getNewsListByCondition = (req, res) => {
   // 资讯查找方式  按热门/按最新
   const orderType = parseInt(req.query.order, 0) || constants.HOT_NEWS;
   // 资讯内容分类  按领域分类/全部
-  const contextType = parseInt(req.query.context, 0) || constants.CONTEXT_TOTAL;
+  const contextType = parseInt(req.query.context, 0) || constants.CONTEXT_PERSON_TOTAL;
   // 分页
   const page = req.query.page || 1;
   const resUtil = new HttpSend(req, res);
@@ -199,16 +195,20 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   const operateType = shareInfo.shareId && shareInfo.shareId !== viewerInfo.userId ? 2 : 1;
   const pointInfo = await Model.BonusPoint.findOne({ where: { id: operateType } });
   const pointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.pointNum : 0;
-  const otherPointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.otherPointNum : 0;
+  const sharePointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.sharePointNum : 0;
+  const writerPointNum = pointInfo && pointInfo.dataValues
+    ? pointInfo.dataValues.writerPointNum : 0;
 
-  // 浏览者和分享者（如果有）的最新积分，非负数时有效，更新至积分商城
+  // 浏览者和分享者（如果有）和原创作者的最新积分，非负数时有效，更新至积分商城
   let viewerNewTotalPoint = -1;
   let shareNewTotalPoint = -1;
+  let writerNewTotalPoint = -1;
   Model.sequelize.transaction(async (transaction) => {
     /** *****************************记录资讯浏览日志**************************************** */
     const pvNewsInfo = await Model.PVNews.create({
       newsId: newsInfo.newsId,
-      writerName: newsInfo.writerName,
+      writerId: newsInfo.writerId,
+      type: newsInfo.type,
       newsClass: newsInfo.newsClass,
       title: newsInfo.title,
       introduction: newsInfo.introduction,
@@ -222,9 +222,9 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
 
     /** ************************************更新浏览记录相关redis数据************************************* */
     const today = moment().format('YYYYMMDD');
-    // 所有文章 浏览总榜（决定热门显示顺序）
-    const pvTotalKey = redisUtil.getRedisPrefix(2);
-    // 所有文章 分类浏览总榜（决定热门显示顺序）
+    // 个人资讯 浏览总榜（决定热门显示顺序）
+    const pvTotalKey = redisUtil.getRedisPrefix(2, constants.CONTEXT_PERSON_TOTAL);
+    // 个人资讯 分类浏览总榜（决定热门显示顺序）
     const pvContextKey = redisUtil.getRedisPrefix(2, newsInfo.newsClass);
 
     // 某文章当日所有浏览人 记录（日志记录）
@@ -265,7 +265,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       userPvNum = parseInt(updateRedis[2], 0);
     }
 
-    /** *****************************如果第一次浏览该新闻，增加浏览者积分日志************************************* */
+    /** *****************************如果第一次浏览该个人资讯，增加浏览者积分日志************************************* */
     if (userPvNum === 1 && pointNum > 0) {
       const bonusKey = redisUtil.getRedisPrefix(18);
       const totalPoint = await globalClient.hincrbyAsync(bonusKey, viewerInfo.userId, pointNum);
@@ -281,17 +281,39 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       viewerNewTotalPoint = totalPoint;
     }
 
+
+    /** ************************如果第一次浏览该个人资讯(且非本人原创)，增加原创作者积分日志**************************** */
+    if (userPvNum === 1 && writerPointNum > 0 &&
+      newsInfo.writerId && newsInfo.writerId !== viewerInfo.userId) {
+      const bonusKey = redisUtil.getRedisPrefix(18);
+      const totalPoint = await globalClient.hincrbyAsync(
+        bonusKey,
+        newsInfo.writerId,
+        writerPointNum,
+      );
+      await Model.PointRecord.create({
+        viewerId: newsInfo.writerId,
+        shareId: viewerInfo.userId,
+        operator: 6,
+        changeNum: writerPointNum,
+        totalPoint,
+        newsId: newsInfo.newsId,
+        proofId: pvNewsInfo.dataValues.id,
+      }, { transaction });
+      writerNewTotalPoint = totalPoint;
+    }
+
     /** ******************如果有分享者(且非自己)，且被分享人第一次点入该链接，增加分享者积分日志******************** */
     if (shareInfo.shareId && shareUserId !== viewerInfo.userId &&
-      userNewPVNum === 1 && otherPointNum > 0
+      userNewPVNum === 1 && sharePointNum > 0
     ) {
       const key = redisUtil.getRedisPrefix(18);
-      const totalPoint = await globalClient.hincrbyAsync(key, shareInfo.shareId, otherPointNum);
+      const totalPoint = await globalClient.hincrbyAsync(key, shareInfo.shareId, sharePointNum);
       await Model.PointRecord.create({
         viewerId: shareInfo.shareId,
         shareId: viewerInfo.userId,
         operator: 2,
-        changeNum: otherPointNum,
+        changeNum: sharePointNum,
         totalPoint,
         newsId: newsInfo.newsId,
         proofId: pvNewsInfo.dataValues.id,
@@ -304,6 +326,9 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     }
     if (shareNewTotalPoint >= 0) {
       globalController.addGlobalPoint(shareUserId, shareNewTotalPoint);
+    }
+    if (writerNewTotalPoint >= 0) {
+      globalController.addGlobalPoint(newsInfo.writerId, writerNewTotalPoint);
     }
   }).catch((err) => {
     // Rolled back
@@ -328,13 +353,19 @@ exports.getNewsDetailById = (req, res, next) => {
   const mainFunction = async () => {
     try {
       // 查询文章
-      const newsInfo = await Model.News.findOne({ where: { newsId } });
+      const newsInfo = await Model.News.findOne({
+        where: { newsId },
+        include: [
+          { model: Model.User, required: true },
+          { model: Model.JobTitle, required: true },
+        ],
+      });
 
       if (!newsInfo || !newsInfo.dataValues) {
         throw new Error('该资讯不存在');
       }
 
-      if (newsInfo.dataValues.type !== constants.TYPE_NEWS) {
+      if (newsInfo.dataValues.type !== constants.TYPE_PERSON_NEWS) {
         throw new Error('资讯类型错误');
       }
 
@@ -343,7 +374,7 @@ exports.getNewsDetailById = (req, res, next) => {
       const ifThumb = await redisClient.hgetAsync(thumbUpKey, userId);
 
       // 查询点赞总数、浏览总数、评论总数
-      const supportInfo = await exports.getPVAndThumpById(newsId);
+      const supportInfo = await newsController.getPVAndThumpById(newsId);
 
       // 查询评论列表
       const commentListKey = redisUtil.getRedisPrefix(14, newsId);
@@ -356,7 +387,10 @@ exports.getNewsDetailById = (req, res, next) => {
 
       const pageInfo = {
         newsId: newsInfo.dataValues.newsId,
-        userName: newsInfo.dataValues.writerName,
+        userName: newsInfo.User.dataValues.realName,
+        headImgUrl: newsInfo.User.dataValues.headImgUrl,
+        hospitalName: newsInfo.User.dataValues.hospitalName,
+        jobTitleName: newsInfo.JobTitle.dataValues.title,
         newsClass: newsInfo.dataValues.newsClass,
         title: newsInfo.dataValues.title,
         introduction: newsInfo.dataValues.introduction,
@@ -373,10 +407,10 @@ exports.getNewsDetailById = (req, res, next) => {
 
       exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareId);
       const shareUid = shareId || userId;
-      const shareLink = encodeURI(`${config.serverHost}/news/details/${pageInfo.newsId}?shareId=${shareUid}`);
+      const shareLink = encodeURI(`${config.serverHost}/person_news/details/${pageInfo.newsId}?shareId=${shareUid}`);
       const renderUrl = !shareId ? 'news/news-detail' : 'news/news-detail-share';
       httpUtil.render(renderUrl, {
-        title: '热文资讯', pageInfo, shareLink, shareUid: shareId,
+        title: '个人资讯', pageInfo, shareLink, shareUid: shareId,
       });
     } catch (err) {
       logger.info(err);
@@ -415,16 +449,19 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   const operateType = shareInfo.shareId && shareInfo.shareId !== viewerInfo.userId ? 4 : 3;
   const pointInfo = await Model.BonusPoint.findOne({ where: { id: operateType } });
   const pointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.pointNum : 0;
-  const otherPointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.otherPointNum : 0;
+  const sharePointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.sharePointNum : 0;
+  const writerPointNum = pointInfo && pointInfo.dataValues
+    ? pointInfo.dataValues.writerPointNum : 0;
 
-  // 分享者（如果有）和浏览者的最新总积分，>=0时更新
+  // 分享者（如果有）和浏览者和原创作者的最新总积分，>=0时更新
   let viewerNewTotalPoint = -1;
   let shareNewTotalPoint = -1;
+  let writerNewTotalPoint = -1;
   Model.sequelize.transaction(async (transaction) => {
     /** *****************************记录资讯转发日志**************************************** */
     const transmitInfo = await Model.TransmitNews.create({
       newsId: newsInfo.newsId,
-      writerName: newsInfo.writerName,
+      writerId: newsInfo.writerId,
       newsClass: newsInfo.newsClass,
       title: newsInfo.title,
       introduction: newsInfo.introduction,
@@ -475,17 +512,39 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       viewerNewTotalPoint = totalPoint;
     }
 
+
+    /** ************************如果第一次转发该个人资讯(且非本人原创)，增加原创作者积分日志**************************** */
+    if (userTransmitNum === 1 && writerPointNum > 0 &&
+      newsInfo.writerId && newsInfo.writerId !== viewerInfo.userId) {
+      const bonusKey = redisUtil.getRedisPrefix(18);
+      const totalPoint = await globalClient.hincrbyAsync(
+        bonusKey,
+        newsInfo.writerId,
+        writerPointNum,
+      );
+      await Model.PointRecord.create({
+        viewerId: newsInfo.writerId,
+        shareId: viewerInfo.userId,
+        operator: 7,
+        changeNum: writerPointNum,
+        totalPoint,
+        newsId: newsInfo.newsId,
+        proofId: transmitInfo.dataValues.id,
+      }, { transaction });
+      writerNewTotalPoint = totalPoint;
+    }
+
     /** ****************如果有分享者(且不为本人)，且被分享人第一次转发该链接，增加分享者积分日志****************** */
     if (shareInfo.shareId && shareUserId !== viewerInfo.userId &&
-      userNewTransmitNum === 1 && otherPointNum > 0
+      userNewTransmitNum === 1 && sharePointNum > 0
     ) {
       const key = redisUtil.getRedisPrefix(18);
-      const totalPoint = await globalClient.hincrbyAsync(key, shareInfo.shareId, otherPointNum);
+      const totalPoint = await globalClient.hincrbyAsync(key, shareInfo.shareId, sharePointNum);
       await Model.PointRecord.create({
         viewerId: shareInfo.shareId,
         shareId: viewerInfo.userId,
         operator: 4,
-        changeNum: otherPointNum,
+        changeNum: sharePointNum,
         totalPoint,
         newsId: newsInfo.newsId,
         proofId: transmitInfo.dataValues.id,
@@ -499,6 +558,9 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     }
     if (shareNewTotalPoint >= 0) {
       globalController.addGlobalPoint(shareUserId, shareNewTotalPoint);
+    }
+    if (writerNewTotalPoint >= 0) {
+      globalController.addGlobalPoint(newsInfo.writerId, writerNewTotalPoint);
     }
   }).catch((err) => {
     // Rolled back
@@ -524,6 +586,11 @@ exports.shareNewsById = (req, res) => {
       const newsInfo = await Model.News.findOne({ where: { newsId } });
       if (!newsInfo || !newsInfo.dataValues) {
         resUtil.sendJson(constants.HTTP_FAIL, '资讯不存在,积分增加失败');
+        return;
+      }
+
+      if (newsInfo.dataValues.type !== constants.TYPE_PERSON_NEWS) {
+        resUtil.sendJson(constants.HTTP_FAIL, '接口调用错误');
         return;
       }
 
@@ -594,6 +661,9 @@ exports.commentNewsById = (req, res) => {
         userName: req.session.user.userName,
         userId: req.session.user.userId,
         headImgUrl: req.session.user.headImgUrl,
+        realName: req.session.user.realName,
+        hospitalName: req.session.user.hospitalName,
+        jobTitleId: req.session.user.jobTitleId,
         commentTime: Date.now(),
       };
 
@@ -619,142 +689,4 @@ exports.commentNewsById = (req, res) => {
   };
 
   mainFunction();
-};
-
-// 自测题详情页
-exports.getTestDetailById = (req, res, next) => {
-  const newsId = parseInt(req.params.newsId, 0) || 0;
-  // 分享者id
-  const shareId = req.query.shareId || '';
-  const httpUtil = new HttpSend(req, res);
-
-  if (!newsId) {
-    const err = new Error('参数错误');
-    next(err);
-    return;
-  }
-
-  const mainFunction = async () => {
-    try {
-      // 检查newsId是否正确
-      const newsInfo = await Model.News.findOne({ where: { newsId } });
-      if (!newsInfo || !newsInfo.dataValues) {
-        throw new Error('自测题不存在');
-      }
-
-      if (newsInfo.dataValues.type !== constants.TYPE_ESTIMATE) {
-        throw new Error('资讯类型错误');
-      }
-
-      // 由于自测题目和答案都是UI切死图，所以这里去掉了查询题目这一步骤
-
-      // 记录浏览日志
-      exports.addViewLogByNewsId(newsInfo.dataValues, req.session.user, shareId);
-
-      const newShareId = shareId === '' ? req.session.user.userId : shareId;
-      const shareUrl = `${config.serverHost}/news/tests/${newsId}?shareId=${newShareId}`;
-      httpUtil.render('test/test-tongfeng', {
-        newsId,
-        shareUid: newShareId,
-        shareUrl,
-        img: newsInfo.dataValues.imgUrl,
-        title: newsInfo.dataValues.title,
-      });
-    } catch (err) {
-      logger.info(err);
-      next(err);
-    }
-  };
-
-  mainFunction();
-};
-
-// 提交自测题
-exports.finishTestById = async (req, res) => {
-  const resUtil = new HttpSend(req, res);
-  const newsId = parseInt(req.params.newsId, 0) || 0;
-  const choiceList = req.body.choiceList || await resUtil.transferJson() || {};
-  const userId = req.session.user.userId || '';
-
-  // 检查参数
-  if (!newsId || JSON.stringify(choiceList) === '{}' || !userId) {
-    resUtil.sendJson(constants.HTTP_FAIL, '参数错误');
-    return;
-  }
-
-  const calScore = async () => {
-    const questionLists = await Model.SelfTest.findAll({
-      where: { newsId },
-      order: [['order', 'ASC']],
-    });
-    if (questionLists.length === 0) {
-      throw new Error('自测题题目列表不存在');
-    }
-
-    let totalScore = 0;
-    for (const questionInfo of questionLists) {
-      const order = questionInfo.dataValues.order || 0;
-      const userChoice = choiceList[order];
-      const scores = JSON.parse(questionInfo.dataValues.scores || '');
-      totalScore += parseInt(scores[userChoice] || 0, 0);
-    }
-
-    return totalScore;
-  };
-
-  const qryEstimate = async (totalScore) => {
-    const estimate = await Model.SelfTestEstimate.findOne({
-      where: {
-        newsId,
-        minScore: { [Op.lte]: totalScore },
-        maxScore: { [Op.gte]: totalScore },
-      },
-    });
-    if (!estimate || !estimate.dataValues) {
-      throw new Error('自测评判标准查询失败');
-    }
-
-    return estimate.dataValues;
-  };
-
-  const uptRecord = (totalScore, estimateInfo, newsInfo) =>
-    Model.SelfTestRecord.create({
-      userId,
-      userName: req.session.user.userName,
-      headImg: req.session.user.headImgUrl,
-      options: JSON.stringify(choiceList),
-      totalScore,
-      estimateId: estimateInfo.estimateId,
-      estimate: estimateInfo.estimate,
-      newsId,
-      newsClass: newsInfo.dataValues.newsClass || 0,
-      title: newsInfo.dataValues.title || '',
-    });
-
-  try {
-    // 查询自测题相关信息,验证参数合法性
-    const newsInfo = await Model.News.findOne({
-      where: { newsId },
-    });
-    if (!newsInfo || !newsInfo.dataValues ||
-      newsInfo.dataValues.type !== constants.TYPE_ESTIMATE) {
-      resUtil.sendJson(constants.HTTP_FAIL, '参数错误');
-      return;
-    }
-
-
-    // 查询自测题题目,计算得分
-    const totalScore = await calScore();
-
-    // 根据分数查询评价
-    const estimateInfo = await qryEstimate(totalScore);
-
-    // 异步更新评价结果至日志中
-    uptRecord(totalScore, estimateInfo, newsInfo);
-
-    resUtil.sendJson(constants.HTTP_SUCCESS);
-  } catch (err) {
-    logger.info(err);
-    resUtil.sendJson(constants.HTTP_FAIL, '系统错误');
-  }
 };

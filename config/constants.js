@@ -29,8 +29,10 @@ const constants = {
   // 资讯搜索类型 最新
   LATEST_NEWS: 2,
 
-  // 资讯内容类型 默认为无类别
+  // 热文资讯内容类型 默认0为全部
   CONTEXT_TOTAL: 0,
+  // 个人资讯内容类型 默认999为全部
+  CONTEXT_PERSON_TOTAL: 999,
 
   // 资讯类型 普通新闻
   TYPE_NEWS: 1,

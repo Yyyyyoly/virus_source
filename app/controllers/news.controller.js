@@ -200,7 +200,7 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   const operateType = shareInfo.shareId && shareInfo.shareId !== viewerInfo.userId ? 2 : 1;
   const pointInfo = await Model.BonusPoint.findOne({ where: { id: operateType } });
   const pointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.pointNum : 0;
-  const otherPointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.otherPointNum : 0;
+  const sharePointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.sharePointNum : 0;
 
   // 浏览者和分享者（如果有）的最新积分，非负数时有效，更新至积分商城
   let viewerNewTotalPoint = -1;
@@ -285,15 +285,15 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
 
     /** ******************如果有分享者(且非自己)，且被分享人第一次点入该链接，增加分享者积分日志******************** */
     if (shareInfo.shareId && shareUserId !== viewerInfo.userId &&
-      userNewPVNum === 1 && otherPointNum > 0
+      userNewPVNum === 1 && sharePointNum > 0
     ) {
       const key = redisUtil.getRedisPrefix(18);
-      const totalPoint = await globalClient.hincrbyAsync(key, shareInfo.shareId, otherPointNum);
+      const totalPoint = await globalClient.hincrbyAsync(key, shareInfo.shareId, sharePointNum);
       await Model.PointRecord.create({
         viewerId: shareInfo.shareId,
         shareId: viewerInfo.userId,
         operator: 2,
-        changeNum: otherPointNum,
+        changeNum: sharePointNum,
         totalPoint,
         newsId: newsInfo.newsId,
         proofId: pvNewsInfo.dataValues.id,
@@ -417,7 +417,7 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
   const operateType = shareInfo.shareId && shareInfo.shareId !== viewerInfo.userId ? 4 : 3;
   const pointInfo = await Model.BonusPoint.findOne({ where: { id: operateType } });
   const pointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.pointNum : 0;
-  const otherPointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.otherPointNum : 0;
+  const sharePointNum = pointInfo && pointInfo.dataValues ? pointInfo.dataValues.sharePointNum : 0;
 
   // 分享者（如果有）和浏览者的最新总积分，>=0时更新
   let viewerNewTotalPoint = -1;
@@ -479,15 +479,15 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
 
     /** ****************如果有分享者(且不为本人)，且被分享人第一次转发该链接，增加分享者积分日志****************** */
     if (shareInfo.shareId && shareUserId !== viewerInfo.userId &&
-      userNewTransmitNum === 1 && otherPointNum > 0
+      userNewTransmitNum === 1 && sharePointNum > 0
     ) {
       const key = redisUtil.getRedisPrefix(18);
-      const totalPoint = await globalClient.hincrbyAsync(key, shareInfo.shareId, otherPointNum);
+      const totalPoint = await globalClient.hincrbyAsync(key, shareInfo.shareId, sharePointNum);
       await Model.PointRecord.create({
         viewerId: shareInfo.shareId,
         shareId: viewerInfo.userId,
         operator: 4,
-        changeNum: otherPointNum,
+        changeNum: sharePointNum,
         totalPoint,
         newsId: newsInfo.newsId,
         proofId: transmitInfo.dataValues.id,
