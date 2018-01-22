@@ -16,7 +16,6 @@ router.get('/lineChartDetails', authController.isLogin, homeController.getLineCh
 
 // 策略引导页面
 router.get('/strategy/point', authController.isLogin, homeController.renderStrategyPoint);
-router.get('/strategy/commission', authController.isLogin, homeController.renderStrategyCommission);
 
 module.exports = function (app) {
   app.use(prefix, router);

@@ -31,10 +31,16 @@ exports.getRedisPrefix = (type, id = '') => {
       redisKey = `${constants.REDIS_PREFIX}|rank|pdt_type|user_share`; // 用户分享的商品，商品pv类别日排行 rank|pdt_type|user_share:uid:20171116 {type:num}
       break;
     case 30:
-      redisKey = `${constants.REDIS_PREFIX}|rank|news|writer`; // 用户原创文章 新闻pv日排行 rank|news|writer:uid:20171116:type {newsId:num}
+      redisKey = `${constants.REDIS_PREFIX}|rank|news|writer_pv`; // 用户原创文章 新闻pv日排行 rank|news|writer_pv:uid:20171116:type {newsId:num}
       break;
     case 31:
-      redisKey = `${constants.REDIS_PREFIX}|rank|news_type|writer`; // 用户原创文章 新闻类别pv日排行  rank|writer|user_share:uid:20171117 {type:pv_num}
+      redisKey = `${constants.REDIS_PREFIX}|rank|news_type|writer_pv`; // 用户原创文章 新闻类别pv日排行  rank|writer|writer_pv:uid:20171117 {type:pv_num}
+      break;
+    case 32:
+      redisKey = `${constants.REDIS_PREFIX}|rank|news|writer_trs`; // 用户原创文章 新闻转发日排行 rank|news|writer_trs:uid:20171116:type {newsId:num}
+      break;
+    case 33:
+      redisKey = `${constants.REDIS_PREFIX}|rank|news_type|writer_trs`; // 用户原创文章 新闻类别转发日排行  rank|writer|writer_trs:uid:20171117 {type:trs_num}
       break;
 
 
@@ -49,6 +55,9 @@ exports.getRedisPrefix = (type, id = '') => {
       break;
     case 29:
       redisKey = `${constants.REDIS_PREFIX}|data|writer|pv_news`; // 用户当日原创所有文章  浏览人记录  data|writer|pv_news:uid:20171020 {viewerId:pv_num}
+      break;
+    case 28:
+      redisKey = `${constants.REDIS_PREFIX}|data|writer|transmit_news`; // 用户当日原创所有文章  转发人记录  data|writer|transmit_news:uid:20171020 {viewerId:pv_num}
       break;
 
 

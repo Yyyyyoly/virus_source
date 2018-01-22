@@ -482,6 +482,16 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     // 下级的二次转发记录
     const transmitUserNewsLogKey = redisUtil.getRedisPrefix(22, `${newsInfo.newsId}:${shareInfo.shareId}`);
 
+
+    const today = moment().format('YYYYMMDD');
+    // 原创作者 旗下所有原创文章  转发记录（日志记录）
+    const writerTransmitKey = redisUtil.getRedisPrefix(28, `${newsInfo.writerId}:${today}`);
+
+    // 原创作者的热门转发当日排行 (饼状图排行榜使用)
+    const writerTypeKey = redisUtil.getRedisPrefix(33, `${newsInfo.writerId}:${today}`);
+    const writerNewsKey = redisUtil.getRedisPrefix(32, `${newsInfo.writerId}:${today}`);
+
+
     let updateRedis = [];
     let userTransmitNum = 0;
     let userNewTransmitNum = 0;
@@ -489,12 +499,18 @@ exports.addTransmitLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
       updateRedis = await redisClient.multi()
         .hincrby(transmitNewsLogKey, viewerInfo.userId, 1)
         .hincrby(transmitUserNewsLogKey, viewerInfo.userId, 1)
+        .zincrby(writerTypeKey, 1, newsInfo.newsClass)
+        .zincrby(`${writerNewsKey}:all`, 1, newsInfo.newsId)
+        .hincrby(writerTransmitKey, viewerInfo.userId, 1)
         .execAsync();
       userTransmitNum = parseInt(updateRedis[0], 0);
       userNewTransmitNum = parseInt(updateRedis[1], 0);
     } else {
       updateRedis = await redisClient.multi()
         .hincrby(transmitNewsLogKey, viewerInfo.userId, 1)
+        .zincrby(writerTypeKey, 1, newsInfo.newsClass)
+        .zincrby(`${writerNewsKey}:all`, 1, newsInfo.newsId)
+        .hincrby(writerTransmitKey, viewerInfo.userId, 1)
         .execAsync();
       userTransmitNum = parseInt(updateRedis[0], 0);
     }

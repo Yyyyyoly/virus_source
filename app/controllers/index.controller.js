@@ -26,41 +26,6 @@ const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
     return { uvNews, pvNews };
   };
 
-  // 查询指定日期浏览商品的uv\pv
-  const getProducts = async () => {
-    const productsUvKey = redisUtil.getRedisPrefix(9, `${userId}:${date}`);
-    const productList = await redisClient.hgetallAsync(productsUvKey);
-
-    let uvProducts = 0;
-    let pvProducts = 0;
-    for (const key in productList) {
-      uvProducts += 1;
-      pvProducts += parseInt(productList[key], 0);
-    }
-
-    return { uvProducts, pvProducts };
-  };
-
-  // 查询指定日期下单用户数和下单商品总数
-  const getPurchaseRecord = async () => {
-    const purchaseKey = redisUtil.getRedisPrefix(10, `${userId}:${date}`);
-    const productKey = redisUtil.getRedisPrefix(8, `${userId}:${date}`);
-    const [purchaseList, typeList] = await Promise.all([
-      redisClient.hgetallAsync(purchaseKey),
-      redisClient.zrangeAsync(productKey, 0, -1, 'WITHSCORES'),
-    ]);
-
-    const userNum = purchaseList ? Object.keys(purchaseList).length : 0;
-    const typeLength = typeList ? typeList.length : 0;
-    let orderNum = 0; // 今日下单商品总数
-    for (let i = 0; i < typeLength; i += 2) {
-      orderNum += parseInt(typeList[i + 1], 0);
-    }
-
-    return { userNum, orderNum };
-  };
-
-
   // 查询指定日期 原创总计uv\pv
   const getPersonalNews = async () => {
     const originalUvKey = redisUtil.getRedisPrefix(29, `${userId}:${date}`);
@@ -76,14 +41,28 @@ const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
     return { uvPersonNews, pvPersonNews };
   };
 
-  const [newsView, productView, purchaseRecord, personNewsView] = await Promise.all([
+  // 查询指定日期 原创转发数量的uv\pv
+  const getPersonalTransmit = async () => {
+    const transmitUvKey = redisUtil.getRedisPrefix(28, `${userId}:${date}`);
+    const transmitList = await redisClient.hgetallAsync(transmitUvKey);
+
+    let uvTransmitNews = 0;
+    let pvTransmitNews = 0;
+    for (const key in transmitList) {
+      uvTransmitNews += 1;
+      pvTransmitNews += parseInt(transmitList[key], 0);
+    }
+
+    return { uvTransmitNews, pvTransmitNews };
+  };
+
+  const [newsView, personNewsView, personNewsTransmit] = await Promise.all([
     getOfficialNews(),
-    getProducts(),
-    getPurchaseRecord(),
     getPersonalNews(),
+    getPersonalTransmit(),
   ]);
   return {
-    newsView, productView, purchaseRecord, personNewsView,
+    newsView, personNewsView, personNewsTransmit,
   };
 };
 
@@ -187,25 +166,20 @@ exports.index = (req, res, next) => {
 
   const mainFunction = async () => {
     try {
-      const commissionKey = redisUtil.getRedisPrefix(6);
       const pointKey = redisUtil.getRedisPrefix(18);
 
-      const [commissionNum, pointNum, datas, lineChartPoint, lineChartCommission] =
+      const [pointNum, datas, lineChartPoint] =
         await Promise.all([
-          globalClient.hgetAsync(commissionKey, userId), // 查询用户的佣金总额
           globalClient.hgetAsync(pointKey, userId), // 查询用户的积分数量
           dataStatistics(userId), // 查询统计数据
           getLineChartInfoByType(userId, 1, 7), // 查询uv折线图
-          getLineChartInfoByType(userId, 6, 7), // 查询下单商品数
         ]);
 
       httpUtil.render('index/index', {
         title: '首页',
-        commissionNum: parseFloat(commissionNum / 100) || 0.00,
         pointNum: parseInt(pointNum, 0) || 0,
         datas,
         lineChartPoint,
-        lineChartCommission,
       });
     } catch (err) {
       logger.info(err);
@@ -229,40 +203,12 @@ exports.renderStrategyPoint = (req, res, next) => {
 
   const mainFunction = async () => {
     try {
-      // 查询用户的佣金总额
+      // 查询用户的积分总额
       const bonusKey = redisUtil.getRedisPrefix(18);
       let pointNum = await globalClient.hgetAsync(bonusKey, userId);
       pointNum = parseInt(pointNum, 0) || 0;
 
       httpUtil.render('index/strategy-news', { title: '积分推广攻略', commissionNum: pointNum });
-    } catch (err) {
-      logger.info(err);
-      next(err);
-    }
-  };
-
-  mainFunction();
-};
-
-// 首页 佣金策略显示页面
-exports.renderStrategyCommission = (req, res, next) => {
-  const userId = req.session.user ? req.session.user.userId : '';
-  const httpUtil = new HttpSend(req, res);
-
-  if (!userId) {
-    const err = new Error('请先去登录');
-    next(err);
-    return;
-  }
-
-  const mainFunction = async () => {
-    try {
-      // 查询用户的佣金总额
-      const commissionKey = redisUtil.getRedisPrefix(6);
-      let commissionNum = await globalClient.hgetAsync(commissionKey, userId);
-      commissionNum = parseFloat(commissionNum / 100) || 0.00;
-
-      httpUtil.render('index/strategy-goods', { title: '佣金推广攻略', commissionNum });
     } catch (err) {
       logger.info(err);
       next(err);
@@ -366,8 +312,16 @@ exports.getListDetails = (req, res, next) => {
             createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
           };
           break;
-        default:
+        case 4:
           sqlModel = Model.PVNews;
+          conditions = {
+            writerId: userId,
+            type: { [Op.eq]: 3 },
+            createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
+          };
+          break;
+        default:
+          sqlModel = Model.TransmitNews;
           conditions = {
             writerId: userId,
             type: { [Op.eq]: 3 },
@@ -399,7 +353,7 @@ exports.getListDetails = (req, res, next) => {
       }
 
       const titles = {
-        1: '浏览文章用户数', 2: '浏览商品用户数', 3: '下单用户数', 4: '原创浏览用户数',
+        1: '浏览文章用户数', 2: '浏览商品用户数', 3: '下单用户数', 4: '原创浏览用户数', 5: '原创转发用户数',
       };
       resUtil.render('index/user-list', { total: list.length, list, title: titles[type] });
     } catch (err) {
@@ -447,9 +401,14 @@ exports.getPieDetails = (req, res, next) => {
           briefKey = redisUtil.getRedisPrefix(12);
           briefClassKey = redisUtil.getRedisPrefix(26);
           break;
-        default:
+        case 4:
           typeKey = redisUtil.getRedisPrefix(31, `${userId}:${date}`);
           rankKeyByType = redisUtil.getRedisPrefix(30, `${userId}:${date}`);
+          briefKey = redisUtil.getRedisPrefix(11);
+          break;
+        default:
+          typeKey = redisUtil.getRedisPrefix(33, `${userId}:${date}`);
+          rankKeyByType = redisUtil.getRedisPrefix(32, `${userId}:${date}`);
           briefKey = redisUtil.getRedisPrefix(11);
           break;
       }
@@ -496,8 +455,10 @@ exports.getPieDetails = (req, res, next) => {
         });
       }
 
-      const titles = { 1: '浏览文章次数', 2: '浏览商品次数', 3: '下单商品数', 4: '原创浏览次数'};
-      if (type === 1 || type === 4) {
+      const titles = {
+        1: '浏览文章次数', 2: '浏览商品次数', 3: '下单商品数', 4: '原创浏览次数', 5: '原创转发次数',
+      };
+      if (type === 1 || type === 4 || type === 5) {
         resUtil.render('index/count', {
           typePie: pieList, rank: formatList, title: titles[type], type,
         });

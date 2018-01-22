@@ -63,7 +63,6 @@ module.exports = function () {
   require('../app/routes/auth.route')(app);
   require('../app/routes/index.route')(app);
   require('../app/routes/home.route')(app);
-  require('../app/routes/shop.route')(app);
   require('../app/routes/news.route')(app);
   require('../app/routes/user.route')(app);
   require('../app/routes/personNews.route')(app);
