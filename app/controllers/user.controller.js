@@ -33,9 +33,12 @@ exports.updateUserBriefRank = (userInfo) => {
 };
 
 // 渲染绑定手机号页面
-exports.renderBindPage = (req, res) => {
+exports.renderBindPage = async(req, res) => {
   const httpUtil = new HttpSend(req, res);
-  httpUtil.render('index', { title: '绑定手机号' });
+
+  // 查询职位下拉列表框
+  const titleInfos = await Model.JobTitle.findAll();
+  httpUtil.render('index', { title: '绑定手机号', jobTitleList: titleInfos.dataValues });
 };
 
 // 绑定user表中的手机号、便于积分转化
