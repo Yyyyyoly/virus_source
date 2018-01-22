@@ -227,17 +227,17 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
     // 个人资讯 分类浏览总榜（决定热门显示顺序）
     const pvContextKey = redisUtil.getRedisPrefix(2, newsInfo.newsClass);
 
-    // 某文章当日所有浏览人 记录（日志记录）
-    const newsUvKey = redisUtil.getRedisPrefix(5, `${shareInfo.shareId}:${today}`);
-
     // 指定文章所有浏览人记录（积分统计时使用，仅在第一次浏览加积分）
     const pvNewsLogKey = redisUtil.getRedisPrefix(15, newsInfo.newsId);
     // 用户分享某文章后的浏览人记录(积分统计时使用，仅在分享后第一次浏览加积分）
     const pvUserNewsLogKey = redisUtil.getRedisPrefix(16, `${newsInfo.newsId}:${shareInfo.shareId}`);
 
-    // 该分享人的热门文章当日排行 (饼状图排行榜使用)
-    const shareUserTypeKey = redisUtil.getRedisPrefix(4, `${shareInfo.shareId}:${today}`);
-    const shareUserKey = redisUtil.getRedisPrefix(3, `${shareInfo.shareId}:${today}`);
+    // 原创作者 旗下所有原创文章  浏览记录（日志记录）
+    const WriterUvKey = redisUtil.getRedisPrefix(29, `${newsInfo.writerId}:${today}`);
+
+    // 原创作者的热门文章当日排行 (饼状图排行榜使用)
+    const writerTypeKey = redisUtil.getRedisPrefix(31, `${newsInfo.writerId}:${today}`);
+    const writerNewsKey = redisUtil.getRedisPrefix(30, `${newsInfo.writerId}:${today}`);
 
     // 鉴于multi并不会产生回滚，所以一旦exec出错  还是有错误数据会+1
     let updateRedis = [];
@@ -249,10 +249,9 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         .zincrby(pvContextKey, 1, newsInfo.newsId)
         .hincrby(pvNewsLogKey, viewerInfo.userId, 1)
         .hincrby(pvUserNewsLogKey, viewerInfo.userId, 1)
-        .hincrby(newsUvKey, viewerInfo.userId, 1)
-        .zincrby(shareUserTypeKey, 1, newsInfo.newsClass)
-        .zincrby(`${shareUserKey}:all`, 1, newsInfo.newsId)
-        // .zincrby(`${shareUserKey}:${newsInfo.newsClass}`, 1, newsInfo.newsId) 目前前端根据标签自己排序
+        .zincrby(writerTypeKey, 1, newsInfo.newsClass)
+        .zincrby(`${writerNewsKey}:all`, 1, newsInfo.newsId)
+        .hincrby(WriterUvKey, viewerInfo.userId, 1)
         .execAsync();
       userPvNum = parseInt(updateRedis[2], 0);
       userNewPVNum = parseInt(updateRedis[3], 0);
@@ -261,6 +260,9 @@ exports.addViewLogByNewsId = async (newsInfo, viewerInfo, shareUserId) => {
         .zincrby(pvTotalKey, 1, newsInfo.newsId)
         .zincrby(pvContextKey, 1, newsInfo.newsId)
         .hincrby(pvNewsLogKey, viewerInfo.userId, 1)
+        .zincrby(writerTypeKey, 1, newsInfo.newsClass)
+        .zincrby(`${writerNewsKey}:all`, 1, newsInfo.newsId)
+        .hincrby(WriterUvKey, viewerInfo.userId, 1)
         .execAsync();
       userPvNum = parseInt(updateRedis[2], 0);
     }

@@ -11,8 +11,8 @@ const Op = Model.Sequelize.Op;
 
 // 查询每日数据总量统计
 const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
-  // 查询指定日期浏览文章的uv\pv
-  const getNews = async () => {
+  // 查询指定日期  分享下级浏览官方文章的uv\pv
+  const getOfficialNews = async () => {
     const newsUvKey = redisUtil.getRedisPrefix(5, `${userId}:${date}`);
     const newsList = await redisClient.hgetallAsync(newsUvKey);
 
@@ -60,12 +60,31 @@ const dataStatistics = async (userId, date = moment().format('YYYYMMDD')) => {
     return { userNum, orderNum };
   };
 
-  const [newsView, productView, purchaseRecord] = await Promise.all([
-    getNews(),
+
+  // 查询指定日期 原创总计uv\pv
+  const getPersonalNews = async () => {
+    const originalUvKey = redisUtil.getRedisPrefix(29, `${userId}:${date}`);
+    const originalNewsList = await redisClient.hgetallAsync(originalUvKey);
+
+    let uvPersonNews = 0;
+    let pvPersonNews = 0;
+    for (const key in originalNewsList) {
+      uvPersonNews += 1;
+      pvPersonNews += parseInt(originalNewsList[key], 0);
+    }
+
+    return { uvPersonNews, pvPersonNews };
+  };
+
+  const [newsView, productView, purchaseRecord, personNewsView] = await Promise.all([
+    getOfficialNews(),
     getProducts(),
     getPurchaseRecord(),
+    getPersonalNews(),
   ]);
-  return { newsView, productView, purchaseRecord };
+  return {
+    newsView, productView, purchaseRecord, personNewsView,
+  };
 };
 
 // 获取折线图数据
@@ -320,25 +339,44 @@ exports.getListDetails = (req, res, next) => {
 
   const mainFunction = async () => {
     try {
+      const startDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 00:00:00');
+      const endDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 23:59:59');
       let sqlModel = '';
+      let conditions = {};
       switch (type) {
         case 1:
           sqlModel = Model.PVNews;
+          conditions = {
+            shareId: userId,
+            type: { [Op.ne]: 3 },
+            createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
+          };
           break;
         case 2:
           sqlModel = Model.PVProducts;
+          conditions = {
+            shareId: userId,
+            createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
+          };
+          break;
+        case 3:
+          sqlModel = Model.Commission;
+          conditions = {
+            shareId: userId,
+            createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
+          };
           break;
         default:
-          sqlModel = Model.Commission;
+          sqlModel = Model.PVNews;
+          conditions = {
+            writerId: userId,
+            type: { [Op.eq]: 3 },
+            createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
+          };
       }
 
-      const startDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 00:00:00');
-      const endDate = moment(date, 'YYYYMMDD').format('YYYY-MM-DD 23:59:59');
       const resultList = await sqlModel.findAll({
-        where: {
-          shareId: userId,
-          createdAt: { [Op.gte]: startDate, [Op.lte]: endDate },
-        },
+        where: conditions,
         order: [['createdAt', 'DESC']],
       }) || { dataValues: [] };
 
@@ -360,7 +398,9 @@ exports.getListDetails = (req, res, next) => {
         }
       }
 
-      const titles = { 1: '浏览文章用户数', 2: '浏览商品用户数', 3: '下单用户数' };
+      const titles = {
+        1: '浏览文章用户数', 2: '浏览商品用户数', 3: '下单用户数', 4: '原创浏览用户数',
+      };
       resUtil.render('index/user-list', { total: list.length, list, title: titles[type] });
     } catch (err) {
       logger.info(err);
@@ -401,11 +441,17 @@ exports.getPieDetails = (req, res, next) => {
           briefKey = redisUtil.getRedisPrefix(12);
           briefClassKey = redisUtil.getRedisPrefix(26);
           break;
-        default:
+        case 3:
           typeKey = redisUtil.getRedisPrefix(8, `${userId}:${date}`);
           rankKeyByType = redisUtil.getRedisPrefix(7, `${userId}:${date}`);
           briefKey = redisUtil.getRedisPrefix(12);
           briefClassKey = redisUtil.getRedisPrefix(26);
+          break;
+        default:
+          typeKey = redisUtil.getRedisPrefix(31, `${userId}:${date}`);
+          rankKeyByType = redisUtil.getRedisPrefix(30, `${userId}:${date}`);
+          briefKey = redisUtil.getRedisPrefix(11);
+          break;
       }
 
       // 全部排行列表
@@ -416,8 +462,17 @@ exports.getPieDetails = (req, res, next) => {
       const ids = list.filter((item, index) => (index % 2 === 0));
       const briefIntroduction = ids.length ? await redisClient.hmgetAsync(briefKey, ids) : [];
       // 所有商品/资讯的类别
-      const briefClassInfos = briefClassKey === '' ? constants.NEWS_CLASS_LIST.OFFICIAL :
-        await redisClient.hgetallAsync(briefClassKey);
+      let briefClassInfos = {};
+      if (briefClassKey === '') {
+        if (type === 1) {
+          briefClassInfos = constants.NEWS_CLASS_LIST.OFFICIAL;
+        } else {
+          briefClassInfos = constants.NEWS_CLASS_LIST.PERSONAL;
+        }
+      } else {
+        briefClassInfos = await redisClient.hgetallAsync(briefClassKey);
+      }
+
 
       const pieList = [];
       for (let j = 0; j < typeList.length; j += 2) {
@@ -441,8 +496,8 @@ exports.getPieDetails = (req, res, next) => {
         });
       }
 
-      const titles = { 1: '浏览文章次数', 2: '浏览商品次数', 3: '下单商品数' };
-      if (type === 1) {
+      const titles = { 1: '浏览文章次数', 2: '浏览商品次数', 3: '下单商品数', 4: '原创浏览次数'};
+      if (type === 1 || type === 4) {
         resUtil.render('index/count', {
           typePie: pieList, rank: formatList, title: titles[type], type,
         });
